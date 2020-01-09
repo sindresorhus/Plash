@@ -67,6 +67,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			self.updateMenu()
 		}
 
+		webViewController.onLoaded = { error in
+			guard error == nil else {
+				self.statusButton.toolTip = ""
+				return
+			}
+
+			if let url = Defaults[.url] {
+				let title = self.webViewController.webView.title.map { "\($0)\n" } ?? ""
+				let urlString = url.isFileURL ? url.lastPathComponent : url.absoluteString
+				self.statusButton.toolTip = "\(title)\(urlString)"
+			} else {
+				self.statusButton.toolTip = ""
+			}
+		}
+
 		Defaults.observe(.url) { change in
 			self.resetTimer()
 			self.loadURL(change.newValue)

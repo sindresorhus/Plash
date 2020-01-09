@@ -2,6 +2,9 @@ import Cocoa
 import WebKit
 
 final class WebViewController: NSViewController {
+	/// Closure to call when the web view finishes loading a page.
+	var onLoaded: ((Error?) -> Void)?
+
 	lazy var webView: SSWebView = {
 		let configuration = WKWebViewConfiguration()
 		configuration.mediaTypesRequiringUserActionForPlayback = []
@@ -41,26 +44,36 @@ final class WebViewController: NSViewController {
 }
 
 extension WebViewController: WKNavigationDelegate {
+	func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+		onLoaded?(nil)
+	}
+
 	func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
 		let nsError = error as NSError
 
 		// Ignore `Plug-in handled load` error which can happen when you open a video directly.
 		if nsError.domain == "WebKitErrorDomain", nsError.code == 204 {
+			onLoaded?(nil)
 			return
 		}
 
 		// Ignore the request being cancelled which can happen if the user clicks on a link while a web is loading.
 		if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
+			onLoaded?(nil)
 			return
 		}
 
 		print("Web View - Navigation error:", error)
 		NSApp.presentError(error)
+
+		onLoaded?(error)
 	}
 
 	func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
 		print("Web View - Content load error:", error)
 		NSApp.presentError(error)
+
+		onLoaded?(error)
 	}
 }
 
