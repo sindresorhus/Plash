@@ -53,6 +53,10 @@ You can interact with the website by enabling “Browsing Mode”. When in this 
 
 No, we're not interested in localizing the app.
 
+#### What does “Plash” mean?
+
+[Click here.](http://letmegooglethat.com/?q=define+plash)
+
 #### Can you add support for macOS 10.14 or older?
 
 No, this app uses SwiftUI, which only works on macOS 10.15 and later.
