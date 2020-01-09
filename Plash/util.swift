@@ -502,6 +502,17 @@ struct App {
 	static func quit() {
 		NSApp.terminate(nil)
 	}
+
+	static let isFirstLaunch: Bool = {
+		let key = "SS_hasLaunched"
+
+		if UserDefaults.standard.bool(forKey: key) {
+			return false
+		} else {
+			UserDefaults.standard.set(true, forKey: key)
+			return true
+		}
+	}()
 }
 
 
@@ -1317,5 +1328,51 @@ extension WKWebView {
 
 			self.init(rawValue: rawIdentifier)
 		}
+	}
+}
+
+
+extension NSAlert {
+	/// Show an alert as a window-modal sheet, or as an app-modal (window-indepedendent) alert if the window is `nil` or not given.
+	@discardableResult
+	static func showModal(
+		for window: NSWindow? = nil,
+		message: String,
+		informativeText: String? = nil,
+		style: Style = .warning
+	) -> NSApplication.ModalResponse {
+		NSAlert(
+			message: message,
+			informativeText: informativeText,
+			style: style
+		).runModal(for: window)
+	}
+
+	convenience init(
+		message: String,
+		informativeText: String? = nil,
+		style: Style = .warning
+	) {
+		self.init()
+		self.messageText = message
+		self.alertStyle = style
+
+		if let informativeText = informativeText {
+			self.informativeText = informativeText
+		}
+	}
+
+	/// Runs the alert as a window-modal sheet, or as an app-modal (window-indepedendent) alert if the window is `nil` or not given.
+	@discardableResult
+	func runModal(for window: NSWindow? = nil) -> NSApplication.ModalResponse {
+		guard let window = window else {
+			return runModal()
+		}
+
+		beginSheetModal(for: window) { returnCode in
+			NSApp.stopModal(withCode: returnCode)
+		}
+
+		return NSApp.runModal(for: window)
 	}
 }
