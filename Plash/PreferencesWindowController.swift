@@ -3,11 +3,12 @@ import SwiftUI
 
 final class PreferencesWindowController: NSWindowController {
 	convenience init() {
-		let window = NSWindow()
+		let window = SwiftUIWindowForMenuBarApp()
 		self.init(window: window)
 
 		let view = PreferencesView()
 
+		window.shouldCloseOnEscapePress = false
 		window.title = "Plash Preferences"
 		window.styleMask = [
 			.titled,

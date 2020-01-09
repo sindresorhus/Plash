@@ -4,7 +4,7 @@ import Defaults
 
 final class OpenURLWindowController: NSWindowController {
 	convenience init() {
-		let window = NSWindow()
+		let window = SwiftUIWindowForMenuBarApp()
 		self.init(window: window)
 
 		let view = OpenURLView { url in
@@ -20,11 +20,6 @@ final class OpenURLWindowController: NSWindowController {
 		window.level = .modalPanel
 		window.contentView = NSHostingView(rootView: view)
 		window.center()
-	}
-
-	@objc
-	func cancel(_ sender: Any?) {
-		close()
 	}
 
 	func showWindow() {

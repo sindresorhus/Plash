@@ -1376,3 +1376,77 @@ extension NSAlert {
 		return NSApp.runModal(for: window)
 	}
 }
+
+
+extension NSEvent {
+	/**
+	Real modifiers.
+
+	- Note: Prefer this over `.modifierFlags`.
+
+	```
+	// Check if Command is one of possible more modifiers keys
+	event.modifiers.contains(.command)
+
+	// Check if Command is the only modifier key
+	event.modifiers == .command
+
+	// Check if Command and Shift are the only modifiers
+	event.modifiers == [.command, .shift]
+	```
+	*/
+	var modifiers: ModifierFlags {
+		modifierFlags
+			.intersection(.deviceIndependentFlagsMask)
+			// We remove capsLock as it shouldn't affect the modifiers.
+			// We remove numericPad/function as arrow keys trigger it, use `event.specialKeys` instead.
+			.subtracting([.capsLock, .numericPad, .function])
+	}
+}
+
+
+final class SwiftUIWindowForMenuBarApp: NSWindow {
+	override var canBecomeMain: Bool { true }
+	override var canBecomeKey: Bool { true }
+	override var acceptsFirstResponder: Bool { true }
+
+	var shouldCloseOnEscapePress = true
+
+	convenience init() {
+		self.init(
+			contentRect: .zero,
+			styleMask: [
+				.titled,
+				.closable,
+				.miniaturizable,
+				.resizable
+			],
+			backing: .buffered,
+			defer: true
+		)
+	}
+
+	override func cancelOperation(_ sender: Any?) {
+		guard shouldCloseOnEscapePress else {
+			return
+		}
+
+		performClose(self)
+	}
+
+	override func keyDown(with event: NSEvent) {
+		if event.modifiers == .command {
+			if event.charactersIgnoringModifiers == "w" {
+				performClose(self)
+				return
+			}
+
+			if event.charactersIgnoringModifiers == "m" {
+				performMiniaturize(self)
+				return
+			}
+		}
+
+		super.keyDown(with: event)
+	}
+}
