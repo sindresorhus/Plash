@@ -1,0 +1,76 @@
+<div align="center">
+	<a href="https://sindresorhus.com/plash">
+		<img src="Stuff/AppIcon-readme.png" width="200" height="200">
+	</a>
+	<h1>Plash</h1>
+	<p>
+		<b>Make any website your Mac desktop wallpaper</b>
+	</p>
+	<br>
+	<br>
+	<br>
+</div>
+
+Plash enables you to have a highly dynamic desktop wallpaper. You could display your favorite news site, Facebook feed, or a random beautiful scenery photo. The use-cases are limitless. You could even set an animated GIF as wallpaper.
+
+You can specify the opacity and reload interval in the preferences.
+
+## Use-cases
+
+- [**Random Unplash image**](https://source.unsplash.com)\
+	Example: https://source.unsplash.com/random/2880x1756?puppy \
+		This returns a new random puppy image each time.
+		Replace the numbers with your screen resolution. Subtract 44 (or 22 for non-retina) on the height to account for the menu bar.
+- **Calendar**\
+	For example, Google Calendar or Outlook 365.
+- **Personal stats**\
+	You could even make a custom website for this.
+- **Animated GIF**\
+	Example: https://media3.giphy.com/media/xTiTnLmaxrlBHxsMMg/giphy.gif?cid=790b761121c10e72aca8bcfe50b030502b62a69ac7336782&rid=giphy.gif
+
+[*Share your use-case*](https://github.com/sindresorhus/Plash/issues/1)
+
+## Download
+
+[![](https://linkmaker.itunes.apple.com/assets/shared/badges/en-us/macappstore-lrg.svg)](https://apps.apple.com/us/app/plash/id1494023538?mt=12)
+
+Requires macOS 10.15 or later.
+
+## Tip
+
+You can interact with the website by enabling “Browsing Mode”. When in this mode, you can right-click to be able to go back/forward, reload, and zoom in the page contents. You can also pinch to magnify. This is different from zooming the page contents in that it will zoom in to a specific part of the page instead of just enlarging everything.
+
+## Screenshots
+
+<img src="Stuff/screenshot1.jpg" width="720" height="450">
+<img src="Stuff/screenshot2.jpg" width="720" height="450">
+<img src="Stuff/screenshot3.jpg" width="720" height="450">
+<img src="Stuff/screenshot4.jpg" width="720" height="450">
+
+## FAQ
+
+#### Can I contribute localizations?
+
+No, we're not interested in localizing the app.
+
+#### Can you add support for macOS 10.14 or older?
+
+No, this app uses SwiftUI, which only works on macOS 10.15 and later.
+
+#### Is this a native app?
+
+Yes, it’s a native app written in Swift.
+
+#### Can you port it to Windows/Linux?
+
+No, I’m a Mac developer.
+
+## Built with
+
+- [Defaults](https://github.com/sindresorhus/Defaults) - Swifty and modern UserDefaults
+
+## Related
+
+- [Website](https://sindresorhus.com/plash)
+- [Gifski](https://github.com/sindresorhus/Gifski) - Convert videos to high-quality GIFs
+- [More apps…](https://sindresorhus.com/apps)
