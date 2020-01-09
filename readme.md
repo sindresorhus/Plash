@@ -17,7 +17,7 @@ You can specify the opacity and reload interval in the preferences.
 
 ## Use-cases
 
-- [**Random Unplash image**](https://source.unsplash.com)\
+- [**Random Unsplash image**](https://source.unsplash.com)\
 	Example: https://source.unsplash.com/random/2880x1756?puppy \
 		This returns a new random puppy image each time.
 		Replace the numbers with your screen resolution. Subtract 44 (or 22 for non-retina) on the height to account for the menu bar.
