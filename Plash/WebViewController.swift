@@ -1,14 +1,22 @@
 import Cocoa
 import WebKit
+import Defaults
 
 final class WebViewController: NSViewController {
 	/// Closure to call when the web view finishes loading a page.
 	var onLoaded: ((Error?) -> Void)?
 
-	lazy var webView: SSWebView = {
+	private func createWebView() -> SSWebView {
 		let configuration = WKWebViewConfiguration()
 		configuration.mediaTypesRequiringUserActionForPlayback = []
 		configuration.allowsAirPlayForMediaPlayback = false
+
+		let userContentController = WKUserContentController()
+		configuration.userContentController = userContentController
+
+		if Defaults[.invertColors] {
+			userContentController.invertColors()
+		}
 
 		let webView = SSWebView(frame: .zero, configuration: configuration)
 		webView.navigationDelegate = self
@@ -18,7 +26,14 @@ final class WebViewController: NSViewController {
 		webView.customUserAgent = SSWebView.safariUserAgent
 
 		return webView
-	}()
+	}
+
+	func recreateWebView() {
+		webView = createWebView()
+		view = webView
+	}
+
+	lazy var webView = createWebView()
 
 	override func loadView() {
 		view = webView

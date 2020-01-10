@@ -66,6 +66,22 @@ private struct ReloadIntervalPreference: View {
 	}
 }
 
+private struct InvertColorsPreference: View {
+	@ObservedObject private var invertColors = Defaults.observable(.invertColors)
+
+	var body: some View {
+		VStack {
+			Toggle(
+				"Invert Website Colors",
+				isOn: $invertColors.value
+			)
+			Text("(Fake dark mode)")
+				.font(.system(size: 10))
+				.foregroundColor(.secondary)
+		}
+	}
+}
+
 struct PreferencesView: View {
 	var body: some View {
 		VStack {
@@ -76,6 +92,9 @@ struct PreferencesView: View {
 			Divider()
 				.padding(.vertical)
 			ReloadIntervalPreference()
+			Divider()
+				.padding(.vertical)
+			InvertColorsPreference()
 		}
 			.frame(width: 300)
 			.padding()
