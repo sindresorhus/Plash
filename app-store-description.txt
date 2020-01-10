@@ -4,6 +4,8 @@ This enables you to have a highly dynamic desktop wallpaper. You could display y
 
 You can specify the opacity and reload interval in the preferences.
 
+Note: Support for multiple displays is currently limited to the ability to chose which display to show the website on. Support for setting  separate website for each display is planned.
+
 
 # Example use-cases
 

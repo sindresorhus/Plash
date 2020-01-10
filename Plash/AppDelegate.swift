@@ -18,7 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 	lazy var webViewController = WebViewController()
 
-	lazy var desktopWindow = with(DesktopWindow()) {
+	lazy var desktopWindow = with(DesktopWindow(screen: Defaults[.display].screen)) {
 		$0.contentView = webViewController.webView
 		$0.contentView?.isHidden = true
 	}
@@ -96,6 +96,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 		Defaults.observe(.reloadInterval) { _ in
 			self.resetTimer()
+		}
+			.tieToLifetime(of: self)
+
+		Defaults.observe(.display, options: [.new]) { change in
+			self.desktopWindow.targetScreen = change.newValue.screen
 		}
 			.tieToLifetime(of: self)
 

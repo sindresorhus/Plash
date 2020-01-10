@@ -8,6 +8,12 @@ final class DesktopWindow: NSWindow {
 
 	private var cancelBag = Set<AnyCancellable>()
 
+	var targetScreen: NSScreen? {
+		didSet {
+			setFrame()
+		}
+	}
+
 	var isInteractive = false {
 		didSet {
 			if isInteractive {
@@ -20,7 +26,7 @@ final class DesktopWindow: NSWindow {
 		}
 	}
 
-	convenience init() {
+	convenience init(screen: NSScreen?) {
 		self.init(
 			contentRect: .zero,
 			styleMask: [
@@ -30,6 +36,8 @@ final class DesktopWindow: NSWindow {
 			defer: false
 		)
 
+		self.targetScreen = screen
+
 		self.level = .desktop
 		self.collectionBehavior = [
 			.canJoinAllSpaces,
@@ -37,22 +45,29 @@ final class DesktopWindow: NSWindow {
 			.ignoresCycle
 		]
 
-		setSize()
+		setFrame()
 
 		NotificationCenter.default
 			.publisher(for: NSApplication.didChangeScreenParametersNotification)
 			.sink { [weak self] _ in
-				self?.setSize()
+				self?.setFrame()
 			}
 			.store(in: &cancelBag)
 	}
 
-	private func setSize() {
-		guard var mainScreenSize = NSScreen.main?.frame.size else {
+	private func setFrame() {
+		// Ensure the screen still exists.
+		guard let screen = (NSScreen.screens.first { $0 == targetScreen }) ?? .main else {
 			return
 		}
 
-		mainScreenSize.height -= NSStatusBar.system.thickness
-		setContentSize(mainScreenSize)
+		var screenFrame = screen.frame
+
+		// Account for the menu bar if the window is on the main screen or if secondary screens are set to show the menu bar.
+		if screen == .main || NSScreen.screensHaveSeparateSpaces {
+			screenFrame.size.height -= NSStatusBar.system.thickness
+		}
+
+		setFrame(screenFrame, display: true)
 	}
 }
