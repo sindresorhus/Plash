@@ -1450,3 +1450,55 @@ final class SwiftUIWindowForMenuBarApp: NSWindow {
 		super.keyDown(with: event)
 	}
 }
+
+
+extension WKUserContentController {
+	private func createCSSInjectScript(_ css: String) -> String {
+		let textContent = css.addingPercentEncoding(withAllowedCharacters: .letters) ?? css
+
+		return
+			"""
+			const style = document.createElement('style');
+			style.textContent = unescape('\(textContent)');
+			document.documentElement.appendChild(style);
+			"""
+	}
+
+	/// Add CSS to the page.
+	func addCSS(_ css: String) {
+		let source = createCSSInjectScript(css)
+
+		let userScript = WKUserScript(
+			source: source,
+			injectionTime: .atDocumentStart,
+			forMainFrameOnly: false
+		)
+
+		addUserScript(userScript)
+	}
+}
+
+extension WKUserContentController {
+	private static let invertColorsCSS =
+		"""
+		:root {
+			background-color: #fefefe;
+			filter: invert(100%) hue-rotate(-180deg);
+		}
+
+		* {
+			background-color: inherit;
+		}
+
+		img:not([src*='.svg']),
+		video {
+			filter: invert(100%) hue-rotate(180deg);
+			background-color: unset;
+		}
+		"""
+
+	/// Invert the colors on the page. Pseudo dark mode.
+	func invertColors() {
+		addCSS(Self.invertColorsCSS)
+	}
+}

@@ -98,6 +98,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			self.resetTimer()
 		}
 			.tieToLifetime(of: self)
+
+		Defaults.observe(.invertColors, options: []) { _ in
+			self.recreateWebView()
+		}
+			.tieToLifetime(of: self)
 	}
 
 	func showWelcomeScreenIfNeeded() {
@@ -125,8 +130,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		}
 
 		self.reloadTimer = Timer.scheduledTimer(withTimeInterval: reloadInterval, repeats: true) { _ in
-			self.loadURL(Defaults[.url])
+			self.loadUserURL()
 		}
+	}
+
+	func recreateWebView() {
+		webViewController.recreateWebView()
+		desktopWindow.contentView = webViewController.webView
+		loadUserURL()
+	}
+
+	func loadUserURL() {
+		loadURL(Defaults[.url])
 	}
 
 	func loadURL(_ url: URL?) {
@@ -213,7 +228,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		menu.addSeparator()
 
 		menu.addCallbackItem("Reload", key: "r", isEnabled: Defaults[.url] != nil) { _ in
-			self.loadURL(Defaults[.url])
+			self.loadUserURL()
 		}
 
 		menu.addCallbackItem(
