@@ -1452,8 +1452,8 @@ final class SwiftUIWindowForMenuBarApp: NSWindow {
 }
 
 
-extension WKUserContentController {
-	private func createCSSInjectScript(_ css: String) -> String {
+extension WKWebView {
+	static func createCSSInjectScript(_ css: String) -> String {
 		let textContent = css.addingPercentEncoding(withAllowedCharacters: .letters) ?? css
 
 		return
@@ -1463,10 +1463,12 @@ extension WKUserContentController {
 			document.documentElement.appendChild(style);
 			"""
 	}
+}
 
+extension WKUserContentController {
 	/// Add CSS to the page.
 	func addCSS(_ css: String) {
-		let source = createCSSInjectScript(css)
+		let source = WKWebView.createCSSInjectScript(css)
 
 		let userScript = WKUserScript(
 			source: source,
@@ -1500,6 +1502,29 @@ extension WKUserContentController {
 	/// Invert the colors on the page. Pseudo dark mode.
 	func invertColors() {
 		addCSS(Self.invertColorsCSS)
+	}
+}
+
+
+extension WKWebView {
+	// TODO: Move this to `SSWebView` instead and also expose a `response` property so we don't need the `mimeType` parameter.
+	/// Center a standalone image as WKWebView doesn't center it like Chrome and Firefox do...
+	func centerImage(mimeType: String?) {
+		guard mimeType?.hasPrefix("image/") == true else {
+			return
+		}
+
+		let js = Self.createCSSInjectScript(
+			"""
+			body {
+				display: flex;
+				align-items: center;
+				justify-content: center;
+			}
+			"""
+		)
+
+		evaluateJavaScript(js, completionHandler: nil)
 	}
 }
 

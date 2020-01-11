@@ -6,6 +6,8 @@ final class WebViewController: NSViewController {
 	/// Closure to call when the web view finishes loading a page.
 	var onLoaded: ((Error?) -> Void)?
 
+	var response: HTTPURLResponse?
+
 	private func createWebView() -> SSWebView {
 		let configuration = WKWebViewConfiguration()
 		configuration.mediaTypesRequiringUserActionForPlayback = []
@@ -59,7 +61,20 @@ final class WebViewController: NSViewController {
 }
 
 extension WebViewController: WKNavigationDelegate {
+	func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+		if
+			navigationResponse.isForMainFrame,
+			let response = navigationResponse.response as? HTTPURLResponse
+		{
+			self.response = response
+		}
+
+		decisionHandler(.allow)
+	}
+
 	func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+		webView.centerImage(mimeType: response?.mimeType)
+
 		onLoaded?(nil)
 	}
 
