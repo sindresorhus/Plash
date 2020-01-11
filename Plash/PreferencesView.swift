@@ -66,6 +66,23 @@ private struct ReloadIntervalPreference: View {
 	}
 }
 
+private struct DisplayPreference: View {
+	@ObservedObject private var displayWrapper = Display.observable
+	@ObservedObject private var chosenDisplay = Defaults.observable(.display)
+
+	var body: some View {
+		Picker(
+			"Show On Display:",
+			selection: $chosenDisplay.value.getMap { $0.withFallback }
+		) {
+			ForEach(displayWrapper.wrappedValue.all, id: \.self) { display in
+				Text(display.localizedName)
+					.tag(display)
+			}
+		}
+	}
+}
+
 private struct InvertColorsPreference: View {
 	@ObservedObject private var invertColors = Defaults.observable(.invertColors)
 
@@ -92,6 +109,9 @@ struct PreferencesView: View {
 			Divider()
 				.padding(.vertical)
 			ReloadIntervalPreference()
+			Divider()
+				.padding(.vertical)
+			DisplayPreference()
 			Divider()
 				.padding(.vertical)
 			InvertColorsPreference()

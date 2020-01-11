@@ -1502,3 +1502,125 @@ extension WKUserContentController {
 		addCSS(Self.invertColorsCSS)
 	}
 }
+
+
+/**
+Wrap a value in an `ObservableObject` where the given `Publisher` triggers it to update. Note that the value is static and must be accessed as `.wrappedValue`. The publisher part is only meant to trigger an observable update.
+
+- Important: If you pass a value type, it will obviously not be kept in sync with the source.
+
+```
+struct ContentView: View {
+	@ObservedObject private var foo = ObservableValue(
+		value: someNonReactiveValue,
+		publisher: Foo.publisher
+	)
+
+	var body: some View {}
+}
+```
+
+You can even pass in a meta type (`Foo.self`), for example, to wrap an struct:
+
+```
+struct Display {
+	static var text: String { … }
+
+	static let observable = ObservableValue(
+		value: Self.self,
+		publisher: NotificationCenter.default
+			.publisher(for: NSApplication.didChangeScreenParametersNotification)
+	)
+}
+
+// …
+
+struct ContentView: View {
+	@ObservedObject private var display = Display.observable
+
+	var body: some View {
+		Text(display.wrappedValue.text)
+	}
+}
+```
+*/
+final class ObservableValue<Value>: ObservableObject {
+	let objectWillChange = ObservableObjectPublisher()
+	private var publisher: AnyCancellable?
+	private(set) var wrappedValue: Value
+
+	init<P: Publisher>(value: Value, publisher: P) {
+		self.wrappedValue = value
+
+		self.publisher = publisher.sink(
+			receiveCompletion: { _ in },
+			receiveValue: { [weak self] _ in
+				self?.objectWillChange.send()
+			}
+		)
+	}
+
+	/// Manually trigger an update.
+	func update() {
+		objectWillChange.send()
+	}
+}
+
+
+extension NSScreen: Identifiable {
+	public var id: CGDirectDisplayID {
+		deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as! CGDirectDisplayID
+	}
+}
+
+extension NSScreen {
+	static func from(cgDirectDisplayID id: CGDirectDisplayID) -> NSScreen? {
+		NSScreen.screens.first { $0.id == id }
+	}
+
+	/// This can be useful if you store a reference to a `NSScreen` instance as it may have been disconnected.
+	var isConnected: Bool {
+		NSScreen.screens.contains { $0 == self }
+	}
+}
+
+
+struct Display: Hashable, Codable, Identifiable {
+	/// Self wrapped in an observable that updates when display change.
+	static let observable = ObservableValue(
+		value: Self.self,
+		publisher: NotificationCenter.default
+			.publisher(for: NSApplication.didChangeScreenParametersNotification)
+	)
+
+	/// The main display.
+	static let main = Self(id: CGMainDisplayID())
+
+	/// All displays.
+	static var all: [Self] {
+		NSScreen.screens.map { self.init(screen: $0) }
+	}
+
+	/// The ID of the display.
+	let id: CGDirectDisplayID
+
+	/// The `NSScreen` for the display.
+	var screen: NSScreen? { NSScreen.from(cgDirectDisplayID: id) }
+
+	/// The localized name of the display.
+	var localizedName: String { screen?.localizedName ?? "<Unknown name>" }
+
+	/// Whether the display is connected.
+	var isConnected: Bool { screen?.isConnected ?? false }
+
+	/// Get the main display if the current display is not connected.
+	var withFallback: Self { isConnected ? self : .main }
+
+	init(id: CGDirectDisplayID) {
+		self.id = id
+	}
+
+	init(screen: NSScreen) {
+		self.id = screen.id
+	}
+}
