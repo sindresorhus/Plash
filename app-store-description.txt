@@ -2,7 +2,15 @@ Make any website your desktop wallpaper.
 
 This enables you to have a highly dynamic desktop wallpaper. You could display your favorite news site, Facebook feed, or a random beautiful scenery photo. The use-cases are limitless. You could even set an animated GIF as wallpaper.
 
-You can specify the opacity and reload interval in the preferences.
+
+# Features
+
+- Interact with the website (“Browse Mode”)
+- Automatically reload the website at a custom interval
+- Show the website on a different display
+- Invert website colors (fake dark mode)
+- Add custom CSS to the website
+- Lower the opacity
 
 Note: Support for multiple displays is currently limited to the ability to choose which display to show the website on. Support for setting  separate website for each display is planned.
 

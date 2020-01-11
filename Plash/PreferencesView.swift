@@ -99,6 +99,21 @@ private struct InvertColorsPreference: View {
 	}
 }
 
+private struct CustomCSSPreference: View {
+	@ObservedObject private var customCSS = Defaults.observable(.customCSS)
+
+	var body: some View {
+		VStack {
+			Text("Custom CSS:")
+			ScrollableTextView(
+				text: $customCSS.value,
+				font: .monospacedSystemFont(ofSize: 11, weight: .regular)
+			)
+				.frame(height: 100)
+		}
+	}
+}
+
 struct PreferencesView: View {
 	var body: some View {
 		VStack {
@@ -115,8 +130,14 @@ struct PreferencesView: View {
 			Divider()
 				.padding(.vertical)
 			InvertColorsPreference()
+			// Work around 10 view limit.
+			Group {
+				Divider()
+					.padding(.vertical)
+				CustomCSSPreference()
+			}
 		}
-			.frame(width: 300)
+			.frame(width: 340)
 			.padding()
 			.padding()
 	}

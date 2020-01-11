@@ -771,7 +771,7 @@ struct NativeButton: NSViewRepresentable {
 		self.action = action
 	}
 
-	func makeNSView(context: NSViewRepresentableContext<Self>) -> NSViewType {
+	func makeNSView(context: Context) -> NSViewType {
 		let nsView = NSButton(title: "", target: nil, action: nil)
 		nsView.wantsLayer = true
 		nsView.translatesAutoresizingMaskIntoConstraints = false
@@ -780,7 +780,7 @@ struct NativeButton: NSViewRepresentable {
 		return nsView
 	}
 
-	func updateNSView(_ nsView: NSViewType, context: NSViewRepresentableContext<Self>) {
+	func updateNSView(_ nsView: NSViewType, context: Context) {
 		if attributedTitle == nil {
 			nsView.title = title ?? ""
 		}
@@ -1148,8 +1148,8 @@ extension WKWebView {
 		}
 
 		while !isFinished {
-            RunLoop.current.run(mode: .default, before: .distantFuture)
-        }
+			RunLoop.current.run(mode: .default, before: .distantFuture)
+		}
 
 		if let error = returnError {
 			throw error
@@ -1715,5 +1715,85 @@ extension NSStatusBar {
 		}
 
 		return mainScreen.frame.height - mainScreen.visibleFrame.height < NSStatusBar.system.thickness
+	}
+}
+
+
+/**
+A scrollable and editable text view.
+
+- Note: This exist as the SwiftUI `TextField` is unusable for multiline purposes.
+
+It supports the `.lineLimit()` view modifier.
+
+```
+struct ContentView: View {
+	@State private var text = ""
+
+	var body: some View {
+		VStack {
+			Text("Custom CSS:")
+			ScrollableTextView(text: $text)
+				.frame(height: 100)
+		}
+	}
+}
+```
+*/
+struct ScrollableTextView: NSViewRepresentable {
+	typealias NSViewType = NSScrollView
+
+	final class Coordinator: NSObject, NSTextViewDelegate {
+		let view: ScrollableTextView
+
+		init(_ view: ScrollableTextView) {
+			self.view = view
+		}
+
+		func textDidChange(_ notification: Notification) {
+			guard let textView = notification.object as? NSTextView else {
+				return
+			}
+
+			view.text = textView.string
+		}
+	}
+
+	@Binding var text: String
+	var font = NSFont.controlContentFont(ofSize: 0)
+
+	func makeCoordinator() -> Coordinator {
+		Coordinator(self)
+	}
+
+	func makeNSView(context: Context) -> NSViewType {
+		let scrollView = NSTextView.scrollablePlainDocumentContentTextView()
+		scrollView.borderType = .bezelBorder
+		scrollView.drawsBackground = true
+
+		let textView = scrollView.documentView as! NSTextView
+		textView.delegate = context.coordinator
+		textView.drawsBackground = false
+		textView.isEditable = true
+		textView.isSelectable = true
+		textView.allowsUndo = true
+		textView.textContainerInset = CGSize(width: 5, height: 10)
+		textView.textColor = .controlTextColor
+
+		return scrollView
+	}
+
+	func updateNSView(_ nsView: NSViewType, context: Context) {
+		let textView = (nsView.documentView as! NSTextView)
+
+		if text != textView.string {
+			textView.string = text
+		}
+
+		textView.font = font
+
+		if let lineLimit = context.environment.lineLimit {
+			textView.textContainer?.maximumNumberOfLines = lineLimit
+        }
 	}
 }

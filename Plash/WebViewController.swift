@@ -20,6 +20,10 @@ final class WebViewController: NSViewController {
 			userContentController.invertColors()
 		}
 
+		if !Defaults[.customCSS].trimmed.isEmpty {
+			userContentController.addCSS(Defaults[.customCSS])
+		}
+
 		let webView = SSWebView(frame: .zero, configuration: configuration)
 		webView.navigationDelegate = self
 		webView.uiDelegate = self

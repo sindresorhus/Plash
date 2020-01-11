@@ -127,6 +127,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			self.recreateWebView()
 		}
 			.tieToLifetime(of: self)
+
+		Defaults.observe(.customCSS, options: []) { _ in
+			self.recreateWebView()
+		}
+			.tieToLifetime(of: self)
 	}
 
 	func showWelcomeScreenIfNeeded() {

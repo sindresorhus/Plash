@@ -13,8 +13,6 @@
 
 Plash enables you to have a highly dynamic desktop wallpaper. You could display your favorite news site, Facebook feed, or a random beautiful scenery photo. The use-cases are limitless. You could even set an animated GIF as wallpaper.
 
-You can specify the opacity and reload interval in the preferences.
-
 ## Use-cases
 
 - [**Random Unsplash image**](https://source.unsplash.com)\
@@ -29,6 +27,15 @@ You can specify the opacity and reload interval in the preferences.
 	Example: https://media3.giphy.com/media/xTiTnLmaxrlBHxsMMg/giphy.gif?cid=790b761121c10e72aca8bcfe50b030502b62a69ac7336782&rid=giphy.gif
 
 [*Share your use-case*](https://github.com/sindresorhus/Plash/issues/1)
+
+## Features
+
+- Interact with the website (“Browse Mode”)
+- Automatically reload the website at a custom interval
+- Show the website on a different display
+- Invert website colors (fake dark mode)
+- Add custom CSS to the website
+- Lower the opacity
 
 ## Download
 
