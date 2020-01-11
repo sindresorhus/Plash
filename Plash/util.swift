@@ -1582,6 +1582,26 @@ extension NSScreen {
 	var isConnected: Bool {
 		NSScreen.screens.contains { $0 == self }
 	}
+
+	/// Get the main screen if the current screen is not connected.
+	var withFallbackToMain: NSScreen? { isConnected ? self : .main }
+
+	/// Whether the screen shows a status bar.
+	var hasStatusBar: Bool {
+		(self == .main && !NSStatusBar.isAutomaticallyToggled) || NSScreen.screensHaveSeparateSpaces
+	}
+
+	/// Get the frame of the actual visible part of the screen. This means under the dock, but *not* under the status bar if there's a status bar. This is different from `.visibleFrame` which also includes the space under the status bar.
+	var visibleFrameWithoutStatusBar: CGRect {
+		var screenFrame = frame
+
+		// Account for the status bar if the window is on the main screen and the status bar is permanently visible, or if on a secondary screen and secondary screens are set to show the status bar.
+		if hasStatusBar {
+			screenFrame.size.height -= NSStatusBar.system.thickness
+		}
+
+		return screenFrame
+	}
 }
 
 
@@ -1614,7 +1634,7 @@ struct Display: Hashable, Codable, Identifiable {
 	var isConnected: Bool { screen?.isConnected ?? false }
 
 	/// Get the main display if the current display is not connected.
-	var withFallback: Self { isConnected ? self : .main }
+	var withFallbackToMain: Self { isConnected ? self : .main }
 
 	init(id: CGDirectDisplayID) {
 		self.id = id
@@ -1658,5 +1678,17 @@ extension String {
 	/// Make a URL more human-friendly by removing the scheme and `www.`.
 	var removingSchemeAndWWWFromURL: Self {
 		replacingOccurrences(matchingRegex: #"^https?:\/\/(?:www.)?"#, with: "")
+	}
+}
+
+
+extension NSStatusBar {
+	/// Whether the user has "Automatically hide and show the menu bar" enabled in system preferences.
+	static var isAutomaticallyToggled: Bool {
+		guard let mainScreen = NSScreen.main else {
+			return false
+		}
+
+		return mainScreen.frame.height - mainScreen.visibleFrame.height < NSStatusBar.system.thickness
 	}
 }

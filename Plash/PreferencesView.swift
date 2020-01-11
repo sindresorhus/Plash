@@ -73,7 +73,7 @@ private struct DisplayPreference: View {
 	var body: some View {
 		Picker(
 			"Show On Display:",
-			selection: $chosenDisplay.value.getMap { $0.withFallback }
+			selection: $chosenDisplay.value.getMap { $0.withFallbackToMain }
 		) {
 			ForEach(displayWrapper.wrappedValue.all, id: \.self) { display in
 				Text(display.localizedName)

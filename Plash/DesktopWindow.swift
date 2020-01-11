@@ -57,17 +57,10 @@ final class DesktopWindow: NSWindow {
 
 	private func setFrame() {
 		// Ensure the screen still exists.
-		guard let screen = (NSScreen.screens.first { $0 == targetScreen }) ?? .main else {
+		guard let screen = targetScreen?.withFallbackToMain else {
 			return
 		}
 
-		var screenFrame = screen.frame
-
-		// Account for the menu bar if the window is on the main screen or if secondary screens are set to show the menu bar.
-		if screen == .main || NSScreen.screensHaveSeparateSpaces {
-			screenFrame.size.height -= NSStatusBar.system.thickness
-		}
-
-		setFrame(screenFrame, display: true)
+		setFrame(screen.visibleFrameWithoutStatusBar, display: true)
 	}
 }
