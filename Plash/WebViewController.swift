@@ -72,22 +72,18 @@ extension WebViewController: WKNavigationDelegate {
 			return
 		}
 
-		// Ignore the request being cancelled which can happen if the user clicks on a link while a web is loading.
+		// Ignore the request being cancelled which can happen if the user clicks on a link while a website is loading.
 		if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
 			onLoaded?(nil)
 			return
 		}
 
 		print("Web View - Navigation error:", error)
-		NSApp.presentError(error)
-
 		onLoaded?(error)
 	}
 
 	func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
 		print("Web View - Content load error:", error)
-		NSApp.presentError(error)
-
 		onLoaded?(error)
 	}
 }

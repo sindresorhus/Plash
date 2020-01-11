@@ -36,6 +36,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 	var reloadTimer: Timer?
 
+	var webViewError: Error? {
+		didSet {
+			if let error = webViewError {
+				self.statusButton.toolTip = "Error: \(error.localizedDescription)"
+				self.statusButton.contentTintColor = .systemRed
+
+				// TODO: Also present the error when the user just added it from the input box as then it's also "interactive".
+				if self.isBrowsingMode {
+					NSApp.presentError(error)
+				}
+
+				return
+			}
+
+			self.statusButton.contentTintColor = nil
+		}
+	}
+
 	func applicationWillFinishLaunching(_ notification: Notification) {
 		UserDefaults.standard.register(defaults: [
 			"NSApplicationCrashOnExceptions": true
@@ -68,8 +86,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		}
 
 		webViewController.onLoaded = { error in
+			self.webViewError = error
+
 			guard error == nil else {
-				self.statusButton.toolTip = ""
 				return
 			}
 
@@ -159,6 +178,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	func loadURL(_ url: URL?) {
+		webViewError = nil
+
 		guard let url = url else {
 			return
 		}
@@ -174,6 +195,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 	func updateMenu() {
 		menu.removeAllItems()
+
+		if let error = webViewError {
+			menu.addDisabled("Error: \(error.localizedDescription)".wrapped(atLength: 36).attributedString)
+			menu.addSeparator()
+		}
 
 		if let url = Defaults[.url] {
 			let maxCount = 26
