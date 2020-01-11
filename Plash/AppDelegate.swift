@@ -193,6 +193,86 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		}
 	}
 
+	func openFile() {
+		NSApp.activate(ignoringOtherApps: true)
+
+		let panel = NSOpenPanel()
+		panel.canChooseDirectories = false
+		panel.canCreateDirectories = false
+
+		// Ensure it's above the window when in "Browsing Mode".
+		panel.level = .floating
+
+		// TODO: Limit file types to only what WKWebView supports? Where can we find out what it supports?
+		//panel.allowedFileTypes = []
+
+		if
+			let url = Defaults[.url],
+			url.isFileURL
+		{
+			panel.directoryURL = url.deletingLastPathComponent()
+		}
+
+		panel.begin {
+			if $0 == .OK {
+				Defaults[.url] = panel.url!
+			}
+		}
+	}
+
+	func addInfoMenuItem() {
+		guard let url = Defaults[.url] else {
+			return
+		}
+
+		let maxLength = 30
+
+		if
+			let title = webViewController.webView.title,
+			!title.isEmpty
+		{
+			let menuItem = menu.addDisabled(title.truncated(to: maxLength))
+			menuItem.toolTip = title
+		}
+
+		let urlString = url.isFileURL ? url.lastPathComponent : url.absoluteString
+
+		var newUrlString = urlString
+		if urlString.count > maxLength {
+			newUrlString = urlString.removingSchemeAndWWWFromURL
+		}
+
+		let menuItem = menu.addDisabled(newUrlString.truncated(to: maxLength))
+		menuItem.toolTip = urlString
+	}
+
+	func createMoreMenu() -> SSMenu {
+		let menu = SSMenu()
+
+		menu.addAboutItem()
+
+		menu.addSeparator()
+
+		menu.addUrlItem(
+			"Website",
+			url: URL(string: "https://sindresorhus.com/plash")!
+		)
+
+		menu.addUrlItem(
+			"Roadmap",
+			url: URL(string: "https://github.com/sindresorhus/Plash/issues")!
+		)
+
+		menu.addSeparator()
+
+		menu.addUrlItem(
+			"More apps",
+			url: URL(string: "https://sindresorhus.com/apps")!
+		)
+
+		return menu
+	}
+
 	func updateMenu() {
 		menu.removeAllItems()
 
@@ -201,27 +281,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			menu.addSeparator()
 		}
 
-		if let url = Defaults[.url] {
-			let maxCount = 26
-
-			if
-				let title = webViewController.webView.title,
-				!title.isEmpty
-			{
-				let menuItem = menu.addDisabled(title.truncated(to: maxCount))
-				menuItem.toolTip = title
-			}
-
-			let urlString = url.isFileURL ? url.lastPathComponent : url.absoluteString
-
-			var newUrlString = urlString
-			if urlString.count > maxCount {
-				newUrlString = urlString.replacingOccurrences(matchingRegex: #"^https?:\/\/(?:www.)?"#, with: "")
-			}
-
-			let menuItem = menu.addDisabled(newUrlString.truncated(to: maxCount))
-			menuItem.toolTip = urlString
-		}
+		addInfoMenuItem()
 
 		menu.addSeparator()
 
@@ -239,35 +299,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			keyModifiers: .option,
 			isHidden: true // TODO: Disabled until it's done.
 		) { _ in
-			NSApp.activate(ignoringOtherApps: true)
-
-			let panel = NSOpenPanel()
-			panel.canChooseDirectories = false
-			panel.canCreateDirectories = false
-
-			// Ensure it's above the window when in "Browsing Mode".
-			panel.level = .floating
-
-			// TODO: Limit file types to only what WKWebView supports? Where can we find out what it supports?
-			//panel.allowedFileTypes = []
-
-			if
-				let url = Defaults[.url],
-				url.isFileURL
-			{
-				panel.directoryURL = url.deletingLastPathComponent()
-			}
-
-			panel.begin {
-				if $0 == .OK {
-					Defaults[.url] = panel.url!
-				}
-			}
+			self.openFile()
 		}
 
 		menu.addSeparator()
 
-		menu.addCallbackItem("Reload", key: "r", isEnabled: Defaults[.url] != nil) { _ in
+		menu.addCallbackItem(
+			"Reload",
+			key: "r",
+			isEnabled: Defaults[.url] != nil
+		) { _ in
 			self.loadUserURL()
 		}
 
@@ -282,8 +323,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 		menu.addSeparator()
 
-		menu.addAboutItem()
-
 		menu.addCallbackItem("Preferences…", key: ",") { _ in
 			self.preferencesWindowController.showWindow()
 		}
@@ -293,6 +332,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		menu.addCallbackItem("Send Feedback…") { _ in
 			Meta.openSubmitFeedbackPage()
 		}
+
+		let moreMenuItem = menu.addItem("More")
+		moreMenuItem.submenu = createMoreMenu()
+
+		menu.addSeparator()
 
 		menu.addQuitItem()
 	}

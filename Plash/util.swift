@@ -1652,3 +1652,11 @@ extension String {
 		return string
 	}
 }
+
+
+extension String {
+	/// Make a URL more human-friendly by removing the scheme and `www.`.
+	var removingSchemeAndWWWFromURL: Self {
+		replacingOccurrences(matchingRegex: #"^https?:\/\/(?:www.)?"#, with: "")
+	}
+}
