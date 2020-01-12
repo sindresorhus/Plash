@@ -23,8 +23,11 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 	For example, Google Calendar or Outlook 365.
 - **Personal stats**\
 	You could even make a custom website for this.
+- [**Random street view image**](https://randomstreetview.com/#slideshow)
 - **Animated GIF**\
 	Example: https://media3.giphy.com/media/xTiTnLmaxrlBHxsMMg/giphy.gif?cid=790b761121c10e72aca8bcfe50b030502b62a69ac7336782&rid=giphy.gif
+- **Build a custom website**\
+	You could build something quick and host it on [GitHub Pages](https://pages.github.com), [jsfiddle](https://jsfiddle.net), or [CodePen](https://codepen.io).
 
 [*Share your use-case*](https://github.com/sindresorhus/Plash/issues/1)
 

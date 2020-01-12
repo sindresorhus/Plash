@@ -23,6 +23,23 @@ struct OpenURLView: View {
 
 	var body: some View {
 		VStack(alignment: .trailing) {
+			if App.isFirstLaunch {
+				HStack {
+					HStack(spacing: 3) {
+						Text("You could, for example,")
+						Button("show the time.") {
+							self.urlString = "https://time.pablopunk.now.sh"
+						}
+							.buttonStyle(LinkButtonStyle())
+					}
+					Spacer()
+					Button("More ideas") {
+						"https://github.com/sindresorhus/Plash/issues/1".openUrl()
+					}
+						.buttonStyle(LinkButtonStyle())
+				}
+					.box()
+			}
 			TextField(
 				"sindresorhus.com",
 				// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines.

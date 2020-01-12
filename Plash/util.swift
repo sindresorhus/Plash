@@ -1127,57 +1127,6 @@ extension String {
 }
 
 
-extension WKWebView {
-	static let safariUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_1) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.3 Safari/605.1.15"
-
-	/**
-	Evaluate JavaScript synchronously.
-
-	- Important: This will block the main thread. Don't use it for anything that takes a long time.
-	*/
-	@discardableResult
-	func evaluateSync(script: String) throws -> Any? {
-		var isFinished = false
-		var returnResult: Any?
-		var returnError: Error?
-
-		evaluateJavaScript(script) { result, error in
-			returnResult = result
-			returnError = error
-			isFinished = true
-		}
-
-		while !isFinished {
-			RunLoop.current.run(mode: .default, before: .distantFuture)
-		}
-
-		if let error = returnError {
-			throw error
-		}
-
-		return returnResult
-	}
-
-	/**
-	Get/set the zoom level of the page.
-
-	- Important: This is very slow. Don't call it in a hot path.
-	*/
-	var zoomLevel: Double {
-		get {
-			guard let zoomString = (try? evaluateSync(script: "document.body.style.zoom")) as? String else {
-				return 1
-			}
-
-			return Double(zoomString) ?? 1
-		}
-		set {
-			_ = try? evaluateSync(script: "document.body.style.zoom = '\(newValue)'")
-		}
-	}
-}
-
-
 // TODO: Move this to the `LaunchAtLogin` package.
 extension LaunchAtLogin {
 	struct Toggle: View {
@@ -1410,7 +1359,7 @@ final class SwiftUIWindowForMenuBarApp: NSWindow {
 	override var canBecomeKey: Bool { true }
 	override var acceptsFirstResponder: Bool { true }
 
-	var shouldCloseOnEscapePress = true
+	var shouldCloseOnEscapePress = false
 
 	convenience init() {
 		self.init(
@@ -1448,6 +1397,57 @@ final class SwiftUIWindowForMenuBarApp: NSWindow {
 		}
 
 		super.keyDown(with: event)
+	}
+}
+
+
+extension WKWebView {
+	static let safariUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.4 Safari/605.1.15"
+
+	/**
+	Evaluate JavaScript synchronously.
+
+	- Important: This will block the main thread. Don't use it for anything that takes a long time.
+	*/
+	@discardableResult
+	func evaluateSync(script: String) throws -> Any? {
+		var isFinished = false
+		var returnResult: Any?
+		var returnError: Error?
+
+		evaluateJavaScript(script) { result, error in
+			returnResult = result
+			returnError = error
+			isFinished = true
+		}
+
+		while !isFinished {
+			RunLoop.current.run(mode: .default, before: .distantFuture)
+		}
+
+		if let error = returnError {
+			throw error
+		}
+
+		return returnResult
+	}
+
+	/**
+	Get/set the zoom level of the page.
+
+	- Important: This is very slow. Don't call it in a hot path.
+	*/
+	var zoomLevel: Double {
+		get {
+			guard let zoomString = (try? evaluateSync(script: "document.body.style.zoom")) as? String else {
+				return 1
+			}
+
+			return Double(zoomString) ?? 1
+		}
+		set {
+			_ = try? evaluateSync(script: "document.body.style.zoom = '\(newValue)'")
+		}
 	}
 }
 
@@ -1603,6 +1603,9 @@ extension NSScreen {
 		NSScreen.screens.first { $0.id == id }
 	}
 
+	/// Get the screen that contains the menu bar and has origin at (0, 0).
+	static var primary: NSScreen? { screens.first }
+
 	/// This can be useful if you store a reference to a `NSScreen` instance as it may have been disconnected.
 	var isConnected: Bool {
 		NSScreen.screens.contains { $0 == self }
@@ -1710,11 +1713,11 @@ extension String {
 extension NSStatusBar {
 	/// Whether the user has "Automatically hide and show the menu bar" enabled in system preferences.
 	static var isAutomaticallyToggled: Bool {
-		guard let mainScreen = NSScreen.main else {
+		guard let screen = NSScreen.primary else {
 			return false
 		}
 
-		return mainScreen.frame.height - mainScreen.visibleFrame.height < NSStatusBar.system.thickness
+		return screen.frame.height - screen.visibleFrame.height < NSStatusBar.system.thickness
 	}
 }
 
@@ -1795,5 +1798,22 @@ struct ScrollableTextView: NSViewRepresentable {
 		if let lineLimit = context.environment.lineLimit {
 			textView.textContainer?.maximumNumberOfLines = lineLimit
         }
+	}
+}
+
+
+private struct BoxModifier: ViewModifier {
+	func body(content: Content) -> some View {
+		content
+			.padding()
+			.background(Color.primary.opacity(0.05))
+			.cornerRadius(4)
+	}
+}
+
+extension View {
+	/// Wrap the content in a box.
+	func box() -> some View {
+		modifier(BoxModifier())
 	}
 }

@@ -12,6 +12,7 @@ final class WebViewController: NSViewController {
 		let configuration = WKWebViewConfiguration()
 		configuration.mediaTypesRequiringUserActionForPlayback = []
 		configuration.allowsAirPlayForMediaPlayback = false
+		configuration.suppressesIncrementalRendering = true
 
 		let userContentController = WKUserContentController()
 		configuration.userContentController = userContentController
@@ -23,6 +24,10 @@ final class WebViewController: NSViewController {
 		if !Defaults[.customCSS].trimmed.isEmpty {
 			userContentController.addCSS(Defaults[.customCSS])
 		}
+
+		let preferences = WKPreferences()
+		preferences.javaScriptCanOpenWindowsAutomatically = false
+		configuration.preferences = preferences
 
 		let webView = SSWebView(frame: .zero, configuration: configuration)
 		webView.navigationDelegate = self

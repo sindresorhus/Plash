@@ -3,7 +3,7 @@ Make any website your desktop wallpaper.
 This enables you to have a highly dynamic desktop wallpaper. You could display your favorite news site, Facebook feed, or a random beautiful scenery photo. The use-cases are limitless. You could even set an animated GIF as wallpaper.
 
 
-# Features
+■ Features
 
 - Interact with the website (“Browse Mode”)
 - Automatically reload the website at a custom interval
@@ -15,16 +15,18 @@ This enables you to have a highly dynamic desktop wallpaper. You could display y
 Note: Support for multiple displays is currently limited to the ability to choose which display to show the website on. Support for setting a separate website for each display is planned.
 
 
-# Example use-cases
+■ Example use-cases
 
 - Show a random puppy image
 	Example URL: https://source.unsplash.com/random/2880x1756?puppy
 	Replace the numbers with your screen resolution. Subtract 44 (or 22 for non-retina) on the height to account for the menu bar.
+- Random street view image
+	https://randomstreetview.com/#slideshow
 - Calendar
 - Personal stats
 
 
-# Tip
+■ Tip
 
 You can interact with the website by enabling “Browsing Mode”. When in this mode, you can right-click to be able to go back/forward, reload, and zoom in the page contents. You can also pinch to magnify. This is different from zooming the page contents in that it will zoom in to a specific part of the page instead of just enlarging everything.
 

@@ -13,6 +13,7 @@ final class OpenURLWindowController: NSWindowController {
 		}
 
 		window.title = "Open URL"
+		window.shouldCloseOnEscapePress = true
 		window.styleMask = [
 			.titled,
 			.closable

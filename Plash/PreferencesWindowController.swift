@@ -8,7 +8,6 @@ final class PreferencesWindowController: NSWindowController {
 
 		let view = PreferencesView()
 
-		window.shouldCloseOnEscapePress = false
 		window.title = "Plash Preferences"
 		window.styleMask = [
 			.titled,
