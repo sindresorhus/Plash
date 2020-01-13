@@ -1939,3 +1939,113 @@ extension SetAlgebra {
 		}
 	}
 }
+
+
+extension Collection {
+	/**
+	Returns a infinite sequence with consecutively unique random elements from the collection.
+
+	```
+	let x = [1, 2, 3].uniqueRandomElementIterator()
+
+	x.next()
+	//=> 2
+	x.next()
+	//=> 1
+
+	for element in x.prefix(2) {
+		print(element)
+	}
+	//=> 3
+	//=> 1
+	```
+	*/
+	func uniqueRandomElementIterator() -> AnyIterator<Element> {
+		var previousNumber: Int?
+
+		return AnyIterator {
+			var offset: Int
+			repeat {
+				offset = Int.random(in: 0..<self.count)
+			} while offset == previousNumber
+			previousNumber = offset
+
+			let index = self.index(self.startIndex, offsetBy: offset)
+			return self[index]
+		}
+	}
+}
+
+
+extension NSColor {
+	static let systemColors: Set<NSColor> = [
+		.systemBlue,
+		.systemBrown,
+		.systemGray,
+		.systemGreen,
+		.systemOrange,
+		.systemPink,
+		.systemPurple,
+		.systemRed,
+		.systemYellow,
+		.systemTeal,
+		.systemIndigo
+	]
+
+	private static let uniqueRandomSystemColors = systemColors.uniqueRandomElementIterator()
+
+	static func uniqueRandomSystemColor() -> NSColor {
+		uniqueRandomSystemColors.next()!
+	}
+}
+
+
+extension Timer {
+	/// Creates a repeating timer that runs for the given `duration`.
+	@discardableResult
+	open class func scheduledRepeatingTimer(
+		withTimeInterval interval: TimeInterval,
+		duration: TimeInterval,
+		onRepeat: @escaping (Timer) -> Void,
+		onFinish: @escaping () -> Void
+	) -> Timer {
+		let startDate = Date()
+
+		return Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
+			guard Date() <= startDate.addingTimeInterval(duration) else {
+				timer.invalidate()
+				onFinish()
+				return
+			}
+
+			onRepeat(timer)
+		}
+	}
+}
+
+
+extension NSStatusBarButton {
+	/**
+	Quickly cycles through random colors to make a rainbow animation so the user will notice it.
+
+	- Note: It will do nothing if the user has enabled the “Reduce motion” accessibility preference.
+	*/
+	func playRainbowAnimation(duration: TimeInterval = 5) {
+		guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
+			return
+		}
+
+		let originalTintColor = contentTintColor
+
+		Timer.scheduledRepeatingTimer(
+			withTimeInterval: 0.1,
+			duration: duration,
+			onRepeat: { _ in
+				self.contentTintColor = NSColor.uniqueRandomSystemColor()
+			},
+			onFinish: {
+				self.contentTintColor = originalTintColor
+			}
+		)
+	}
+}
