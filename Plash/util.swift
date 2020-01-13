@@ -1,4 +1,6 @@
 import Cocoa
+import IOKit.ps
+import IOKit.pwr_mgt
 import WebKit
 import SwiftUI
 import Combine
@@ -1825,5 +1827,61 @@ extension View {
 	/// Wrap the content in a box.
 	func box() -> some View {
 		modifier(BoxModifier())
+	}
+}
+
+
+final class PowerSourceWatcher {
+	enum PowerSource {
+		case internalBattery
+		case externalUnlimited
+		case externalUPS
+
+		var isUsingPowerAdapter: Bool { self == .externalUnlimited || self == .externalUPS }
+		var isUsingBattery: Bool { self == .internalBattery }
+
+		fileprivate init(identifier: String) {
+			switch identifier {
+			case kIOPMBatteryPowerKey:
+				self = .internalBattery
+			case kIOPMACPowerKey:
+				self = .externalUnlimited
+			case kIOPMUPSPowerKey:
+				self = .externalUPS
+			default:
+				self = .externalUnlimited
+
+				assertionFailure("This should not happen as `IOPSGetProvidingPowerSourceType` is documented to return one of the defined types")
+			}
+		}
+	}
+
+	var onChange: ((PowerSource) -> Void)?
+
+	var powerSource: PowerSource {
+		let identifier = IOPSGetProvidingPowerSourceType(nil)!.takeRetainedValue() as String
+		return PowerSource(identifier: identifier)
+	}
+
+	init?() {
+		let powerSourceCallback: IOPowerSourceCallbackType = { context in
+			// Force-unwrapping is safe here as we're the ones passing the `context`.
+			let this = Unmanaged<PowerSourceWatcher>.fromOpaque(context!).takeUnretainedValue()
+			this.internalOnChange()
+		}
+
+		guard
+			let runLoopSource = IOPSCreateLimitedPowerNotification(powerSourceCallback, UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque()))?.takeRetainedValue()
+		else {
+			return nil
+		}
+
+		CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .defaultMode)
+
+		onChange?(powerSource)
+	}
+
+	fileprivate func internalOnChange() {
+		onChange?(powerSource)
 	}
 }

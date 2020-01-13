@@ -12,4 +12,5 @@ extension Defaults.Keys {
 	static let display = Key<Display>("display", default: .main)
 	static let invertColors = Key<Bool>("invertColors", default: false)
 	static let customCSS = Key<String>("customCSS", default: "")
+	static let deactivateOnBattery = Key<Bool>("deactivateOnBattery", default: false)
 }

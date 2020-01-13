@@ -66,6 +66,19 @@ private struct ReloadIntervalPreference: View {
 	}
 }
 
+private struct DeactivateOnBatteryPreference: View {
+	@ObservedObject private var deactivateOnBattery = Defaults.observable(.deactivateOnBattery)
+
+	var body: some View {
+		VStack {
+			Toggle(
+				"Deactivate While on Battery",
+				isOn: $deactivateOnBattery.value
+			)
+		}
+	}
+}
+
 private struct DisplayPreference: View {
 	@ObservedObject private var displayWrapper = Display.observable
 	@ObservedObject private var chosenDisplay = Defaults.observable(.display)
@@ -117,7 +130,10 @@ private struct CustomCSSPreference: View {
 struct PreferencesView: View {
 	var body: some View {
 		VStack {
-			LaunchAtLogin.Toggle()
+			VStack(alignment: .leading) {
+				LaunchAtLogin.Toggle()
+				DeactivateOnBatteryPreference()
+			}
 			Divider()
 				.padding(.vertical)
 			OpacityPreference()
@@ -126,12 +142,12 @@ struct PreferencesView: View {
 			ReloadIntervalPreference()
 			Divider()
 				.padding(.vertical)
-			DisplayPreference()
-			Divider()
-				.padding(.vertical)
-			InvertColorsPreference()
 			// Work around 10 view limit.
 			Group {
+				DisplayPreference()
+				Divider()
+					.padding(.vertical)
+				InvertColorsPreference()
 				Divider()
 					.padding(.vertical)
 				CustomCSSPreference()

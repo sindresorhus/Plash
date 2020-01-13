@@ -6,6 +6,7 @@ import Defaults
 @NSApplicationMain
 final class AppDelegate: NSObject, NSApplicationDelegate {
 	let menu = SSMenu()
+	let powerSourceWatcher = PowerSourceWatcher()
 
 	lazy var statusItem = with(NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)) {
 		$0.isVisible = true
@@ -31,6 +32,21 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			desktopWindow.isInteractive = isBrowsingMode
 			desktopWindow.alphaValue = isBrowsingMode ? 1 : CGFloat(Defaults[.opacity])
 			resetTimer()
+		}
+	}
+
+	var isEnabled = true {
+		didSet {
+			statusButton.appearsDisabled = !isEnabled
+
+			if isEnabled {
+				loadUserURL()
+				desktopWindow.makeKeyAndOrderFront(self)
+			} else {
+				// TODO: Properly unload the web view instead of just clearing and hiding it.
+				desktopWindow.orderOut(self)
+				loadURL(URL(string: "about:blank"))
+			}
 		}
 	}
 
@@ -101,6 +117,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			}
 		}
 
+		powerSourceWatcher?.onChange = { _ in
+			self.setEnabledStatus()
+		}
+
 		Defaults.observe(.url) { change in
 			self.resetTimer()
 			self.loadURL(change.newValue)
@@ -132,6 +152,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			self.recreateWebView()
 		}
 			.tieToLifetime(of: self)
+
+		Defaults.observe(.deactivateOnBattery) { _ in
+			self.setEnabledStatus()
+		}
+			.tieToLifetime(of: self)
+	}
+
+	func setEnabledStatus() {
+		self.isEnabled = !(Defaults[.deactivateOnBattery] && powerSourceWatcher?.powerSource.isUsingBattery == true)
 	}
 
 	func showWelcomeScreenIfNeeded() {
@@ -286,16 +315,24 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	func updateMenu() {
 		menu.removeAllItems()
 
-		if let error = webViewError {
-			menu.addDisabled("Error: \(error.localizedDescription)".wrapped(atLength: 36).attributedString)
-			menu.addSeparator()
-		}
+		if isEnabled {
+			if let error = webViewError {
+				menu.addDisabled("Error: \(error.localizedDescription)".wrapped(atLength: 36).attributedString)
+				menu.addSeparator()
+			}
 
-		addInfoMenuItem()
+			addInfoMenuItem()
+		} else {
+			menu.addDisabled("Deactivated While on Battery")
+		}
 
 		menu.addSeparator()
 
-		menu.addCallbackItem("Open URL…", key: "o") { _ in
+		menu.addCallbackItem(
+			"Open URL…",
+			key: "o",
+			isEnabled: isEnabled
+		) { _ in
 			self.openURLWindowController.showWindow()
 		}
 
@@ -307,6 +344,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			"Open File…",
 			key: "o",
 			keyModifiers: .option,
+			isEnabled: isEnabled,
 			isHidden: true // TODO: Disabled until it's done.
 		) { _ in
 			self.openFile()
@@ -317,7 +355,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		menu.addCallbackItem(
 			"Reload",
 			key: "r",
-			isEnabled: Defaults[.url] != nil
+			isEnabled: isEnabled && Defaults[.url] != nil
 		) { _ in
 			self.loadUserURL()
 		}
@@ -325,7 +363,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		menu.addCallbackItem(
 			"Browsing Mode",
 			key: "b",
-			isEnabled: Defaults[.url] != nil,
+			isEnabled: isEnabled && Defaults[.url] != nil,
 			isChecked: isBrowsingMode
 		) { _ in
 			self.isBrowsingMode.toggle()
