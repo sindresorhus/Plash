@@ -1885,3 +1885,57 @@ final class PowerSourceWatcher {
 		onChange?(powerSource)
 	}
 }
+
+
+/// A view that doesn't accept any mouse events.
+class NonInteractiveView: NSView {
+	override var mouseDownCanMoveWindow: Bool { true }
+	override func acceptsFirstMouse(for event: NSEvent?) -> Bool { false }
+	override func hitTest(_ point: CGPoint) -> NSView? { nil }
+}
+
+
+private struct TooltipView: NSViewRepresentable {
+	typealias NSViewType = NSView
+
+	private let text: String?
+
+	init(_ text: String?) {
+		self.text = text
+	}
+
+	func makeNSView(context: Context) -> NSViewType {
+		NonInteractiveView()
+	}
+
+	func updateNSView(_ nsView: NSViewType, context: Context) {
+		nsView.toolTip = text
+	}
+}
+
+extension View {
+	func tooltip(_ text: String?) -> some View {
+		overlay(TooltipView(text))
+	}
+}
+
+
+extension SetAlgebra {
+	/// Insert the `value` if it doesn't exist, otherwise remove it.
+	mutating func toggleExistence(_ value: Element) {
+		if contains(value) {
+			remove(value)
+		} else {
+			insert(value)
+		}
+	}
+
+	/// Insert the `value` if `shouldExist` is true, otherwise remove it.
+	mutating func toggleExistence(_ value: Element, shouldExist: Bool) {
+		if shouldExist {
+			insert(value)
+		} else {
+			remove(value)
+		}
+	}
+}

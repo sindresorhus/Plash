@@ -70,12 +70,22 @@ private struct DeactivateOnBatteryPreference: View {
 	@ObservedObject private var deactivateOnBattery = Defaults.observable(.deactivateOnBattery)
 
 	var body: some View {
-		VStack {
-			Toggle(
-				"Deactivate While on Battery",
-				isOn: $deactivateOnBattery.value
-			)
-		}
+		Toggle(
+			"Deactivate While on Battery",
+			isOn: $deactivateOnBattery.value
+		)
+	}
+}
+
+private struct ShowOnAllSpacesPreference: View {
+	@ObservedObject private var showOnAllSpaces = Defaults.observable(.showOnAllSpaces)
+
+	var body: some View {
+		Toggle(
+			"Show on All Spaces",
+			isOn: $showOnAllSpaces.value
+		)
+			.tooltip("When disabled, the website will be shown on the space that was active when Plash launched.")
 	}
 }
 
@@ -133,6 +143,7 @@ struct PreferencesView: View {
 			VStack(alignment: .leading) {
 				LaunchAtLogin.Toggle()
 				DeactivateOnBatteryPreference()
+				ShowOnAllSpacesPreference()
 			}
 			Divider()
 				.padding(.vertical)

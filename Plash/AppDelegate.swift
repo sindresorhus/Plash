@@ -157,6 +157,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			self.setEnabledStatus()
 		}
 			.tieToLifetime(of: self)
+
+		Defaults.observe(.showOnAllSpaces) { change in
+			self.desktopWindow.collectionBehavior.toggleExistence(.canJoinAllSpaces, shouldExist: change.newValue)
+		}
+			.tieToLifetime(of: self)
 	}
 
 	func setEnabledStatus() {

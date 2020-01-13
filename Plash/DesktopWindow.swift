@@ -42,7 +42,6 @@ final class DesktopWindow: NSWindow {
 		self.backgroundColor = .clear
 		self.level = .desktop
 		self.collectionBehavior = [
-			.canJoinAllSpaces,
 			.stationary,
 			.ignoresCycle
 		]
