@@ -268,6 +268,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			url: URL(string: "https://github.com/sindresorhus/Plash/issues")!
 		)
 
+		menu.addUrlItem(
+			"Examples",
+			url: URL(string: "https://github.com/sindresorhus/Plash/issues/1")!
+		)
+
 		menu.addSeparator()
 
 		menu.addUrlItem(
