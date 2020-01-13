@@ -858,6 +858,11 @@ extension URL {
 			return false
 		}
 
+		// Allow `localhost` and other local URLs without a domain.
+		guard host.contains(".") else {
+			return true
+		}
+
 		let hostComponents = host.components(separatedBy: ".")
 
 		return hostComponents.count >= 2 &&
