@@ -69,6 +69,12 @@ final class SSWebView: WKWebView {
 			self.zoomLevel -= 0.2
 		}
 
+		// Move the “Inspect Element” menu item to the end.
+		if let menuItem = (menu.items.first { MenuItemIdentifier($0) == .inspectElement }) {
+			menu.addSeparator()
+			menu.items = menu.items.movingToEnd(menuItem)
+		}
+
 		// For the implicit “Services” menu.
 		menu.addSeparator()
 	}

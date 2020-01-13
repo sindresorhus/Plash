@@ -27,6 +27,7 @@ final class WebViewController: NSViewController {
 
 		let preferences = WKPreferences()
 		preferences.javaScriptCanOpenWindowsAutomatically = false
+		preferences.isDeveloperExtrasEnabled = true
 		configuration.preferences = preferences
 
 		let webView = SSWebView(frame: .zero, configuration: configuration)

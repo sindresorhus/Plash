@@ -1546,6 +1546,18 @@ extension WKWebView {
 }
 
 
+extension WKPreferences {
+	var isDeveloperExtrasEnabled: Bool {
+		get {
+			value(forKey: "developerExtrasEnabled") as? Bool ?? false
+		}
+		set {
+			setValue(newValue, forKey: "developerExtrasEnabled")
+		}
+	}
+}
+
+
 /**
 Wrap a value in an `ObservableObject` where the given `Publisher` triggers it to update. Note that the value is static and must be accessed as `.wrappedValue`. The publisher part is only meant to trigger an observable update.
 
@@ -2052,5 +2064,45 @@ extension NSStatusBarButton {
 				self.contentTintColor = originalTintColor
 			}
 		)
+	}
+}
+
+
+extension RangeReplaceableCollection {
+	/// Move the element at the `from` index to the `to` index.
+	mutating func move(from fromIndex: Index, to toIndex: Index) {
+		guard fromIndex != toIndex else {
+			return
+		}
+
+		insert(remove(at: fromIndex), at: toIndex)
+	}
+}
+
+extension RangeReplaceableCollection where Element: Equatable {
+	/// Move the first equal element to the `to` index.
+	mutating func move(_ element: Element, to toIndex: Index) {
+		guard let fromIndex = firstIndex(of: element) else {
+			return
+		}
+
+		move(from: fromIndex, to: toIndex)
+	}
+}
+
+// TODO: Find a way to remove the `Index == Int` constraint.
+extension Collection where Index == Int, Element: Equatable {
+	/// Returns an array where the given element has moved to the `to` index.
+	func moving(_ element: Element, to toIndex: Index) -> [Element] {
+		var array = Array(self)
+		array.move(element, to: toIndex)
+		return array
+	}
+}
+
+extension Collection where Index == Int, Element: Equatable {
+	/// Returns an array where the given element has moved to the end of the array.
+	func movingToEnd(_ element: Element) -> [Element] {
+		moving(element, to: endIndex - 1)
 	}
 }
