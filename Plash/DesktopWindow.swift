@@ -38,6 +38,8 @@ final class DesktopWindow: NSWindow {
 
 		self.targetScreen = screen
 
+		self.isOpaque = false
+		self.backgroundColor = .clear
 		self.level = .desktop
 		self.collectionBehavior = [
 			.canJoinAllSpaces,

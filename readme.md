@@ -39,6 +39,7 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 - Invert website colors (fake dark mode)
 - Add custom CSS to the website
 - Lower the opacity
+- [Transparent background](https://github.com/sindresorhus/Plash/issues/1#issuecomment-573513816)
 
 ## Download
 

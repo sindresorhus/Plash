@@ -35,6 +35,7 @@ final class WebViewController: NSViewController {
 		webView.allowsBackForwardNavigationGestures = true
 		webView.allowsMagnification = true
 		webView.customUserAgent = SSWebView.safariUserAgent
+		webView.drawsBackground = false
 
 		return webView
 	}

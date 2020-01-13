@@ -1449,6 +1449,16 @@ extension WKWebView {
 			_ = try? evaluateSync(script: "document.body.style.zoom = '\(newValue)'")
 		}
 	}
+
+	/// Whether the web view should have a background. Set to `false` to make it transparent.
+	var drawsBackground: Bool {
+		get {
+			value(forKey: "drawsBackground") as? Bool ?? true
+		}
+		set {
+			setValue(newValue, forKey: "drawsBackground")
+		}
+	}
 }
 
 
