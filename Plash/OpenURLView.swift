@@ -28,7 +28,7 @@ struct OpenURLView: View {
 					HStack(spacing: 3) {
 						Text("You could, for example,")
 						Button("show the time.") {
-							self.urlString = "https://time.pablopunk.com"
+							self.urlString = "https://time.pablopunk.com/?seconds&fg=white&bg=transparent"
 						}
 							.buttonStyle(LinkButtonStyle())
 					}
