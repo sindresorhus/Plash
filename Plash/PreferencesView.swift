@@ -89,6 +89,20 @@ private struct ShowOnAllSpacesPreference: View {
 	}
 }
 
+private struct InvertColorsPreference: View {
+	@ObservedObject private var invertColors = Defaults.observable(.invertColors)
+
+	var body: some View {
+		VStack {
+			Toggle(
+				"Invert Website Colors",
+				isOn: $invertColors.value
+			)
+				.tooltip("This creates a fake dark mode.")
+		}
+	}
+}
+
 private struct DisplayPreference: View {
 	@ObservedObject private var displayWrapper = Display.observable
 	@ObservedObject private var chosenDisplay = Defaults.observable(.display)
@@ -102,22 +116,6 @@ private struct DisplayPreference: View {
 				Text(display.localizedName)
 					.tag(display)
 			}
-		}
-	}
-}
-
-private struct InvertColorsPreference: View {
-	@ObservedObject private var invertColors = Defaults.observable(.invertColors)
-
-	var body: some View {
-		VStack {
-			Toggle(
-				"Invert Website Colors",
-				isOn: $invertColors.value
-			)
-			Text("(Fake dark mode)")
-				.font(.system(size: 10))
-				.foregroundColor(.secondary)
 		}
 	}
 }
@@ -137,6 +135,15 @@ private struct CustomCSSPreference: View {
 	}
 }
 
+private struct ClearWebsiteDataPreference: View {
+	var body: some View {
+		Button("Clear Website Data") {
+			AppDelegate.shared.webViewController.webView.clearWebsiteData()
+		}
+			.tooltip("Clears all cookies, local storage, caches, etc.")
+	}
+}
+
 struct PreferencesView: View {
 	var body: some View {
 		VStack {
@@ -144,6 +151,7 @@ struct PreferencesView: View {
 				LaunchAtLogin.Toggle()
 				DeactivateOnBatteryPreference()
 				ShowOnAllSpacesPreference()
+				InvertColorsPreference()
 			}
 			Divider()
 				.padding(.vertical)
@@ -158,10 +166,10 @@ struct PreferencesView: View {
 				DisplayPreference()
 				Divider()
 					.padding(.vertical)
-				InvertColorsPreference()
+				CustomCSSPreference()
 				Divider()
 					.padding(.vertical)
-				CustomCSSPreference()
+				ClearWebsiteDataPreference()
 			}
 		}
 			.frame(width: 340)

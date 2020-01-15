@@ -2106,3 +2106,22 @@ extension Collection where Index == Int, Element: Equatable {
 		moving(element, to: endIndex - 1)
 	}
 }
+
+
+extension WKWebView {
+	/// Clear all website data like cookies, local storage, caches, etc.
+	func clearWebsiteData(completion: (() -> Void)? = nil) {
+		HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
+
+		let dataStore = WKWebsiteDataStore.default()
+		let types = WKWebsiteDataStore.allWebsiteDataTypes()
+
+		dataStore.fetchDataRecords(ofTypes: types) { records in
+			dataStore.removeData(
+				ofTypes: types,
+				for: records,
+				completionHandler: completion ?? {}
+			)
+		}
+	}
+}
