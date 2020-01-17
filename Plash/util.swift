@@ -1476,9 +1476,11 @@ extension WKWebView {
 
 		return
 			"""
-			const style = document.createElement('style');
-			style.textContent = unescape('\(textContent)');
-			document.documentElement.appendChild(style);
+			(() => {
+				const style = document.createElement('style');
+				style.textContent = unescape('\(textContent)');
+				document.documentElement.appendChild(style);
+			})();
 			"""
 	}
 }
