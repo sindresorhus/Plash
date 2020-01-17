@@ -14,6 +14,7 @@ This enables you to have a highly dynamic desktop wallpaper. You could display y
 - Transparent background
 	If the website doesn't have a background color, your system wallpaper will show through.
 - Automatically deactivate while on battery
+- Audio is muted
 
 Note: Support for multiple displays is currently limited to the ability to choose which display to show the website on. Support for setting a separate website for each display is planned.
 

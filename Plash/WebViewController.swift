@@ -10,12 +10,14 @@ final class WebViewController: NSViewController {
 
 	private func createWebView() -> SSWebView {
 		let configuration = WKWebViewConfiguration()
-		configuration.mediaTypesRequiringUserActionForPlayback = []
+		configuration.mediaTypesRequiringUserActionForPlayback = .audio
 		configuration.allowsAirPlayForMediaPlayback = false
 		configuration.suppressesIncrementalRendering = true
 
 		let userContentController = WKUserContentController()
 		configuration.userContentController = userContentController
+
+		userContentController.muteAudio()
 
 		if Defaults[.invertColors] {
 			userContentController.invertColors()

@@ -1457,6 +1457,7 @@ extension WKWebView {
 		}
 	}
 
+	// https://github.com/feedback-assistant/reports/issues/81
 	/// Whether the web view should have a background. Set to `false` to make it transparent.
 	var drawsBackground: Bool {
 		get {
@@ -1523,8 +1524,62 @@ extension WKUserContentController {
 }
 
 
+extension WKUserContentController {
+	private static let muteAudioCode =
+		"""
+		(() => {
+			const selector = 'audio, video';
+
+			for (const element of document.querySelectorAll(selector)) {
+				element.muted = true;
+			}
+
+			const observer = new MutationObserver(mutations => {
+				for (const mutation of mutations) {
+					for (const node of mutation.addedNodes) {
+						if ('matches' in node && node.matches(selector)) {
+							node.muted = true;
+						} else if ('querySelectorAll' in node) {
+							for (const element of node.querySelectorAll(selector)) {
+								element.muted = true;
+							}
+						}
+					}
+				}
+
+				// TODO: Find a way to avoid this.
+				// This is quite inefficient, but it's needed to be able to work, for example, when browsing videos on YouTube.
+				if (mutations.length > 0) {
+					for (const element of document.querySelectorAll(selector)) {
+						element.muted = true;
+					}
+				}
+			});
+
+			observer.observe(document, {
+				childList: true,
+				subtree: true
+			});
+		})();
+		"""
+
+	// https://github.com/feedback-assistant/reports/issues/79
+	/// Mute all existing and future audio on websites, including audio in videos.
+	func muteAudio() {
+		let userScript = WKUserScript(
+			source: Self.muteAudioCode,
+			injectionTime: .atDocumentStart,
+			forMainFrameOnly: false
+		)
+
+		addUserScript(userScript)
+	}
+}
+
+
 extension WKWebView {
 	// TODO: Move this to `SSWebView` instead and also expose a `response` property so we don't need the `mimeType` parameter.
+	// https://github.com/feedback-assistant/reports/issues/82
 	/// Center a standalone image as WKWebView doesn't center it like Chrome and Firefox do...
 	func centerImage(mimeType: String?) {
 		guard mimeType?.hasPrefix("image/") == true else {
@@ -1546,7 +1601,27 @@ extension WKWebView {
 }
 
 
+extension WKWebView {
+	/// Clear all website data like cookies, local storage, caches, etc.
+	func clearWebsiteData(completion: (() -> Void)? = nil) {
+		HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
+
+		let dataStore = WKWebsiteDataStore.default()
+		let types = WKWebsiteDataStore.allWebsiteDataTypes()
+
+		dataStore.fetchDataRecords(ofTypes: types) { records in
+			dataStore.removeData(
+				ofTypes: types,
+				for: records,
+				completionHandler: completion ?? {}
+			)
+		}
+	}
+}
+
+
 extension WKPreferences {
+	// https://github.com/feedback-assistant/reports/issues/80
 	var isDeveloperExtrasEnabled: Bool {
 		get {
 			value(forKey: "developerExtrasEnabled") as? Bool ?? false
@@ -2104,24 +2179,5 @@ extension Collection where Index == Int, Element: Equatable {
 	/// Returns an array where the given element has moved to the end of the array.
 	func movingToEnd(_ element: Element) -> [Element] {
 		moving(element, to: endIndex - 1)
-	}
-}
-
-
-extension WKWebView {
-	/// Clear all website data like cookies, local storage, caches, etc.
-	func clearWebsiteData(completion: (() -> Void)? = nil) {
-		HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
-
-		let dataStore = WKWebsiteDataStore.default()
-		let types = WKWebsiteDataStore.allWebsiteDataTypes()
-
-		dataStore.fetchDataRecords(ofTypes: types) { records in
-			dataStore.removeData(
-				ofTypes: types,
-				for: records,
-				completionHandler: completion ?? {}
-			)
-		}
 	}
 }
