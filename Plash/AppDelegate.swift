@@ -121,7 +121,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			self.setEnabledStatus()
 		}
 
-		Defaults.observe(.url) { change in
+		Defaults.observe(.url, options: [.new]) { change in
 			self.resetTimer()
 			self.loadURL(change.newValue)
 		}
@@ -144,12 +144,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			.tieToLifetime(of: self)
 
 		Defaults.observe(.invertColors, options: []) { _ in
-			self.recreateWebView()
+			self.recreateWebViewAndReload()
 		}
 			.tieToLifetime(of: self)
 
 		Defaults.observe(.customCSS, options: []) { _ in
-			self.recreateWebView()
+			self.recreateWebViewAndReload()
 		}
 			.tieToLifetime(of: self)
 
@@ -211,6 +211,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	func recreateWebView() {
 		webViewController.recreateWebView()
 		desktopWindow.contentView = webViewController.webView
+	}
+
+	func recreateWebViewAndReload() {
+		recreateWebView()
 		loadUserURL()
 	}
 
@@ -225,6 +229,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			return
 		}
 
+		// TODO: Report the bug to Apple.
+		// WKWebView has a bug where it can only load a local file once. So if you load file A, load file B, and load file A again, it errors. And if you load the same file as the existing one, nothing happens. Quality engineering.
+		if url.isFileURL {
+			recreateWebView()
+		}
+
 		self.webViewController.loadURL(url)
 
 		// TODO: Add a callback to `loadURL` when it's done loading instead.
@@ -234,30 +244,48 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		}
 	}
 
-	func openFile() {
+	func openLocalWebsite() {
 		NSApp.activate(ignoringOtherApps: true)
 
 		let panel = NSOpenPanel()
-		panel.canChooseDirectories = false
+		panel.canChooseFiles = false
+		panel.canChooseDirectories = true
 		panel.canCreateDirectories = false
+		panel.title = "Open Local Website"
+		panel.message = "Choose a directory with a “index.html” file."
 
 		// Ensure it's above the window when in "Browsing Mode".
 		panel.level = .floating
-
-		// TODO: Limit file types to only what WKWebView supports? Where can we find out what it supports?
-		//panel.allowedFileTypes = []
 
 		if
 			let url = Defaults[.url],
 			url.isFileURL
 		{
-			panel.directoryURL = url.deletingLastPathComponent()
+			panel.directoryURL = url
 		}
 
 		panel.begin {
-			if $0 == .OK {
-				Defaults[.url] = panel.url!
+			guard
+				$0 == .OK,
+				let url = panel.url
+			else {
+				return
 			}
+
+			guard url.appendingPathComponent("index.html").exists else {
+				NSAlert.showModal(message: "Please choose a directory that contains a “index.html” file.")
+				self.openLocalWebsite()
+				return
+			}
+
+			do {
+				try SecurityScopedBookmarkManager.saveBookmark(for: url)
+			} catch {
+				NSApp.presentError(error)
+				return
+			}
+
+			Defaults[.url] = url
 		}
 	}
 
@@ -276,7 +304,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			menuItem.toolTip = title
 		}
 
-		let urlString = url.isFileURL ? url.lastPathComponent : url.absoluteString
+		let urlString = url.isFileURL ? url.tildePath : url.absoluteString
 
 		var newUrlString = urlString
 		if urlString.count > maxLength {
@@ -343,18 +371,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			self.openURLWindowController.showWindow()
 		}
 
-		// TODO: This requires some more work.
-		// - Need to save the security scoped bookmark in UserDefaults after the open panel so the file can be accessed on the next launch.
-		// - WKWebView has a bug where it can only load a local file once. We need to work around that.
-		// - See inline TODOs.
 		menu.addCallbackItem(
-			"Open File…",
+			"Open Local Website…",
 			key: "o",
 			keyModifiers: .option,
-			isEnabled: isEnabled,
-			isHidden: true // TODO: Disabled until it's done.
+			isEnabled: isEnabled
 		) { _ in
-			self.openFile()
+			self.openLocalWebsite()
 		}
 
 		menu.addSeparator()

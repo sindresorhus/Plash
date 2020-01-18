@@ -888,8 +888,10 @@ public final class DefaultsObservable<Value: Codable>: ObservableObject {
 	public init(_ key: Defaults.Key<Value>) {
 		self.key = key
 
-		self.observation = Defaults.observe(key, options: []) { [weak self] _ in
-			self?.objectWillChange.send()
+		self.observation = Defaults.observe(key, options: [.prior]) { [weak self] change in
+			if change.isPrior {
+				self?.objectWillChange.send()
+			}
 		}
 	}
 }
@@ -910,8 +912,10 @@ public final class DefaultsOptionalObservable<Value: Codable>: ObservableObject 
 	public init(_ key: Defaults.OptionalKey<Value>) {
 		self.key = key
 
-		self.observation = Defaults.observe(key, options: []) { [weak self] _ in
-			self?.objectWillChange.send()
+		self.observation = Defaults.observe(key, options: [.prior]) { [weak self] change in
+			if change.isPrior {
+				self?.objectWillChange.send()
+			}
 		}
 	}
 }
@@ -2181,5 +2185,239 @@ extension Collection where Index == Int, Element: Equatable {
 	/// Returns an array where the given element has moved to the end of the array.
 	func movingToEnd(_ element: Element) -> [Element] {
 		moving(element, to: endIndex - 1)
+	}
+}
+
+
+extension String {
+	/**
+	```
+	"foo bar".replacingPrefix("foo", with: "unicorn")
+	//=> "unicorn bar"
+	```
+	*/
+	func replacingPrefix(_ prefix: Self, with replacement: Self) -> Self {
+		guard hasPrefix(prefix) else {
+			return self
+		}
+
+		return replacement + dropFirst(prefix.count)
+	}
+}
+
+
+extension URL {
+	/// Returns the user's real home directory when called in a sandboxed app.
+	static let realHomeDirectory = Self(
+		fileURLWithFileSystemRepresentation: getpwuid(getuid())!.pointee.pw_dir!,
+		isDirectory: true,
+		relativeTo: nil
+	)
+
+	/// Ensures the URL points to the closest directory if it's a file or self.
+	var directoryURL: Self { hasDirectoryPath ? self : deletingLastPathComponent() }
+
+	var tildePath: String {
+		// Note: Can't use `FileManager.default.homeDirectoryForCurrentUser.relativePath` or `NSHomeDirectory()` here as they return the sandboxed home directory, not the real one.
+		path.replacingPrefix(Self.realHomeDirectory.path, with: "~")
+	}
+
+	var exists: Bool { FileManager.default.fileExists(atPath: path) }
+}
+
+
+extension DispatchQueue {
+	/**
+	Performs the `execute` closure immediately if we're on the main thread or synchronously puts it on the main thread otherwise.
+	*/
+	@discardableResult
+	static func mainSafeSync<T>(execute work: () throws -> T) rethrows -> T {
+		if Thread.isMainThread {
+			return try work()
+		} else {
+			return try main.sync(execute: work)
+		}
+	}
+}
+
+
+// TODO: I plan to extract this into a Swift Package when it's been battle-tested.
+/// This always requests the permission to a directory. If you give it file URL, it will ask for permission to the parent directory.
+final class SecurityScopedBookmarkManager {
+	private static let lock = NSLock()
+
+	// TODO: Abstract this to a generic class to have a Dictionary like thing that is synced to UserDefaults and the subclass it here.
+	private final class BookmarksUserDefaults {
+		// TODO: This should probably be an argument to init.
+		private let userDefaultsKey = Defaults.Key<[String: Data]>("__securityScopedBookmarks__", default: [:])
+
+		private var bookmarkStore: [String: Data] {
+			get { Defaults[userDefaultsKey] }
+			set {
+				Defaults[userDefaultsKey] = newValue
+			}
+		}
+
+		subscript(url: URL) -> Data? {
+			get { bookmarkStore[url.resolvingSymlinksInPath().absoluteString] }
+			set {
+				var bookmarks = bookmarkStore
+				bookmarks[url.resolvingSymlinksInPath().absoluteString] = newValue
+				bookmarkStore = bookmarks
+			}
+		}
+	}
+
+	private final class NSOpenSavePanelDelegateHandler: NSObject, NSOpenSavePanelDelegate {
+		let currentURL: URL
+
+		init(url: URL) {
+			// It's important to resolve symlinks so it doesn't use the sandbox URL.
+			self.currentURL = url.resolvingSymlinksInPath()
+			super.init()
+		}
+
+		func panel(_ sender: Any, shouldEnable url: URL) -> Bool {
+			url == currentURL
+		}
+	}
+
+	private static var bookmarks = BookmarksUserDefaults()
+
+	/// Save the bookmark.
+	static func saveBookmark(for url: URL) throws {
+		bookmarks[url] = try url.bookmarkData(options: .withSecurityScope)
+	}
+
+	/// Load the bookmark.
+	/// Returns `nil` if there's no bookmark for the given URL or if the bookmark cannot be loaded.
+	static func loadBookmark(for url: URL) -> URL? {
+		guard let bookmarkData = bookmarks[url] else {
+			return nil
+		}
+
+		var isBookmarkDataStale = false
+
+		guard let newUrl = try? URL(
+			resolvingBookmarkData: bookmarkData,
+			options: .withSecurityScope,
+			bookmarkDataIsStale: &isBookmarkDataStale
+		) else {
+			return nil
+		}
+
+		if isBookmarkDataStale {
+			guard (try? saveBookmark(for: newUrl)) != nil else {
+				return nil
+			}
+		}
+
+		return newUrl
+	}
+
+	/// Returns `nil` if the user didn't give permission or if the bookmark couldn't be saved.
+	static func promptUserForPermission(atDirectory directoryURL: URL, message: String? = nil) -> URL? {
+		lock.lock()
+
+		defer {
+			lock.unlock()
+		}
+
+		let delegate = NSOpenSavePanelDelegateHandler(url: directoryURL)
+
+		let userChosenURL: URL? = DispatchQueue.mainSafeSync {
+			let openPanel = with(NSOpenPanel()) {
+				$0.delegate = delegate
+				$0.directoryURL = directoryURL
+				$0.allowsMultipleSelection = false
+				$0.canChooseDirectories = true
+				$0.canChooseFiles = false
+				$0.canCreateDirectories = false
+				$0.title = "Permission"
+				$0.message = message ?? "\(App.name) needs access to the `\(directoryURL.lastPathComponent)` directory. Click `Allow` to proceed."
+				$0.prompt = "Allow"
+			}
+
+			NSApp.activate(ignoringOtherApps: true)
+
+			guard openPanel.runModal() == .OK else {
+				return nil
+			}
+
+			return openPanel.url
+		}
+
+		guard let securityScopedURL = userChosenURL else {
+			return nil
+		}
+
+		do {
+			try saveBookmark(for: securityScopedURL)
+		} catch {
+			NSApp.presentError(error)
+			return nil
+		}
+
+		return securityScopedURL
+	}
+
+	/// Access the URL in the given closure and have the access cleaned up afterwards.
+	/// The closure receives a boolean of whether the URL is accessible.
+	static func accessURL(_ url: URL, accessHandler: () throws -> Void) rethrows {
+		_ = url.startAccessingSecurityScopedResource()
+
+		defer {
+			url.stopAccessingSecurityScopedResource()
+		}
+
+		try accessHandler()
+	}
+
+	/// Accepts a file URL to a directory or file. If it's a file, it will prompt for permissions to its containing directory.
+	/// It handles cleaning up the access to the URL for you.
+	static func accessURLByPromptingIfNeeded(_ url: URL, accessHandler: () throws -> Void) {
+		let directoryURL = url.directoryURL
+
+		guard let securityScopedURL = loadBookmark(for: directoryURL) ?? promptUserForPermission(atDirectory: directoryURL) else {
+			return
+		}
+
+		do {
+			try accessURL(securityScopedURL, accessHandler: accessHandler)
+		} catch {
+			NSApp.presentError(error)
+			return
+		}
+	}
+
+	/// Accepts a file URL to a directory or file. If it's a file, it will prompt for permissions to its containing directory.
+	/// You have to manually call the returned method when you no longer need access to the URL.
+	@discardableResult
+	static func accessURLByPromptingIfNeeded(_ url: URL) -> (() -> Void) {
+		let directoryURL = url.directoryURL
+
+		guard let securityScopedURL = loadBookmark(for: directoryURL) ?? promptUserForPermission(atDirectory: directoryURL) else {
+			return {}
+		}
+
+		_ = securityScopedURL.startAccessingSecurityScopedResource()
+
+		return {
+			securityScopedURL.stopAccessingSecurityScopedResource()
+		}
+	}
+}
+
+extension URL {
+	/// Accepts a file URL to a directory or file. If it's a file, it will prompt for permissions to its containing directory.
+	/// It handles cleaning up the access to the URL for you.
+	func accessSandboxedURLByPromptingIfNeeded(accessHandler: () throws -> Void) {
+		SecurityScopedBookmarkManager.accessURLByPromptingIfNeeded(self, accessHandler: accessHandler)
+	}
+
+	/// Accepts a file URL to a directory or file. If it's a file, it will prompt for permissions to its containing directory.
+	/// You have to manually call the returned method when you no longer need access to the URL.
+	func accessSandboxedURLByPromptingIfNeeded() -> (() -> Void) {
+		SecurityScopedBookmarkManager.accessURLByPromptingIfNeeded(self)
 	}
 }

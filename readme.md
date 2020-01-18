@@ -33,6 +33,7 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 
 ## Features
 
+- Show a remote or local website
 - Interact with the website (“Browse Mode”)
 - Automatically reload the website at a custom interval
 - Show the website on a different display

@@ -56,13 +56,8 @@ final class WebViewController: NSViewController {
 
 	func loadURL(_ url: URL) {
 		guard !url.isFileURL else {
-			// TODO: WKWebView stops loading local files after the first local file is loaded. Find a workaround.
-			// TODO: Maybe use a local empty HTML file in this bundle? Or maybe recreate the web view instance each time?
-			//loadURL(url: URL to local bundle here)
-
-			delay(seconds: 1) {
-				self.webView.loadFileURL(url, allowingReadAccessTo: url)
-			}
+			_ = url.accessSandboxedURLByPromptingIfNeeded()
+			self.webView.loadFileURL(url.appendingPathComponent("index.html"), allowingReadAccessTo: url)
 
 			return
 		}
