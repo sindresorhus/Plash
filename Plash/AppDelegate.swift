@@ -118,6 +118,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		}
 
 		powerSourceWatcher?.onChange = { _ in
+			guard Defaults[.deactivateOnBattery] else {
+				return
+			}
+
 			self.setEnabledStatus()
 		}
 
