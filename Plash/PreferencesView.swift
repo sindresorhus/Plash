@@ -3,12 +3,12 @@ import LaunchAtLogin
 import Defaults
 
 private struct OpacityPreference: View {
-	@ObservedObject private var opacity = Defaults.observable(.opacity)
+	@Default(.opacity) var opacity
 
 	var body: some View {
 		HStack {
 			Text("Opacity:")
-			Slider(value: $opacity.value, in: 0.1...1, step: 0.1)
+			Slider(value: $opacity, in: 0.1...1, step: 0.1)
 		}
 	}
 }
@@ -29,17 +29,17 @@ private struct ReloadIntervalPreference: View {
 		return formatter
 	}()
 
-	@ObservedObject private var reloadInterval = Defaults.observable(.reloadInterval)
+	@OptionalDefault(.reloadInterval) private var reloadInterval
 
 	private var reloadIntervalInMinutes: Binding<Double> {
-		$reloadInterval.value.withDefaultValue(Self.defaultReloadInterval).map(
+		$reloadInterval.withDefaultValue(Self.defaultReloadInterval).map(
 			get: { $0 / 60 },
 			set: { $0 * 60 }
 		)
 	}
 
 	private var hasInterval: Binding<Bool> {
-		$reloadInterval.value.isNotNil(trueSetValue: Self.defaultReloadInterval)
+		$reloadInterval.isNotNil(trueSetValue: Self.defaultReloadInterval)
 	}
 
 	var body: some View {
@@ -67,36 +67,36 @@ private struct ReloadIntervalPreference: View {
 }
 
 private struct DeactivateOnBatteryPreference: View {
-	@ObservedObject private var deactivateOnBattery = Defaults.observable(.deactivateOnBattery)
+	@Default(.deactivateOnBattery) private var deactivateOnBattery
 
 	var body: some View {
 		Toggle(
 			"Deactivate While on Battery",
-			isOn: $deactivateOnBattery.value
+			isOn: $deactivateOnBattery
 		)
 	}
 }
 
 private struct ShowOnAllSpacesPreference: View {
-	@ObservedObject private var showOnAllSpaces = Defaults.observable(.showOnAllSpaces)
+	@Default(.showOnAllSpaces) private var showOnAllSpaces
 
 	var body: some View {
 		Toggle(
 			"Show on All Spaces",
-			isOn: $showOnAllSpaces.value
+			isOn: $showOnAllSpaces
 		)
 			.tooltip("When disabled, the website will be shown on the space that was active when Plash launched.")
 	}
 }
 
 private struct InvertColorsPreference: View {
-	@ObservedObject private var invertColors = Defaults.observable(.invertColors)
+	@Default(.invertColors) private var invertColors
 
 	var body: some View {
 		VStack {
 			Toggle(
 				"Invert Website Colors",
-				isOn: $invertColors.value
+				isOn: $invertColors
 			)
 				.tooltip("This creates a fake dark mode.")
 		}
@@ -105,12 +105,12 @@ private struct InvertColorsPreference: View {
 
 private struct DisplayPreference: View {
 	@ObservedObject private var displayWrapper = Display.observable
-	@ObservedObject private var chosenDisplay = Defaults.observable(.display)
+	@Default(.display) private var chosenDisplay
 
 	var body: some View {
 		Picker(
 			"Show On Display:",
-			selection: $chosenDisplay.value.getMap { $0.withFallbackToMain }
+			selection: $chosenDisplay.getMap { $0.withFallbackToMain }
 		) {
 			ForEach(displayWrapper.wrappedValue.all, id: \.self) { display in
 				Text(display.localizedName)
@@ -121,13 +121,13 @@ private struct DisplayPreference: View {
 }
 
 private struct CustomCSSPreference: View {
-	@ObservedObject private var customCSS = Defaults.observable(.customCSS)
+	@Default(.customCSS) private var customCSS
 
 	var body: some View {
 		VStack {
 			Text("Custom CSS:")
 			ScrollableTextView(
-				text: $customCSS.value,
+				text: $customCSS,
 				font: .monospacedSystemFont(ofSize: 11, weight: .regular)
 			)
 				.frame(height: 100)
@@ -138,7 +138,7 @@ private struct CustomCSSPreference: View {
 private struct ClearWebsiteDataPreference: View {
 	var body: some View {
 		Button("Clear Website Data") {
-			AppDelegate.shared.webViewController.webView.clearWebsiteData()
+			AppDelegate.shared.webViewController.webView.clearWebsiteData(completion: nil)
 		}
 			.tooltip("Clears all cookies, local storage, caches, etc.")
 	}

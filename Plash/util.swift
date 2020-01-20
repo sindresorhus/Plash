@@ -872,7 +872,7 @@ extension URL {
 }
 
 
-public final class DefaultsObservable<Value: Codable>: ObservableObject {
+public final class _DefaultsObservable<Value: Codable>: ObservableObject {
 	public let objectWillChange = ObservableObjectPublisher()
 	private var observation: DefaultsObservation?
 	private let key: Defaults.Key<Value>
@@ -894,9 +894,14 @@ public final class DefaultsObservable<Value: Codable>: ObservableObject {
 			}
 		}
 	}
+
+	/// Reset the key back to its default value.
+	public func reset() {
+		Defaults.reset(key)
+	}
 }
 
-public final class DefaultsOptionalObservable<Value: Codable>: ObservableObject {
+public final class _DefaultsOptionalObservable<Value: Codable>: ObservableObject {
 	public let objectWillChange = ObservableObjectPublisher()
 	private var observation: DefaultsObservation?
 	private let key: Defaults.OptionalKey<Value>
@@ -918,9 +923,17 @@ public final class DefaultsOptionalObservable<Value: Codable>: ObservableObject 
 			}
 		}
 	}
+
+	/// Reset the key back to its default value.
+	public func reset() {
+		Defaults.reset(key)
+	}
 }
 
 extension Defaults {
+	public typealias Observable = _DefaultsObservable
+	public typealias OptionalObservable = _DefaultsOptionalObservable
+
 	/**
 	Make a Defaults key an observable.
 
@@ -930,8 +943,8 @@ extension Defaults {
 	}
 	```
 	*/
-	public static func observable<Value: Codable>(_ key: Defaults.Key<Value>) -> DefaultsObservable<Value> {
-		DefaultsObservable(key)
+	public static func observable<Value: Codable>(_ key: Defaults.Key<Value>) -> _DefaultsObservable<Value> {
+		_DefaultsObservable(key)
 	}
 
 	/**
@@ -943,8 +956,90 @@ extension Defaults {
 	}
 	```
 	*/
-	public static func observable<Value: Codable>(_ key: Defaults.OptionalKey<Value>) -> DefaultsOptionalObservable<Value> {
-		DefaultsOptionalObservable(key)
+	public static func observable<Value: Codable>(_ key: Defaults.OptionalKey<Value>) -> _DefaultsOptionalObservable<Value> {
+		_DefaultsOptionalObservable(key)
+	}
+}
+
+@propertyWrapper
+public struct Default<Value: Codable>: DynamicProperty {
+	@ObservedObject private var observable: Defaults.Observable<Value>
+
+	public init(_ key: Defaults.Key<Value>) {
+		self.observable = Defaults.Observable(key)
+	}
+
+	public var wrappedValue: Value {
+		get { observable.value }
+		nonmutating set {
+			observable.value = newValue
+		}
+	}
+
+	public var projectedValue: Binding<Value> { $observable.value }
+
+	public mutating func update() {
+		_observable.update()
+	}
+
+	/**
+	Reset the key back to its default value.
+
+	```
+	struct ContentView: View {
+		@Default(.opacity) var opacity
+
+		var body: some View {
+			Button("Reset") {
+				self._opacity.reset()
+			}
+		}
+	}
+	```
+	*/
+	public func reset() {
+		observable.reset()
+	}
+}
+
+@propertyWrapper
+public struct OptionalDefault<Value: Codable>: DynamicProperty {
+	@ObservedObject private var observable: Defaults.OptionalObservable<Value>
+
+	public init(_ key: Defaults.OptionalKey<Value>) {
+		self.observable = Defaults.OptionalObservable(key)
+	}
+
+	public var wrappedValue: Value? {
+		get { observable.value }
+		nonmutating set {
+			observable.value = newValue
+		}
+	}
+
+	public var projectedValue: Binding<Value?> { $observable.value }
+
+	public mutating func update() {
+		_observable.update()
+	}
+
+	/**
+	Reset the key back to its default value.
+
+	```
+	struct ContentView: View {
+		@OptionalDefault(.opacity) var opacity
+
+		var body: some View {
+			Button("Reset") {
+				self._opacity.reset()
+			}
+		}
+	}
+	```
+	*/
+	public func reset() {
+		observable.reset()
 	}
 }
 
@@ -1609,7 +1704,7 @@ extension WKWebView {
 
 extension WKWebView {
 	/// Clear all website data like cookies, local storage, caches, etc.
-	func clearWebsiteData(completion: (() -> Void)? = nil) {
+	func clearWebsiteData(completion: (() -> Void)?) {
 		HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
 
 		let dataStore = WKWebsiteDataStore.default()
