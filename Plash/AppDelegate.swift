@@ -24,9 +24,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		$0.contentView?.isHidden = true
 	}
 
-	lazy var openURLWindowController = OpenURLWindowController()
-	lazy var preferencesWindowController = PreferencesWindowController()
-
 	var isBrowsingMode = false {
 		didSet {
 			desktopWindow.isInteractive = isBrowsingMode
@@ -372,7 +369,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			key: "o",
 			isEnabled: isEnabled
 		) { _ in
-			self.openURLWindowController.showWindow()
+			OpenURLWindowController().showWindow()
 		}
 
 		menu.addCallbackItem(
@@ -406,7 +403,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		menu.addSeparator()
 
 		menu.addCallbackItem("Preferences…", key: ",") { _ in
-			self.preferencesWindowController.showWindow()
+			PreferencesWindowController().showWindow()
 		}
 
 		menu.addSeparator()

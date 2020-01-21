@@ -136,10 +136,14 @@ private struct CustomCSSPreference: View {
 }
 
 private struct ClearWebsiteDataPreference: View {
+	@State private var hasCleared = false
+
 	var body: some View {
 		Button("Clear Website Data") {
+			self.hasCleared = true
 			AppDelegate.shared.webViewController.webView.clearWebsiteData(completion: nil)
 		}
+			.disabled(hasCleared)
 			.tooltip("Clears all cookies, local storage, caches, etc.")
 	}
 }
