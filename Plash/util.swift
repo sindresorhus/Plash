@@ -1808,6 +1808,18 @@ extension NSScreen {
 		NSScreen.screens.first { $0.id == id }
 	}
 
+	/// Returns a publisher that sends updates when anything related to screens change.
+	/// This includes screens being added/removed, resolution change, and the screen frame changing (dock and menu bar being toggled).
+	static var publisher: AnyPublisher<Void, Never> {
+		Publishers.Merge(
+			NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification),
+			// We use a wake up notification as the screen setup might have changed during sleep. For example, a screen could have been unplugged.
+			NotificationCenter.default.publisher(for: NSWorkspace.didWakeNotification)
+		)
+			.map { _ in }
+			.eraseToAnyPublisher()
+	}
+
 	/// Get the screen that contains the menu bar and has origin at (0, 0).
 	static var primary: NSScreen? { screens.first }
 
@@ -1821,7 +1833,7 @@ extension NSScreen {
 
 	/// Whether the screen shows a status bar.
 	var hasStatusBar: Bool {
-		(self == .main && !NSStatusBar.isAutomaticallyToggled) || NSScreen.screensHaveSeparateSpaces
+		(self == .primary && !NSStatusBar.isAutomaticallyToggled) || NSScreen.screensHaveSeparateSpaces
 	}
 
 	/// Get the frame of the actual visible part of the screen. This means under the dock, but *not* under the status bar if there's a status bar. This is different from `.visibleFrame` which also includes the space under the status bar.
@@ -1842,8 +1854,7 @@ struct Display: Hashable, Codable, Identifiable {
 	/// Self wrapped in an observable that updates when display change.
 	static let observable = ObservableValue(
 		value: Self.self,
-		publisher: NotificationCenter.default
-			.publisher(for: NSApplication.didChangeScreenParametersNotification)
+		publisher: NSScreen.publisher
 	)
 
 	/// The main display.

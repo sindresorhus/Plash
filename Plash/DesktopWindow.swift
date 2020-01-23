@@ -48,11 +48,8 @@ final class DesktopWindow: NSWindow {
 
 		setFrame()
 
-		Publishers.Merge(
-			NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification),
-			NotificationCenter.default.publisher(for: NSWorkspace.didWakeNotification)
-		)
-			.sink { [weak self] _ in
+		NSScreen.publisher
+			.sink { [weak self] in
 				self?.setFrame()
 			}
 			.store(in: &cancelBag)
