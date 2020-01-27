@@ -66,6 +66,10 @@ final class WebViewController: NSViewController {
 		request.cachePolicy = .reloadIgnoringLocalCacheData
 		webView.load(request)
 	}
+
+	private func internalOnLoaded(_ error: Error?) {
+		onLoaded?(error)
+	}
 }
 
 extension WebViewController: WKNavigationDelegate {
@@ -83,7 +87,7 @@ extension WebViewController: WKNavigationDelegate {
 	func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
 		webView.centerImage(mimeType: response?.mimeType)
 
-		onLoaded?(nil)
+		internalOnLoaded(nil)
 	}
 
 	func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
@@ -91,23 +95,23 @@ extension WebViewController: WKNavigationDelegate {
 
 		// Ignore `Plug-in handled load` error which can happen when you open a video directly.
 		if nsError.domain == "WebKitErrorDomain", nsError.code == 204 {
-			onLoaded?(nil)
+			internalOnLoaded(nil)
 			return
 		}
 
 		// Ignore the request being cancelled which can happen if the user clicks on a link while a website is loading.
 		if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
-			onLoaded?(nil)
+			internalOnLoaded(nil)
 			return
 		}
 
 		print("Web View - Navigation error:", error)
-		onLoaded?(error)
+		internalOnLoaded(error)
 	}
 
 	func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
 		print("Web View - Content load error:", error)
-		onLoaded?(error)
+		internalOnLoaded(error)
 	}
 }
 

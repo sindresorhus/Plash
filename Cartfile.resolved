@@ -1,2 +1,2 @@
 github "microsoft/appcenter-sdk-apple" "2.5.3"
-github "sindresorhus/LaunchAtLogin" "v2.5.0"
+github "sindresorhus/LaunchAtLogin" "v3.0.0"

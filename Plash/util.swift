@@ -1679,6 +1679,7 @@ extension WKUserContentController {
 
 
 extension WKWebView {
+	// TODO: Use https://developer.apple.com/documentation/webkit/wkwebview/3516410-mediatype when macOS 10.15.4 is out.
 	// TODO: Move this to `SSWebView` instead and also expose a `response` property so we don't need the `mimeType` parameter.
 	// https://github.com/feedback-assistant/reports/issues/82
 	/// Center a standalone image as WKWebView doesn't center it like Chrome and Firefox do...
@@ -2525,5 +2526,64 @@ extension URL {
 	/// You have to manually call the returned method when you no longer need access to the URL.
 	func accessSandboxedURLByPromptingIfNeeded() -> (() -> Void) {
 		SecurityScopedBookmarkManager.accessURLByPromptingIfNeeded(self)
+	}
+}
+
+
+extension URL {
+	/**
+	Normalizes the URL to improve equality matching.
+
+	- Note: It's currently very simple and lacks a lot of normalizations.
+
+	```
+	URL(string: "https://sindresorhus.com/?").normalized()
+	//=> "https://sindresorhus.com"
+	```
+	*/
+	func normalized(
+		removeFragment: Bool = false,
+		removeQuery: Bool = false
+	) -> Self {
+		let url = absoluteURL.standardized
+
+		guard var components = url.components else {
+			return self
+		}
+
+		if components.path == "/" {
+			components.path = ""
+		}
+
+		// Remove port 80 if it's there as it's the default.
+		if components.port == 80 {
+			components.port = nil
+		}
+
+		// Lowercase host and scheme.
+		components.host = components.host?.lowercased()
+		components.scheme = components.scheme?.lowercased()
+
+		// Remove empty fragment.
+		// - `https://sindresorhus.com/#`
+		if components.fragment?.isEmpty == true {
+			components.fragment = nil
+		}
+
+		// Remove empty query.
+		// - `https://sindresorhus.com/?`
+		if components.query?.isEmpty == true {
+			components.query = nil
+		}
+
+		if removeFragment {
+			components.fragment = nil
+		}
+
+		if removeQuery {
+			components.query = nil
+		}
+
+		return components.url ?? self
 	}
 }

@@ -1,4 +1,5 @@
 import WebKit
+import Defaults
 
 final class SSWebView: WKWebView {
 	private var excludedMenuItems: Set<MenuItemIdentifier> = [
@@ -58,15 +59,15 @@ final class SSWebView: WKWebView {
 		menu.addSeparator()
 
 		menu.addCallbackItem("Actual Size", isEnabled: zoomLevel != 1) { _ in
-			self.zoomLevel = 1
+			self.zoomLevelWrapper = 1
 		}
 
 		menu.addCallbackItem("Zoom In") { _ in
-			self.zoomLevel += 0.2
+			self.zoomLevelWrapper += 0.2
 		}
 
 		menu.addCallbackItem("Zoom Out") { _ in
-			self.zoomLevel -= 0.2
+			self.zoomLevelWrapper -= 0.2
 		}
 
 		// Move the “Inspect Element” menu item to the end.
@@ -77,5 +78,38 @@ final class SSWebView: WKWebView {
 
 		// For the implicit “Services” menu.
 		menu.addSeparator()
+	}
+}
+
+extension SSWebView {
+	// TODO: Use https://developer.apple.com/documentation/webkit/wkwebview/3516411-pagezoom instead when macOS 10.15.4 is out.
+	private var zoomLevelDefaultsKey: Defaults.OptionalKey<Double>? {
+		guard let url = self.url?.normalized(removeFragment: true, removeQuery: true) else {
+			return nil
+		}
+
+		return .init("zoomLevel_\(url)")
+	}
+
+	var zoomLevelDefaultsValue: Double? {
+		guard
+			let zoomLevelDefaultsKey = self.zoomLevelDefaultsKey,
+			let zoomLevel = Defaults[zoomLevelDefaultsKey]
+		else {
+			return nil
+		}
+
+		return zoomLevel
+	}
+
+	var zoomLevelWrapper: Double {
+		get { zoomLevelDefaultsValue ?? zoomLevel }
+		set {
+			zoomLevel = newValue
+
+			if let zoomDefaultsKey = self.zoomLevelDefaultsKey {
+				Defaults[zoomDefaultsKey] = newValue
+			}
+		}
 	}
 }

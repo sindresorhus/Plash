@@ -105,6 +105,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 				return
 			}
 
+			// Set the persisted zoom level.
+			let zoomLevel = self.webViewController.webView.zoomLevelWrapper
+			if zoomLevel != 1 {
+				self.webViewController.webView.zoomLevelWrapper = zoomLevel
+			}
+
 			if let url = Defaults[.url] {
 				let title = self.webViewController.webView.title.map { "\($0)\n" } ?? ""
 				let urlString = url.isFileURL ? url.lastPathComponent : url.absoluteString
