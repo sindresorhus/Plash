@@ -1,10 +1,13 @@
 import Cocoa
+import Combine
 import AppCenter
 import AppCenterCrashes
 import Defaults
 
 @NSApplicationMain
 final class AppDelegate: NSObject, NSApplicationDelegate {
+	var cancellables = Set<AnyCancellable>()
+
 	let menu = SSMenu()
 	let powerSourceWatcher = PowerSourceWatcher()
 
@@ -128,6 +131,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			self.setEnabledStatus()
 		}
 
+		NSWorkspace.shared.notificationCenter
+			.publisher(for: NSWorkspace.didWakeNotification)
+			.sink { _ in
+				self.loadUserURL()
+			}
+			.store(in: &cancellables)
+
 		Defaults.observe(.url, options: [.new]) { change in
 			self.resetTimer()
 			self.loadURL(change.newValue)
@@ -233,6 +243,12 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		webViewError = nil
 
 		guard let url = url else {
+			return
+		}
+
+		// TODO: This is just a quick fix. The proper fix is to create a new web view below the existing one (with no opacity), load the URL, if it succeeds, we fade out the old one while fading in the new one. If it fails, we discard the new web view.
+		if !url.isFileURL, !Reachability.isOnlineExtensive() {
+			webViewError = NSError.appError(message: "No internet connection.")
 			return
 		}
 

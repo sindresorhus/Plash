@@ -5,6 +5,7 @@ import WebKit
 import SwiftUI
 import Combine
 import Network
+import SystemConfiguration
 import LaunchAtLogin
 import Defaults
 
@@ -2585,5 +2586,53 @@ extension URL {
 		}
 
 		return components.url ?? self
+	}
+}
+
+
+struct Reachability {
+	/// Checks whether we're currently online.
+	static func isOnline(host: String = "apple.com") -> Bool {
+		guard let ref = SCNetworkReachabilityCreateWithName(nil, host) else {
+			return false
+		}
+
+		var flags = SCNetworkReachabilityFlags.connectionAutomatic
+		if !SCNetworkReachabilityGetFlags(ref, &flags) {
+			return false
+		}
+
+		return flags.contains(.reachable) && !flags.contains(.connectionRequired)
+	}
+
+	/// Checks multiple sources of whether we're currently online.
+	static func isOnlineExtensive() -> Bool {
+		let hosts = [
+			"apple.com",
+			"google.com",
+			"cloudflare.com",
+			"baidu.com",
+			"yandex.ru"
+		]
+
+		return hosts.contains { isOnline(host: $0) }
+	}
+}
+
+
+extension NSError {
+	/**
+	- Parameter domainPostfix: String to append to the `domain`.
+	*/
+	static func appError(
+		message: String,
+		userInfo: [String: Any] = [:],
+		domainPostfix: String? = nil
+	) -> Self {
+		.init(
+			domain: domainPostfix != nil ? "\(App.id) - \(domainPostfix!)" : App.id,
+			code: 0,
+			userInfo: [NSLocalizedDescriptionKey: message]
+		)
 	}
 }
