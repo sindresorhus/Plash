@@ -1569,6 +1569,83 @@ extension WKWebView {
 	}
 }
 
+/**
+Default handlers for the UI for WKUIDelegate.
+
+Test it with https://jsfiddle.net/sindresorhus/8moqrudL/
+
+```
+extension WebViewController: WKUIDelegate {
+	func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+		webView.defaultAlertHandler(message: message, completion: completionHandler)
+	}
+
+	func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+		webView.defaultConfirmHandler(message: message, completion: completionHandler)
+	}
+
+	func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
+		webView.defaultPromptHandler(prompt: prompt, defaultText: defaultText, completion: completionHandler)
+	}
+
+	func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void) {
+		webView.defaultUploadPanelHandler(parameters: parameters, completion: completionHandler)
+	}
+}
+```
+*/
+extension WKWebView {
+	/// Default handler for JavaScript `alert()` to be used in `WKDelegate`.
+	func defaultAlertHandler(message: String, completion: @escaping () -> Void) {
+		let alert = NSAlert()
+		alert.messageText = message
+		alert.runModal()
+		completion()
+	}
+
+	/// Default handler for JavaScript `confirm()` to be used in `WKDelegate`.
+	func defaultConfirmHandler(message: String, completion: @escaping (Bool) -> Void) {
+		let alert = NSAlert()
+		alert.alertStyle = .informational
+		alert.messageText = message
+		alert.addButton(withTitle: "OK")
+		alert.addButton(withTitle: "Cancel")
+
+		let result = alert.runModal() == .alertFirstButtonReturn
+		completion(result)
+	}
+
+	/// Default handler for JavaScript `prompt()` to be used in `WKDelegate`.
+	func defaultPromptHandler(prompt: String, defaultText: String?, completion: @escaping (String?) -> Void) {
+		let alert = NSAlert()
+		alert.alertStyle = .informational
+		alert.messageText = prompt
+		alert.addButton(withTitle: "OK")
+		alert.addButton(withTitle: "Cancel")
+
+		let textField = AutofocusedTextField(frame: CGRect(x: 0, y: 0, width: 200, height: 21))
+		textField.stringValue = defaultText ?? ""
+		alert.accessoryView = textField
+
+		let result = alert.runModal() == .alertFirstButtonReturn ? textField.stringValue : nil
+		completion(result)
+	}
+
+	/// Default handler for JavaScript initiated upload panel to be used in `WKDelegate`.
+	func defaultUploadPanelHandler(parameters: WKOpenPanelParameters, completion: @escaping ([URL]?) -> Void) { // swiftlint:disable:this discouraged_optional_collection
+		let openPanel = NSOpenPanel()
+		openPanel.level = .floating
+		openPanel.prompt = "Choose"
+		openPanel.allowsMultipleSelection = parameters.allowsMultipleSelection
+		openPanel.canChooseFiles = !parameters.allowsDirectories
+		openPanel.canChooseDirectories = parameters.allowsDirectories
+
+		openPanel.begin {
+			completion($0 == .OK ? openPanel.urls : nil)
+		}
+	}
+}
+
 
 extension WKWebView {
 	static func createCSSInjectScript(_ css: String) -> String {
@@ -2634,5 +2711,12 @@ extension NSError {
 			code: 0,
 			userInfo: [NSLocalizedDescriptionKey: message]
 		)
+	}
+}
+
+
+final class AutofocusedTextField: NSTextField {
+	override func viewDidMoveToWindow() {
+		window?.makeFirstResponder(self)
 	}
 }

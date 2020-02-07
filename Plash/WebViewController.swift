@@ -124,4 +124,21 @@ extension WebViewController: WKUIDelegate {
 
 		return nil
 	}
+
+	func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+		webView.defaultAlertHandler(message: message, completion: completionHandler)
+	}
+
+	func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+		webView.defaultConfirmHandler(message: message, completion: completionHandler)
+	}
+
+	func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
+		webView.defaultPromptHandler(prompt: prompt, defaultText: defaultText, completion: completionHandler)
+	}
+
+	// swiftlint:disable:next discouraged_optional_collection
+	func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void) {
+		webView.defaultUploadPanelHandler(parameters: parameters, completion: completionHandler)
+	}
 }
