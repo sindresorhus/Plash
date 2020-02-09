@@ -50,6 +50,8 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 
 Requires macOS 10.15 or later.
 
+You can try out the bleeding edge [here](https://install.appcenter.ms/users/sindresorhus/apps/plash/distribution_groups/public) (latest commit).
+
 ## Tip
 
 You can interact with the website by enabling “Browsing Mode”. When in this mode, you can right-click to be able to go back/forward, reload, and zoom in the page contents. You can also pinch to magnify. This is different from zooming the page contents in that it will zoom in to a specific part of the page instead of just enlarging everything.
