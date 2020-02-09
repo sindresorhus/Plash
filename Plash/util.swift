@@ -2462,8 +2462,23 @@ final class SecurityScopedBookmarkManager {
 			super.init()
 		}
 
+		/*
+		We only allow this directory.
+
+		You might think we could use `didChangeToDirectoryURL` and set `sender.directoryURL = currentURL` there, but that doesn't work. The directory cannot be programmatically changed after the panel is opened.
+		*/
 		func panel(_ sender: Any, shouldEnable url: URL) -> Bool {
 			url == currentURL
+		}
+
+		// This should in theory not be needed as we already disable the “Allow” button, but just in case.
+		func panel(_ sender: Any, validate url: URL) throws {
+			if url != currentURL {
+				throw NSError.appError(
+					"Incorrect directory.",
+					recoverySuggestion: "Select the directory “\(currentURL.tildePath)”."
+				)
+			}
 		}
 	}
 
@@ -2519,7 +2534,7 @@ final class SecurityScopedBookmarkManager {
 				$0.canChooseFiles = false
 				$0.canCreateDirectories = false
 				$0.title = "Permission"
-				$0.message = message ?? "\(App.name) needs access to the `\(directoryURL.lastPathComponent)` directory. Click `Allow` to proceed."
+				$0.message = message ?? "\(App.name) needs access to the “\(directoryURL.lastPathComponent)” directory. Click “Allow” to proceed."
 				$0.prompt = "Allow"
 			}
 
@@ -2699,17 +2714,32 @@ struct Reachability {
 
 extension NSError {
 	/**
-	- Parameter domainPostfix: String to append to the `domain`.
+	Use this for generic app errors.
+
+	- Note: Prefer using a specific enum-type error whenever possible.
+
+	- Parameter description: The description of the error. This is shown as the first line in error dialogs.
+	- Parameter recoverySuggestion: Explain how the user how they can recover from the error. For example, "Try choosing a different directory". This is usually shown as the second line in error dialogs.
+	- Parameter userInfo: Metadata to add to the error. Can be a custom key or any of the `NSLocalizedDescriptionKey` keys except `NSLocalizedDescriptionKey` and `NSLocalizedRecoverySuggestionErrorKey`.
+	- Parameter domainPostfix: String to append to the `domain` to make it easier to identify the error. The domain is the app's bundle identifier.
 	*/
 	static func appError(
-		message: String,
+		_ description: String,
+		recoverySuggestion: String? = nil,
 		userInfo: [String: Any] = [:],
 		domainPostfix: String? = nil
 	) -> Self {
-		.init(
-			domain: domainPostfix != nil ? "\(App.id) - \(domainPostfix!)" : App.id,
-			code: 0,
-			userInfo: [NSLocalizedDescriptionKey: message]
+		var userInfo = userInfo
+		userInfo[NSLocalizedDescriptionKey] = description
+
+		if let recoverySuggestion = recoverySuggestion {
+			userInfo[NSLocalizedRecoverySuggestionErrorKey] = recoverySuggestion
+		}
+
+		return .init(
+			domain: domainPostfix.map { "\(App.id) - \($0)" } ?? App.id,
+			code: 1, // This is what Swift errors end up as.
+			userInfo: userInfo
 		)
 	}
 }

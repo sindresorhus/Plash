@@ -248,7 +248,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 		// TODO: This is just a quick fix. The proper fix is to create a new web view below the existing one (with no opacity), load the URL, if it succeeds, we fade out the old one while fading in the new one. If it fails, we discard the new web view.
 		if !url.isFileURL, !Reachability.isOnlineExtensive() {
-			webViewError = NSError.appError(message: "No internet connection.")
+			webViewError = NSError.appError("No internet connection.")
 			return
 		}
 
