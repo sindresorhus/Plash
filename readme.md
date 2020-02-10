@@ -19,6 +19,7 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 	Example: https://source.unsplash.com/random/2880x1756?puppy \
 		This returns a new random puppy image each time.
 		Replace the numbers with your screen resolution. Subtract 44 (or 22 for non-retina) on the height to account for the menu bar.
+- [**Bing Photo of the Day**](https://github.com/sindresorhus/plash-bing-photo-of-the-day)
 - **Calendar**\
 	For example, Google Calendar or Outlook 365.
 - **Personal stats**\
