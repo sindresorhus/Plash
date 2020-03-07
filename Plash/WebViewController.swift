@@ -126,19 +126,39 @@ extension WebViewController: WKUIDelegate {
 	}
 
 	func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+		guard AppDelegate.shared.isBrowsingMode else {
+			completionHandler()
+			return
+		}
+
 		webView.defaultAlertHandler(message: message, completion: completionHandler)
 	}
 
 	func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+		guard AppDelegate.shared.isBrowsingMode else {
+			completionHandler(false)
+			return
+		}
+
 		webView.defaultConfirmHandler(message: message, completion: completionHandler)
 	}
 
 	func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
+		guard AppDelegate.shared.isBrowsingMode else {
+			completionHandler(nil)
+			return
+		}
+
 		webView.defaultPromptHandler(prompt: prompt, defaultText: defaultText, completion: completionHandler)
 	}
 
 	// swiftlint:disable:next discouraged_optional_collection
 	func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void) {
+		guard AppDelegate.shared.isBrowsingMode else {
+			completionHandler(nil)
+			return
+		}
+
 		webView.defaultUploadPanelHandler(parameters: parameters, completion: completionHandler)
 	}
 }
