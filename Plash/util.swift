@@ -599,7 +599,7 @@ extension URL {
 
 
 struct Meta {
-	static func openSubmitFeedbackPage() {
+	static func openSendFeedbackPage() {
 		let metadata =
 			"""
 			\(App.name) \(App.versionWithBuild) - \(App.id)

@@ -46,6 +46,9 @@ final class DesktopWindow: NSWindow {
 			.ignoresCycle
 		]
 
+		// Even though the window is on `.desktop` level, the user would be able to interact if they hide desktop icons.
+		self.ignoresMouseEvents = true
+
 		setFrame()
 
 		NSScreen.publisher

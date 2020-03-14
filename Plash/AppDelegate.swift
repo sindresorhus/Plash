@@ -431,7 +431,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		menu.addSeparator()
 
 		menu.addCallbackItem("Send Feedback…") { _ in
-			Meta.openSubmitFeedbackPage()
+			Meta.openSendFeedbackPage()
 		}
 
 		let moreMenuItem = menu.addItem("More")
