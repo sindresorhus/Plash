@@ -422,6 +422,14 @@ extension NSMenu {
 	}
 
 	@discardableResult
+	func addMoreAppsItem() -> NSMenuItem {
+		addUrlItem(
+			"More Apps",
+			url: URL("macappstore://apps.apple.com/us/developer/sindresorhus/id328077650?mt=8")
+		)
+	}
+
+	@discardableResult
 	func addDefaultsItem<Value: Equatable>(
 		_ title: String,
 		key: Defaults.Key<Value>,
@@ -516,6 +524,22 @@ struct App {
 			return true
 		}
 	}()
+
+	static func openSendFeedbackPage() {
+		let metadata =
+			"""
+			\(App.name) \(App.versionWithBuild) - \(App.id)
+			macOS \(System.osVersion)
+			\(System.hardwareModel)
+			"""
+
+		let query: [String: String] = [
+			"product": App.name,
+			"metadata": metadata
+		]
+
+		URL("https://sindresorhus.com/feedback/").addingDictionaryAsQuery(query).open()
+	}
 }
 
 
@@ -533,6 +557,20 @@ extension String {
 	*/
 	func openUrl() {
 		URL(string: self)?.open()
+	}
+}
+
+
+extension URL {
+	/**
+	Example:
+
+	```
+	URL("https://sindresorhus.com")
+	```
+	*/
+	init(_ staticString: StaticString) {
+		self.init(string: "\(staticString)")!
 	}
 }
 
@@ -594,25 +632,6 @@ extension URL {
 		var components = URLComponents(url: self, resolvingAgainstBaseURL: false)!
 		components.addDictionaryAsQuery(dict)
 		return components.url ?? self
-	}
-}
-
-
-struct Meta {
-	static func openSendFeedbackPage() {
-		let metadata =
-			"""
-			\(App.name) \(App.versionWithBuild) - \(App.id)
-			macOS \(System.osVersion)
-			\(System.hardwareModel)
-			"""
-
-		let query: [String: String] = [
-			"product": App.name,
-			"metadata": metadata
-		]
-
-		URL(string: "https://sindresorhus.com/feedback/")!.addingDictionaryAsQuery(query).open()
 	}
 }
 
@@ -872,178 +891,6 @@ extension URL {
 }
 
 
-public final class _DefaultsObservable<Value: Codable>: ObservableObject {
-	public let objectWillChange = ObservableObjectPublisher()
-	private var observation: DefaultsObservation?
-	private let key: Defaults.Key<Value>
-
-	public var value: Value {
-		get { Defaults[key] }
-		set {
-			objectWillChange.send()
-			Defaults[key] = newValue
-		}
-	}
-
-	public init(_ key: Defaults.Key<Value>) {
-		self.key = key
-
-		self.observation = Defaults.observe(key, options: [.prior]) { [weak self] change in
-			if change.isPrior {
-				self?.objectWillChange.send()
-			}
-		}
-	}
-
-	/// Reset the key back to its default value.
-	public func reset() {
-		Defaults.reset(key)
-	}
-}
-
-public final class _DefaultsOptionalObservable<Value: Codable>: ObservableObject {
-	public let objectWillChange = ObservableObjectPublisher()
-	private var observation: DefaultsObservation?
-	private let key: Defaults.OptionalKey<Value>
-
-	public var value: Value? {
-		get { Defaults[key] }
-		set {
-			objectWillChange.send()
-			Defaults[key] = newValue
-		}
-	}
-
-	public init(_ key: Defaults.OptionalKey<Value>) {
-		self.key = key
-
-		self.observation = Defaults.observe(key, options: [.prior]) { [weak self] change in
-			if change.isPrior {
-				self?.objectWillChange.send()
-			}
-		}
-	}
-
-	/// Reset the key back to its default value.
-	public func reset() {
-		Defaults.reset(key)
-	}
-}
-
-extension Defaults {
-	public typealias Observable = _DefaultsObservable
-	public typealias OptionalObservable = _DefaultsOptionalObservable
-
-	/**
-	Make a Defaults key an observable.
-
-	```
-	struct ContentView: View {
-		@ObservedObject var unicorn = Defaults.observable(.unicorn)
-	}
-	```
-	*/
-	public static func observable<Value: Codable>(_ key: Defaults.Key<Value>) -> _DefaultsObservable<Value> {
-		_DefaultsObservable(key)
-	}
-
-	/**
-	Make a Defaults optional key an observable.
-
-	```
-	struct ContentView: View {
-		@ObservedObject var unicorn = Defaults.observable(.unicorn)
-	}
-	```
-	*/
-	public static func observable<Value: Codable>(_ key: Defaults.OptionalKey<Value>) -> _DefaultsOptionalObservable<Value> {
-		_DefaultsOptionalObservable(key)
-	}
-}
-
-@propertyWrapper
-public struct Default<Value: Codable>: DynamicProperty {
-	@ObservedObject private var observable: Defaults.Observable<Value>
-
-	public init(_ key: Defaults.Key<Value>) {
-		self.observable = Defaults.Observable(key)
-	}
-
-	public var wrappedValue: Value {
-		get { observable.value }
-		nonmutating set {
-			observable.value = newValue
-		}
-	}
-
-	public var projectedValue: Binding<Value> { $observable.value }
-
-	public mutating func update() {
-		_observable.update()
-	}
-
-	/**
-	Reset the key back to its default value.
-
-	```
-	struct ContentView: View {
-		@Default(.opacity) var opacity
-
-		var body: some View {
-			Button("Reset") {
-				self._opacity.reset()
-			}
-		}
-	}
-	```
-	*/
-	public func reset() {
-		observable.reset()
-	}
-}
-
-@propertyWrapper
-public struct OptionalDefault<Value: Codable>: DynamicProperty {
-	@ObservedObject private var observable: Defaults.OptionalObservable<Value>
-
-	public init(_ key: Defaults.OptionalKey<Value>) {
-		self.observable = Defaults.OptionalObservable(key)
-	}
-
-	public var wrappedValue: Value? {
-		get { observable.value }
-		nonmutating set {
-			observable.value = newValue
-		}
-	}
-
-	public var projectedValue: Binding<Value?> { $observable.value }
-
-	public mutating func update() {
-		_observable.update()
-	}
-
-	/**
-	Reset the key back to its default value.
-
-	```
-	struct ContentView: View {
-		@OptionalDefault(.opacity) var opacity
-
-		var body: some View {
-			Button("Reset") {
-				self._opacity.reset()
-			}
-		}
-	}
-	```
-	*/
-	public func reset() {
-		observable.reset()
-	}
-}
-
-
 extension Binding where Value: Equatable {
 	/**
 	Get notified when the binding value changes to a different one.
@@ -1177,8 +1024,20 @@ extension Binding {
 }
 
 
+extension Binding where Value == Double {
+	// TODO: Maybe make a general `Binding#convert()` function that accepts a converter. Something like `binding.convert(.secondsToMinutes)`?
+	var secondsToMinutes: Self {
+		map(
+			get: { $0 / 60 },
+			set: { $0 * 60 }
+		)
+	}
+}
+
+
 extension StringProtocol where Self: RangeReplaceableCollection {
 	var removingNewlines: Self {
+		// TODO: Use `filter(!\.isNewline)` when key paths support negation.
 		filter { !$0.isNewline }
 	}
 }
@@ -1883,7 +1742,7 @@ extension NSScreen: Identifiable {
 
 extension NSScreen {
 	static func from(cgDirectDisplayID id: CGDirectDisplayID) -> NSScreen? {
-		NSScreen.screens.first { $0.id == id }
+		screens.first { $0.id == id }
 	}
 
 	/// Returns a publisher that sends updates when anything related to screens change.
@@ -1903,7 +1762,7 @@ extension NSScreen {
 
 	/// This can be useful if you store a reference to a `NSScreen` instance as it may have been disconnected.
 	var isConnected: Bool {
-		NSScreen.screens.contains { $0 == self }
+		Self.screens.contains { $0 == self }
 	}
 
 	/// Get the main screen if the current screen is not connected.
@@ -1911,7 +1770,7 @@ extension NSScreen {
 
 	/// Whether the screen shows a status bar.
 	var hasStatusBar: Bool {
-		(self == .primary && !NSStatusBar.isAutomaticallyToggled) || NSScreen.screensHaveSeparateSpaces
+		(self == .primary && !NSStatusBar.isAutomaticallyToggled) || Self.screensHaveSeparateSpaces
 	}
 
 	/// Get the frame of the actual visible part of the screen. This means under the dock, but *not* under the status bar if there's a status bar. This is different from `.visibleFrame` which also includes the space under the status bar.
@@ -2011,7 +1870,7 @@ extension NSStatusBar {
 			return false
 		}
 
-		return screen.frame.height - screen.visibleFrame.height < NSStatusBar.system.thickness
+		return screen.frame.height - screen.visibleFrame.height < system.thickness
 	}
 }
 
@@ -2629,7 +2488,7 @@ extension URL {
 	- Note: It's currently very simple and lacks a lot of normalizations.
 
 	```
-	URL(string: "https://sindresorhus.com/?").normalized()
+	URL("https://sindresorhus.com/?").normalized()
 	//=> "https://sindresorhus.com"
 	```
 	*/

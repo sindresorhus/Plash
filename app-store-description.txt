@@ -35,7 +35,7 @@ Note: Support for multiple displays is currently limited to the ability to choos
 
 ■ Tip
 
-You can interact with the website by enabling “Browsing Mode”. When in this mode, you can right-click to be able to go back/forward, reload, and zoom in the page contents. You can also pinch to magnify. This is different from zooming the page contents in that it will zoom in to a specific part of the page instead of just enlarging everything.
+You can interact with the website by enabling “Browsing Mode”. When in this mode, you can right-click to be able to go back/forward, reload, and zoom in the page contents (the zoom level is saved). You can also pinch to magnify. This is different from zooming the page contents in that it will zoom in to a specific part of the page instead of just enlarging everything.
 
 
 If you have some cool use-case you want to share or some other feedback, please do send me an email through the “Send Feedback” button in the app.

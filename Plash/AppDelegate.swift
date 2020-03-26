@@ -18,7 +18,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		$0.button?.image = Constants.menuBarIcon
 	}
 
-	lazy var statusButton = statusItem.button!
+	lazy var statusItemButton = statusItem.button!
 
 	lazy var webViewController = WebViewController()
 
@@ -37,7 +37,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 	var isEnabled = true {
 		didSet {
-			statusButton.appearsDisabled = !isEnabled
+			statusItemButton.appearsDisabled = !isEnabled
 
 			if isEnabled {
 				loadUserURL()
@@ -45,7 +45,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			} else {
 				// TODO: Properly unload the web view instead of just clearing and hiding it.
 				desktopWindow.orderOut(self)
-				loadURL(URL(string: "about:blank"))
+				loadURL(URL("about:blank"))
 			}
 		}
 	}
@@ -55,8 +55,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	var webViewError: Error? {
 		didSet {
 			if let error = webViewError {
-				self.statusButton.toolTip = "Error: \(error.localizedDescription)"
-				self.statusButton.contentTintColor = .systemRed
+				self.statusItemButton.toolTip = "Error: \(error.localizedDescription)"
+				self.statusItemButton.contentTintColor = .systemRed
 
 				// TODO: Also present the error when the user just added it from the input box as then it's also "interactive".
 				if self.isBrowsingMode {
@@ -66,7 +66,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 				return
 			}
 
-			self.statusButton.contentTintColor = nil
+			self.statusItemButton.contentTintColor = nil
 		}
 	}
 
@@ -84,7 +84,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			]
 		)
 
-		_ = statusButton
+		_ = statusItemButton
 		_ = desktopWindow
 
 		// This is needed to make the window appear.
@@ -117,9 +117,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			if let url = Defaults[.url] {
 				let title = self.webViewController.webView.title.map { "\($0)\n" } ?? ""
 				let urlString = url.isFileURL ? url.lastPathComponent : url.absoluteString
-				self.statusButton.toolTip = "\(title)\(urlString)"
+				self.statusItemButton.toolTip = "\(title)\(urlString)"
 			} else {
-				self.statusButton.toolTip = ""
+				self.statusItemButton.toolTip = ""
 			}
 		}
 
@@ -138,7 +138,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			}
 			.store(in: &cancellables)
 
-		Defaults.observe(.url, options: [.new]) { change in
+		Defaults.observe(.url, options: []) { change in
 			self.resetTimer()
 			self.loadURL(change.newValue)
 		}
@@ -155,7 +155,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		}
 			.tieToLifetime(of: self)
 
-		Defaults.observe(.display, options: [.new]) { change in
+		Defaults.observe(.display, options: []) { change in
 			self.desktopWindow.targetScreen = change.newValue.screen
 		}
 			.tieToLifetime(of: self)
@@ -205,7 +205,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 				"""
 		)
 
-		statusButton.playRainbowAnimation()
+		statusItemButton.playRainbowAnimation()
 	}
 
 	func resetTimer() {
@@ -347,25 +347,22 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 		menu.addUrlItem(
 			"Website",
-			url: URL(string: "https://sindresorhus.com/plash")!
+			url: URL("https://sindresorhus.com/plash")
 		)
 
 		menu.addUrlItem(
 			"Roadmap",
-			url: URL(string: "https://github.com/sindresorhus/Plash/issues")!
+			url: URL("https://github.com/sindresorhus/Plash/issues")
 		)
 
 		menu.addUrlItem(
 			"Examples",
-			url: URL(string: "https://github.com/sindresorhus/Plash/issues/1")!
+			url: URL("https://github.com/sindresorhus/Plash/issues/1")
 		)
 
 		menu.addSeparator()
 
-		menu.addUrlItem(
-			"More apps",
-			url: URL(string: "https://sindresorhus.com/apps")!
-		)
+		menu.addMoreAppsItem()
 
 		return menu
 	}
@@ -431,7 +428,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		menu.addSeparator()
 
 		menu.addCallbackItem("Send Feedback…") { _ in
-			Meta.openSendFeedbackPage()
+			App.openSendFeedbackPage()
 		}
 
 		let moreMenuItem = menu.addItem("More")

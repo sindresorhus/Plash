@@ -14,7 +14,7 @@ struct OpenURLView: View {
 	}()
 
 	// TODO: Do a `URL(humanString:)` extension.
-	var normalizedUrlString: String {
+	private var normalizedUrlString: String {
 		let hasScheme = urlString.hasPrefix("https://") || urlString.hasPrefix("http://") || urlString.hasPrefix("file://")
 		return hasScheme ? urlString : "http://\(urlString)"
 	}
@@ -44,8 +44,9 @@ struct OpenURLView: View {
 				"sindresorhus.com",
 				// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines.
 				// TODO: Report to Apple.
-				text: $urlString.setMap { $0.removingNewlines }
+				text: $urlString.setMap(\.removingNewlines)
 			)
+				.lineLimit(1)
 				.frame(minWidth: 400)
 				.padding(.vertical)
 			NativeButton("Open", keyEquivalent: .return) {

@@ -3,7 +3,7 @@ import LaunchAtLogin
 import Defaults
 
 private struct OpacityPreference: View {
-	@Default(.opacity) var opacity
+	@Default(.opacity) private var opacity
 
 	var body: some View {
 		HStack {
@@ -29,13 +29,10 @@ private struct ReloadIntervalPreference: View {
 		return formatter
 	}()
 
-	@OptionalDefault(.reloadInterval) private var reloadInterval
+	@Default(.reloadInterval) private var reloadInterval
 
 	private var reloadIntervalInMinutes: Binding<Double> {
-		$reloadInterval.withDefaultValue(Self.defaultReloadInterval).map(
-			get: { $0 / 60 },
-			set: { $0 * 60 }
-		)
+		$reloadInterval.withDefaultValue(Self.defaultReloadInterval).secondsToMinutes
 	}
 
 	private var hasInterval: Binding<Bool> {
@@ -110,7 +107,7 @@ private struct DisplayPreference: View {
 	var body: some View {
 		Picker(
 			"Show On Display:",
-			selection: $chosenDisplay.getMap { $0.withFallbackToMain }
+			selection: $chosenDisplay.getMap(\.withFallbackToMain)
 		) {
 			ForEach(displayWrapper.wrappedValue.all, id: \.self) { display in
 				Text(display.localizedName)

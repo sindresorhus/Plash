@@ -83,7 +83,7 @@ final class SSWebView: WKWebView {
 
 extension SSWebView {
 	// TODO: Use https://developer.apple.com/documentation/webkit/wkwebview/3516411-pagezoom instead when macOS 10.15.4 is out.
-	private var zoomLevelDefaultsKey: Defaults.OptionalKey<Double>? {
+	private var zoomLevelDefaultsKey: Defaults.Key<Double?>? {
 		guard let url = self.url?.normalized(removeFragment: true, removeQuery: true) else {
 			return nil
 		}
