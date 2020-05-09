@@ -1,6 +1,7 @@
 import SwiftUI
 import LaunchAtLogin
 import Defaults
+import KeyboardShortcuts
 
 private struct OpacityPreference: View {
 	@Default(.opacity) private var opacity
@@ -117,6 +118,17 @@ private struct DisplayPreference: View {
 	}
 }
 
+private struct KeyboardShortcutsSection: View {
+	var body: some View {
+		VStack {
+			HStack {
+				Text("Toggle “Browsing Mode”:")
+				KeyboardShortcuts.Recorder(for: .toggleBrowsingMode)
+			}
+		}
+	}
+}
+
 private struct CustomCSSPreference: View {
 	@Default(.customCSS) private var customCSS
 
@@ -165,6 +177,9 @@ struct PreferencesView: View {
 			// Work around 10 view limit.
 			Group {
 				DisplayPreference()
+				Divider()
+					.padding(.vertical)
+				KeyboardShortcutsSection()
 				Divider()
 					.padding(.vertical)
 				CustomCSSPreference()

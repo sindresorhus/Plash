@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 52;
+	objectVersion = 53;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -24,6 +24,7 @@
 		E32421582384F0E600D28A91 /* util.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421572384F0E600D28A91 /* util.swift */; };
 		E324215A2384FBE500D28A91 /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421592384FBE500D28A91 /* WebViewController.swift */; };
 		E333EB1B2385244E005FCE44 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E333EB1A2385244E005FCE44 /* PreferencesView.swift */; };
+		E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = E3805F5A2466ED5600489E6C /* KeyboardShortcuts */; };
 		E3F11BEC2386824D005EFD26 /* OpenURLWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F11BEB2386824D005EFD26 /* OpenURLWindowController.swift */; };
 		E3F11BEE2386828C005EFD26 /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F11BED2386828C005EFD26 /* PreferencesWindowController.swift */; };
 		E3FA21AD23C74E6B00059E43 /* InternetAccessPolicy.json in Resources */ = {isa = PBXBuildFile; fileRef = E3FA21AC23C74E6B00059E43 /* InternetAccessPolicy.json */; };
@@ -85,6 +86,7 @@
 			files = (
 				E30FD88523C4355D00C716E9 /* LaunchAtLogin.framework in Frameworks */,
 				E30FD88E23C4572C00C716E9 /* AppCenter.framework in Frameworks */,
+				E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */,
 				E30FD88C23C4572C00C716E9 /* AppCenterCrashes.framework in Frameworks */,
 				E324214A2384ED8300D28A91 /* Defaults in Frameworks */,
 			);
@@ -176,6 +178,7 @@
 			name = Plash;
 			packageProductDependencies = (
 				E32421492384ED8300D28A91 /* Defaults */,
+				E3805F5A2466ED5600489E6C /* KeyboardShortcuts */,
 			);
 			productName = Plash;
 			productReference = E32421302384E9D700D28A91 /* Plash.app */;
@@ -197,7 +200,7 @@
 				};
 			};
 			buildConfigurationList = E324212B2384E9D700D28A91 /* Build configuration list for PBXProject "Plash" */;
-			compatibilityVersion = "Xcode 11.0";
+			compatibilityVersion = "Xcode 11.4";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -207,6 +210,7 @@
 			mainGroup = E32421272384E9D700D28A91;
 			packageReferences = (
 				E32421482384ED8300D28A91 /* XCRemoteSwiftPackageReference "Defaults" */,
+				E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
 			);
 			productRefGroup = E32421312384E9D700D28A91 /* Products */;
 			projectDirPath = "";
@@ -513,6 +517,14 @@
 				minimumVersion = 4.0.0;
 			};
 		};
+		E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
+			requirement = {
+				kind = upToNextMinorVersion;
+				minimumVersion = 0.1.1;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -520,6 +532,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E32421482384ED8300D28A91 /* XCRemoteSwiftPackageReference "Defaults" */;
 			productName = Defaults;
+		};
+		E3805F5A2466ED5600489E6C /* KeyboardShortcuts */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
+			productName = KeyboardShortcuts;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

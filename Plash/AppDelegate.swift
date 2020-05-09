@@ -3,6 +3,7 @@ import Combine
 import AppCenter
 import AppCenterCrashes
 import Defaults
+import KeyboardShortcuts
 
 @NSApplicationMain
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -179,6 +180,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			self.desktopWindow.collectionBehavior.toggleExistence(.canJoinAllSpaces, shouldExist: change.newValue)
 		}
 			.tieToLifetime(of: self)
+
+		KeyboardShortcuts.onKeyUp(for: .toggleBrowsingMode) {
+			self.isBrowsingMode.toggle()
+		}
 	}
 
 	func setEnabledStatus() {

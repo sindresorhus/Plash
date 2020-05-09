@@ -1,5 +1,6 @@
 import Cocoa
 import Defaults
+import KeyboardShortcuts
 
 struct Constants {
 	static let menuBarIcon = NSImage(named: "MenuBarIcon")!
@@ -14,4 +15,8 @@ extension Defaults.Keys {
 	static let customCSS = Key<String>("customCSS", default: "")
 	static let deactivateOnBattery = Key<Bool>("deactivateOnBattery", default: false)
 	static let showOnAllSpaces = Key<Bool>("showOnAllSpaces", default: false)
+}
+
+extension KeyboardShortcuts.Name {
+	static let toggleBrowsingMode = Name("toggleBrowsingMode")
 }
