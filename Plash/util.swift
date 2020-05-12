@@ -1769,8 +1769,10 @@ extension NSScreen {
 	var withFallbackToMain: NSScreen? { isConnected ? self : .main }
 
 	/// Whether the screen shows a status bar.
+	/// Returns `false` if the status bar is set to show/hide automatically as it then doesn't take up any screen space.
 	var hasStatusBar: Bool {
-		(self == .primary && !NSStatusBar.isAutomaticallyToggled) || Self.screensHaveSeparateSpaces
+		// When `screensHaveSeparateSpaces == true`, the menu bar shows on all the screens.
+		!NSStatusBar.isAutomaticallyToggled && (self == .primary || Self.screensHaveSeparateSpaces)
 	}
 
 	/// Get the frame of the actual visible part of the screen. This means under the dock, but *not* under the status bar if there's a status bar. This is different from `.visibleFrame` which also includes the space under the status bar.
