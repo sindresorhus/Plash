@@ -19,9 +19,13 @@ final class DesktopWindow: NSWindow {
 			if isInteractive {
 				level = .floating
 				makeKeyAndOrderFront(self)
+				ignoresMouseEvents = false
 			} else {
 				level = .desktop
 				orderBack(self)
+
+				// Even though the window is on `.desktop` level, the user would be able to interact if they hide desktop icons.
+				ignoresMouseEvents = true
 			}
 		}
 	}
@@ -45,9 +49,6 @@ final class DesktopWindow: NSWindow {
 			.stationary,
 			.ignoresCycle
 		]
-
-		// Even though the window is on `.desktop` level, the user would be able to interact if they hide desktop icons.
-		self.ignoresMouseEvents = true
 
 		setFrame()
 
