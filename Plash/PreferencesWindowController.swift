@@ -2,7 +2,7 @@ import Cocoa
 import SwiftUI
 
 final class PreferencesWindowController: SingletonWindowController {
-	convenience init() {
+	private convenience init() {
 		let window = SwiftUIWindowForMenuBarApp()
 		self.init(window: window)
 

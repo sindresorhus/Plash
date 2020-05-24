@@ -3,7 +3,7 @@ import SwiftUI
 import Defaults
 
 final class OpenURLWindowController: SingletonWindowController {
-	convenience init() {
+	private convenience init() {
 		let window = SwiftUIWindowForMenuBarApp()
 		self.init(window: window)
 
