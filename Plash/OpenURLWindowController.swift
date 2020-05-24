@@ -2,8 +2,8 @@ import Cocoa
 import SwiftUI
 import Defaults
 
-final class OpenURLWindowController: NSWindowController {
-	convenience init() {
+final class OpenURLWindowController: SingletonWindowController {
+	private convenience init() {
 		let window = SwiftUIWindowForMenuBarApp()
 		self.init(window: window)
 
@@ -21,10 +21,5 @@ final class OpenURLWindowController: NSWindowController {
 		window.level = .modalPanel
 		window.contentView = NSHostingView(rootView: view)
 		window.center()
-	}
-
-	func showWindow() {
-		NSApp.activate(ignoringOtherApps: true)
-		window?.makeKeyAndOrderFront(nil)
 	}
 }

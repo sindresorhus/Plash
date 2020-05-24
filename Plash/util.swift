@@ -2610,3 +2610,60 @@ final class AutofocusedTextField: NSTextField {
 		window?.makeFirstResponder(self)
 	}
 }
+
+
+/**
+Creates a window controller that can only ever have one window.
+
+This can be useful when you need there to be only one window of a type, for example, a preferences window. If the window already exists, and you call `.showWindow()`, it will instead just focus the existing window.
+
+- Important: Don't create an instance of this. Instead, call the static `.showWindow()` method. Also mark your `convenience init` as `private` so you don't accidentally call it.
+
+```
+final class PreferencesWindowController: SingletonWindowController {
+	private convenience init() {
+		let window = NSWindow()
+		self.init(window: window)
+
+		window.center()
+	}
+}
+
+// …
+
+PreferencesWindowController.showWindow()
+```
+*/
+class SingletonWindowController: NSWindowController, NSWindowDelegate {
+	private static var current: SingletonWindowController?
+
+	static func showWindow() {
+		if current == nil {
+			current = self.init()
+		}
+
+		// Menu bar apps need to be activated, otherwise, things like input focus doesn't work.
+		if NSApp.activationPolicy() == .accessory {
+			NSApp.activate(ignoringOtherApps: true)
+		}
+
+		current?.window?.makeKeyAndOrderFront(nil)
+	}
+
+	override init(window: NSWindow?) {
+		super.init(window: window)
+		window?.delegate = self
+	}
+
+	@available(*, unavailable)
+	required init?(coder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
+
+	func windowWillClose(_ notification: Notification) {
+		Self.current = nil
+	}
+
+	@available(*, unavailable)
+	override func showWindow(_ sender: Any?) {}
+}

@@ -1,8 +1,8 @@
 import Cocoa
 import SwiftUI
 
-final class PreferencesWindowController: NSWindowController {
-	convenience init() {
+final class PreferencesWindowController: SingletonWindowController {
+	private convenience init() {
 		let window = SwiftUIWindowForMenuBarApp()
 		self.init(window: window)
 
@@ -16,10 +16,5 @@ final class PreferencesWindowController: NSWindowController {
 		window.level = .modalPanel
 		window.contentView = NSHostingView(rootView: view)
 		window.center()
-	}
-
-	func showWindow() {
-		NSApp.activate(ignoringOtherApps: true)
-		window?.makeKeyAndOrderFront(nil)
 	}
 }

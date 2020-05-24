@@ -393,7 +393,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			key: "o",
 			isEnabled: isEnabled
 		) { _ in
-			OpenURLWindowController().showWindow()
+			OpenURLWindowController.showWindow()
 		}
 
 		menu.addCallbackItem(
@@ -427,7 +427,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		menu.addSeparator()
 
 		menu.addCallbackItem("Preferences…", key: ",") { _ in
-			PreferencesWindowController().showWindow()
+			PreferencesWindowController.showWindow()
 		}
 
 		menu.addSeparator()
