@@ -10,8 +10,6 @@
 		E30FD88523C4355D00C716E9 /* LaunchAtLogin.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E324214D2384EF2000D28A91 /* LaunchAtLogin.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		E30FD88623C4355D00C716E9 /* LaunchAtLogin.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = E324214D2384EF2000D28A91 /* LaunchAtLogin.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E30FD88923C4515200C716E9 /* SSWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30FD88823C4515200C716E9 /* SSWebView.swift */; };
-		E30FD88C23C4572C00C716E9 /* AppCenterCrashes.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E30FD88A23C4572C00C716E9 /* AppCenterCrashes.framework */; };
-		E30FD88E23C4572C00C716E9 /* AppCenter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E30FD88B23C4572C00C716E9 /* AppCenter.framework */; };
 		E32421342384E9D700D28A91 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421332384E9D700D28A91 /* AppDelegate.swift */; };
 		E32421362384E9D700D28A91 /* OpenURLView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421352384E9D700D28A91 /* OpenURLView.swift */; };
 		E32421382384E9D900D28A91 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E32421372384E9D900D28A91 /* Assets.xcassets */; };
@@ -25,6 +23,7 @@
 		E324215A2384FBE500D28A91 /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421592384FBE500D28A91 /* WebViewController.swift */; };
 		E333EB1B2385244E005FCE44 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E333EB1A2385244E005FCE44 /* PreferencesView.swift */; };
 		E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = E3805F5A2466ED5600489E6C /* KeyboardShortcuts */; };
+		E3959394247B986A0064CABE /* AppCenterCrashes in Frameworks */ = {isa = PBXBuildFile; productRef = E3959393247B986A0064CABE /* AppCenterCrashes */; };
 		E3F11BEC2386824D005EFD26 /* OpenURLWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F11BEB2386824D005EFD26 /* OpenURLWindowController.swift */; };
 		E3F11BEE2386828C005EFD26 /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F11BED2386828C005EFD26 /* PreferencesWindowController.swift */; };
 		E3FA21AD23C74E6B00059E43 /* InternetAccessPolicy.json in Resources */ = {isa = PBXBuildFile; fileRef = E3FA21AC23C74E6B00059E43 /* InternetAccessPolicy.json */; };
@@ -57,8 +56,6 @@
 
 /* Begin PBXFileReference section */
 		E30FD88823C4515200C716E9 /* SSWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = SSWebView.swift; sourceTree = "<group>"; usesTabs = 1; };
-		E30FD88A23C4572C00C716E9 /* AppCenterCrashes.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppCenterCrashes.framework; path = Carthage/Build/Mac/AppCenterCrashes.framework; sourceTree = "<group>"; };
-		E30FD88B23C4572C00C716E9 /* AppCenter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppCenter.framework; path = Carthage/Build/Mac/AppCenter.framework; sourceTree = "<group>"; };
 		E32421302384E9D700D28A91 /* Plash.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Plash.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E32421332384E9D700D28A91 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = AppDelegate.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E32421352384E9D700D28A91 /* OpenURLView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = OpenURLView.swift; sourceTree = "<group>"; usesTabs = 1; };
@@ -85,10 +82,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				E30FD88523C4355D00C716E9 /* LaunchAtLogin.framework in Frameworks */,
-				E30FD88E23C4572C00C716E9 /* AppCenter.framework in Frameworks */,
 				E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */,
-				E30FD88C23C4572C00C716E9 /* AppCenterCrashes.framework in Frameworks */,
 				E324214A2384ED8300D28A91 /* Defaults in Frameworks */,
+				E3959394247B986A0064CABE /* AppCenterCrashes in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -148,8 +144,6 @@
 		E324214C2384EF2000D28A91 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				E30FD88B23C4572C00C716E9 /* AppCenter.framework */,
-				E30FD88A23C4572C00C716E9 /* AppCenterCrashes.framework */,
 				E32421522384EF4600D28A91 /* LaunchAtLogin.framework.dSYM */,
 				E324214D2384EF2000D28A91 /* LaunchAtLogin.framework */,
 			);
@@ -179,6 +173,7 @@
 			packageProductDependencies = (
 				E32421492384ED8300D28A91 /* Defaults */,
 				E3805F5A2466ED5600489E6C /* KeyboardShortcuts */,
+				E3959393247B986A0064CABE /* AppCenterCrashes */,
 			);
 			productName = Plash;
 			productReference = E32421302384E9D700D28A91 /* Plash.app */;
@@ -211,6 +206,7 @@
 			packageReferences = (
 				E32421482384ED8300D28A91 /* XCRemoteSwiftPackageReference "Defaults" */,
 				E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
+				E3959392247B986A0064CABE /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */,
 			);
 			productRefGroup = E32421312384E9D700D28A91 /* Products */;
 			projectDirPath = "";
@@ -525,6 +521,14 @@
 				minimumVersion = 0.1.1;
 			};
 		};
+		E3959392247B986A0064CABE /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/microsoft/appcenter-sdk-apple";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.2.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -537,6 +541,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
 			productName = KeyboardShortcuts;
+		};
+		E3959393247B986A0064CABE /* AppCenterCrashes */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E3959392247B986A0064CABE /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */;
+			productName = AppCenterCrashes;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
