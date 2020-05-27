@@ -1671,6 +1671,18 @@ extension WKPreferences {
 }
 
 
+extension WKWindowFeatures {
+	/// The size of the window.
+	/// Defaults to 600 for width/height if not specified.
+	var size: CGSize {
+		.init(
+			width: CGFloat(truncating: width ?? 600),
+			height: CGFloat(truncating: height ?? 600)
+		)
+	}
+}
+
+
 /**
 Wrap a value in an `ObservableObject` where the given `Publisher` triggers it to update. Note that the value is static and must be accessed as `.wrappedValue`. The publisher part is only meant to trigger an observable update.
 
@@ -2667,3 +2679,122 @@ class SingletonWindowController: NSWindowController, NSWindowDelegate {
 	@available(*, unavailable)
 	override func showWindow(_ sender: Any?) {}
 }
+
+
+enum AssociationPolicy {
+	case assign
+	case retainNonatomic
+	case copyNonatomic
+	case retain
+	case copy
+
+	var rawValue: objc_AssociationPolicy {
+		switch self {
+		case .assign:
+			return .OBJC_ASSOCIATION_ASSIGN
+		case .retainNonatomic:
+			return .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+		case .copyNonatomic:
+			return .OBJC_ASSOCIATION_COPY_NONATOMIC
+		case .retain:
+			return .OBJC_ASSOCIATION_RETAIN
+		case .copy:
+			return .OBJC_ASSOCIATION_COPY
+		}
+	}
+}
+
+final class ObjectAssociation<T: Any> {
+	private let policy: AssociationPolicy
+
+	init(policy: AssociationPolicy = .retainNonatomic) {
+		self.policy = policy
+	}
+
+	subscript(index: AnyObject) -> T? {
+		get {
+			// Force-cast is fine here as we want it to fail loudly if we don't use the correct type.
+			// swiftlint:disable:next force_cast
+			objc_getAssociatedObject(index, Unmanaged.passUnretained(self).toOpaque()) as! T?
+		}
+		set {
+			objc_setAssociatedObject(index, Unmanaged.passUnretained(self).toOpaque(), newValue, policy.rawValue)
+		}
+	}
+}
+
+
+private let bindLifetimeAssociatedObjectKey = ObjectAssociation<[AnyObject]>()
+
+/// Binds the lifetime of object A to object B, so when B deallocates, so does A, but not before.
+func bindLifetime(of object: AnyObject, to target: AnyObject) {
+	var retainedObjects = bindLifetimeAssociatedObjectKey[target] ?? []
+	retainedObjects.append(object)
+	bindLifetimeAssociatedObjectKey[target] = retainedObjects
+}
+
+
+// MARK: - KVO utilities
+extension NSKeyValueObservation {
+	/// Keeps the observation alive as long as the given object.
+	@discardableResult
+	func tiedToLifetimeOf(_ object: AnyObject) -> Self {
+		bindLifetime(of: self, to: object)
+		return self
+	}
+}
+
+extension NSObjectProtocol where Self: NSObject {
+	/// Convenience `observe` function that triggers initially and on new values and only provides the new value.
+	func observe<Value>(
+		_ keyPath: KeyPath<Self, Value>,
+		onChange: @escaping (Value) -> Void
+	) -> NSKeyValueObservation {
+		observe(keyPath, options: [.initial, .new]) { _, change in
+			guard let newValue = change.newValue else {
+				return
+			}
+
+			onChange(newValue)
+		}
+	}
+
+	/**
+	Bind the property of one object to the property of another object.
+
+	```
+	window.bind(\.title, to: toolbarItem, at: \.title)
+		.tiedToLifetimeOf(self)
+	```
+	*/
+	func bind<Value, Target>(
+		_ sourceKeyPath: KeyPath<Self, Value>,
+		to target: Target,
+		at targetKeyPath: ReferenceWritableKeyPath<Target, Value>
+	) -> NSKeyValueObservation {
+		observe(sourceKeyPath) {
+			target[keyPath: targetKeyPath] = $0
+		}
+	}
+
+	/**
+	Bind the `String?` property of one object to the `String` property of another object.
+
+	If the source property is `nil` and the target is not optional, the target will be set to an empty string.
+
+	```
+	webView.bind(\.title, to: window, at: \.title)
+		.tiedToLifetimeOf(self)
+	```
+	*/
+	func bind<Target>(
+		_ sourceKeyPath: KeyPath<Self, String?>,
+		to target: Target,
+		at targetKeyPath: ReferenceWritableKeyPath<Target, String>
+	) -> NSKeyValueObservation {
+		observe(sourceKeyPath) {
+			target[keyPath: targetKeyPath] = $0 ?? ""
+		}
+	}
+}
+// MARK: -

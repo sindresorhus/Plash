@@ -3,6 +3,8 @@ import WebKit
 import Defaults
 
 final class WebViewController: NSViewController {
+	private var popupWindow: NSWindow?
+
 	/// Closure to call when the web view finishes loading a page.
 	var onLoaded: ((Error?) -> Void)?
 
@@ -117,12 +119,46 @@ extension WebViewController: WKNavigationDelegate {
 
 extension WebViewController: WKUIDelegate {
 	func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
-		// This makes it so that requests to open something in a new window just opens in the existing web view.
-		if navigationAction.targetFrame == nil {
-			webView.load(navigationAction.request)
+		guard AppDelegate.shared.isBrowsingMode else {
+			// This makes it so that requests to open something in a new window just opens in the existing web view.
+			if navigationAction.targetFrame == nil {
+				webView.load(navigationAction.request)
+			}
+
+			return nil
 		}
 
-		return nil
+		let webView = WKWebView(frame: .zero, configuration: configuration)
+		webView.navigationDelegate = self
+		webView.uiDelegate = self
+		webView.customUserAgent = WKWebView.safariUserAgent
+
+		var styleMask: NSWindow.StyleMask = [
+			.titled,
+			.closable
+		]
+
+		if windowFeatures.allowsResizing?.boolValue == true {
+			styleMask.insert(.resizable)
+		}
+
+		let window = NSWindow(
+			contentRect: CGRect(origin: .zero, size: windowFeatures.size),
+			styleMask: styleMask,
+			backing: .buffered,
+			defer: false
+		)
+		window.isReleasedWhenClosed = false // Since we manually release it.
+		window.contentView = webView
+		view.window?.addChildWindow(window, ordered: .above)
+		window.center()
+		window.makeKeyAndOrderFront(self)
+		popupWindow = window
+
+		webView.bind(\.title, to: window, at: \.title)
+			.tiedToLifetimeOf(webView)
+
+		return webView
 	}
 
 	func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
@@ -160,5 +196,12 @@ extension WebViewController: WKUIDelegate {
 		}
 
 		webView.defaultUploadPanelHandler(parameters: parameters, completion: completionHandler)
+	}
+
+	func webViewDidClose(_ webView: WKWebView) {
+		if webView.window == popupWindow {
+			popupWindow?.close()
+			popupWindow = nil
+		}
 	}
 }
