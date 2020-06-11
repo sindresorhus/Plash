@@ -18,5 +18,5 @@ extension Defaults.Keys {
 }
 
 extension KeyboardShortcuts.Name {
-	static let toggleBrowsingMode = Name("toggleBrowsingMode")
+	static let toggleBrowsingMode = Self("toggleBrowsingMode")
 }

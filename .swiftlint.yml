@@ -81,7 +81,6 @@ whitelist_rules:
   - operator_whitespace
   - orphaned_doc_comment
   - overridden_super_call
-  - pattern_matching_keywords
   - prefer_self_type_over_type_of_self
   - private_action
   - private_outlet

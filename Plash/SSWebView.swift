@@ -107,7 +107,7 @@ extension SSWebView {
 		set {
 			zoomLevel = newValue
 
-			if let zoomDefaultsKey = self.zoomLevelDefaultsKey {
+			if let zoomDefaultsKey = zoomLevelDefaultsKey {
 				Defaults[zoomDefaultsKey] = newValue
 			}
 		}

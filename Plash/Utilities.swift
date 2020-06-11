@@ -1,4 +1,3 @@
-import Cocoa
 import IOKit.ps
 import IOKit.pwr_mgt
 import WebKit
@@ -61,7 +60,7 @@ final class SSMenu: NSMenu, NSMenuDelegate {
 		didSet {
 			// Need to update it here, otherwise it's
 			// positioned incorrectly on the first open.
-			self.onUpdate?(self)
+			onUpdate?(self)
 		}
 	}
 
@@ -501,7 +500,7 @@ extension NSMenu {
 }
 
 
-struct App {
+enum App {
 	static let id = Bundle.main.bundleIdentifier!
 	static let name = Bundle.main.object(forInfoDictionaryKey: kCFBundleNameKey as String) as! String
 	static let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String
@@ -529,8 +528,8 @@ struct App {
 		let metadata =
 			"""
 			\(App.name) \(App.versionWithBuild) - \(App.id)
-			macOS \(System.osVersion)
-			\(System.hardwareModel)
+			macOS \(Device.osVersion)
+			\(Device.hardwareModel)
 			"""
 
 		let query: [String: String] = [
@@ -575,7 +574,7 @@ extension URL {
 }
 
 
-struct System {
+struct Device {
 	static let osVersion: String = {
 		let os = ProcessInfo.processInfo.operatingSystemVersion
 		return "\(os.majorVersion).\(os.minorVersion).\(os.patchVersion)"
@@ -745,7 +744,7 @@ extension ControlActionClosureProtocol {
 	*/
 	func onAction(_ action: @escaping (Self) -> Void) {
 		let trampoline = ActionTrampoline(action: action)
-		self.target = trampoline
+		target = trampoline
 		self.action = #selector(ActionTrampoline<Self>.action(sender:))
 		objc_setAssociatedObject(self, &controlActionClosureProtocolAssociatedObjectKey, trampoline, .OBJC_ASSOCIATION_RETAIN)
 	}
@@ -1053,11 +1052,11 @@ extension String {
 		trimmingCharacters(in: .whitespacesAndNewlines)
 	}
 
-	var trimmedStart: Self {
+	var trimmedLeading: Self {
 		replacingOccurrences(of: #"^\s+"#, with: "", options: .regularExpression)
 	}
 
-	var trimmedEnd: Self {
+	var trimmedTrailing: Self {
 		replacingOccurrences(of: #"\s+$"#, with: "", options: .regularExpression)
 	}
 
@@ -1080,11 +1079,11 @@ extension String {
 	//=> "Uni…"
 	```
 	*/
-	func truncated(to number: Int, truncationIndicator: Self = "…") -> Self {
+	func truncating(to number: Int, truncationIndicator: Self = "…") -> Self {
 		if number <= 0 {
 			return ""
 		} else if count > number {
-			return Self(prefix(number - truncationIndicator.count)).trimmedEnd + truncationIndicator
+			return Self(prefix(number - truncationIndicator.count)).trimmedTrailing + truncationIndicator
 		} else {
 			return self
 		}
@@ -1331,6 +1330,7 @@ final class SwiftUIWindowForMenuBarApp: NSWindow {
 			contentRect: .zero,
 			styleMask: [
 				.titled,
+				.fullSizeContentView,
 				.closable,
 				.miniaturizable,
 				.resizable
@@ -1964,7 +1964,7 @@ struct ScrollableTextView: NSViewRepresentable {
 
 		if let lineLimit = context.environment.lineLimit {
 			textView.textContainer?.maximumNumberOfLines = lineLimit
-        }
+		}
 	}
 }
 
@@ -2036,7 +2036,7 @@ final class PowerSourceWatcher {
 		onChange?(powerSource)
 	}
 
-	fileprivate func internalOnChange() {
+	private func internalOnChange() {
 		onChange?(powerSource)
 	}
 }
@@ -2298,6 +2298,51 @@ extension DispatchQueue {
 }
 
 
+extension URL {
+	/**
+	Access a security-scoped resource.
+
+	The access will be automatically relinquished at the end of the scope of the given `accessor`.
+
+	- Important: Don't do anything async in the `accessor` as the resource access is only available synchronously in the `accessor` scope.
+	*/
+	func accessSecurityScopedResource<Value>(_ accessor: (URL) throws -> Value) rethrows -> Value {
+		let didStartAccessing = startAccessingSecurityScopedResource()
+
+		defer {
+			if didStartAccessing {
+				stopAccessingSecurityScopedResource()
+			}
+		}
+
+		return try accessor(self)
+	}
+
+	/**
+	Access a security-scoped resource asynchronously.
+
+	The access will be automatically when the `completion` closure is called.
+
+	```
+	directoryUrl.accessSecurityScopedResourceAsync { completion in
+		self.startConversion(urls, outputDirectory: directoryUrl) {
+			completion()
+		}
+	}
+	```
+	*/
+	func accessSecurityScopedResourceAsync<Value>(_ accessor: (@escaping () -> Void) throws -> Value) rethrows -> Value {
+		let didStartAccessing = startAccessingSecurityScopedResource()
+
+		return try accessor {
+			if didStartAccessing {
+				self.stopAccessingSecurityScopedResource()
+			}
+		}
+	}
+}
+
+
 // TODO: I plan to extract this into a Swift Package when it's been battle-tested.
 /// This always requests the permission to a directory. If you give it file URL, it will ask for permission to the parent directory.
 final class SecurityScopedBookmarkManager {
@@ -2316,6 +2361,7 @@ final class SecurityScopedBookmarkManager {
 		}
 
 		subscript(url: URL) -> Data? {
+			// TODO: Should it really be resolving symlinks?
 			get { bookmarkStore[url.resolvingSymlinksInPath().absoluteString] }
 			set {
 				var bookmarks = bookmarkStore
@@ -2358,7 +2404,9 @@ final class SecurityScopedBookmarkManager {
 
 	/// Save the bookmark.
 	static func saveBookmark(for url: URL) throws {
-		bookmarks[url] = try url.bookmarkData(options: .withSecurityScope)
+		bookmarks[url] = try url.accessSecurityScopedResource {
+			try $0.bookmarkData(options: .withSecurityScope)
+		}
 	}
 
 	/// Load the bookmark.
@@ -2625,6 +2673,35 @@ final class AutofocusedTextField: NSTextField {
 
 
 /**
+Hashable wrapper for a metatype value.
+*/
+struct HashableType<T>: Hashable {
+	static func == (lhs: Self, rhs: Self) -> Bool {
+		lhs.base == rhs.base
+	}
+
+	let base: T.Type
+
+	init(_ base: T.Type) {
+		self.base = base
+	}
+
+	func hash(into hasher: inout Hasher) {
+		hasher.combine(ObjectIdentifier(base))
+	}
+}
+
+extension Dictionary {
+	subscript<T>(key: T.Type) -> Value? where Key == HashableType<T> {
+		get { self[HashableType(key)] }
+		set {
+			self[HashableType(key)] = newValue
+		}
+	}
+}
+
+
+/**
 Creates a window controller that can only ever have one window.
 
 This can be useful when you need there to be only one window of a type, for example, a preferences window. If the window already exists, and you call `.showWindow()`, it will instead just focus the existing window.
@@ -2647,19 +2724,34 @@ PreferencesWindowController.showWindow()
 ```
 */
 class SingletonWindowController: NSWindowController, NSWindowDelegate {
-	private static var current: SingletonWindowController?
+	private static var instances = [HashableType<SingletonWindowController>: SingletonWindowController]()
 
-	static func showWindow() {
-		if current == nil {
-			current = self.init()
+	private static var currentInstance: SingletonWindowController {
+		guard let instance = instances[self] else {
+			let instance = self.init()
+			instances[self] = instance
+			return instance
 		}
 
+		return instance
+	}
+
+	static var window: NSWindow? {
+		get {
+			currentInstance.window
+		}
+		set {
+			currentInstance.window = newValue
+		}
+	}
+
+	static func showWindow() {
 		// Menu bar apps need to be activated, otherwise, things like input focus doesn't work.
 		if NSApp.activationPolicy() == .accessory {
 			NSApp.activate(ignoringOtherApps: true)
 		}
 
-		current?.window?.makeKeyAndOrderFront(nil)
+		window?.makeKeyAndOrderFront(nil)
 	}
 
 	override init(window: NSWindow?) {
@@ -2673,7 +2765,7 @@ class SingletonWindowController: NSWindowController, NSWindowDelegate {
 	}
 
 	func windowWillClose(_ notification: Notification) {
-		Self.current = nil
+		Self.instances[Self] = nil
 	}
 
 	@available(*, unavailable)

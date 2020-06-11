@@ -59,7 +59,7 @@ final class WebViewController: NSViewController {
 	func loadURL(_ url: URL) {
 		guard !url.isFileURL else {
 			_ = url.accessSandboxedURLByPromptingIfNeeded()
-			self.webView.loadFileURL(url.appendingPathComponent("index.html"), allowingReadAccessTo: url)
+			webView.loadFileURL(url.appendingPathComponent("index.html", isDirectory: false), allowingReadAccessTo: url)
 
 			return
 		}

@@ -56,18 +56,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	var webViewError: Error? {
 		didSet {
 			if let error = webViewError {
-				self.statusItemButton.toolTip = "Error: \(error.localizedDescription)"
-				self.statusItemButton.contentTintColor = .systemRed
+				statusItemButton.toolTip = "Error: \(error.localizedDescription)"
+				statusItemButton.contentTintColor = .systemRed
 
 				// TODO: Also present the error when the user just added it from the input box as then it's also "interactive".
-				if self.isBrowsingMode {
+				if isBrowsingMode {
 					NSApp.presentError(error)
 				}
 
 				return
 			}
 
-			self.statusItemButton.contentTintColor = nil
+			statusItemButton.contentTintColor = nil
 		}
 	}
 
@@ -187,7 +187,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	func setEnabledStatus() {
-		self.isEnabled = !(Defaults[.deactivateOnBattery] && powerSourceWatcher?.powerSource.isUsingBattery == true)
+		isEnabled = !(Defaults[.deactivateOnBattery] && powerSourceWatcher?.powerSource.isUsingBattery == true)
 	}
 
 	func showWelcomeScreenIfNeeded() {
@@ -214,8 +214,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	func resetTimer() {
-		self.reloadTimer?.invalidate()
-		self.reloadTimer = nil
+		reloadTimer?.invalidate()
+		reloadTimer = nil
 
 		guard !isBrowsingMode else {
 			return
@@ -225,7 +225,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			return
 		}
 
-		self.reloadTimer = Timer.scheduledTimer(withTimeInterval: reloadInterval, repeats: true) { _ in
+		reloadTimer = Timer.scheduledTimer(withTimeInterval: reloadInterval, repeats: true) { _ in
 			self.loadUserURL()
 		}
 	}
@@ -263,7 +263,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			recreateWebView()
 		}
 
-		self.webViewController.loadURL(url)
+		webViewController.loadURL(url)
 
 		// TODO: Add a callback to `loadURL` when it's done loading instead.
 		// TODO: Fade in the web view.
@@ -300,7 +300,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 				return
 			}
 
-			guard url.appendingPathComponent("index.html").exists else {
+			guard url.appendingPathComponent("index.html", isDirectory: false).exists else {
 				NSAlert.showModal(message: "Please choose a directory that contains a “index.html” file.")
 				self.openLocalWebsite()
 				return
@@ -328,7 +328,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			let title = webViewController.webView.title,
 			!title.isEmpty
 		{
-			let menuItem = menu.addDisabled(title.truncated(to: maxLength))
+			let menuItem = menu.addDisabled(title.truncating(to: maxLength))
 			menuItem.toolTip = title
 		}
 
@@ -339,7 +339,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			newUrlString = urlString.removingSchemeAndWWWFromURL
 		}
 
-		let menuItem = menu.addDisabled(newUrlString.truncated(to: maxLength))
+		let menuItem = menu.addDisabled(newUrlString.truncating(to: maxLength))
 		menuItem.toolTip = urlString
 	}
 

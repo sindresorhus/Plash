@@ -1,4 +1,3 @@
-import Cocoa
 import SwiftUI
 
 final class PreferencesWindowController: SingletonWindowController {
@@ -8,9 +7,10 @@ final class PreferencesWindowController: SingletonWindowController {
 
 		let view = PreferencesView()
 
-		window.title = "Plash Preferences"
+		window.title = "Preferences"
 		window.styleMask = [
 			.titled,
+			.fullSizeContentView,
 			.closable
 		]
 		window.level = .modalPanel

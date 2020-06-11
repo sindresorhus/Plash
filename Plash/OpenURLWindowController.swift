@@ -1,4 +1,3 @@
-import Cocoa
 import SwiftUI
 import Defaults
 
@@ -16,6 +15,7 @@ final class OpenURLWindowController: SingletonWindowController {
 		window.shouldCloseOnEscapePress = true
 		window.styleMask = [
 			.titled,
+			.fullSizeContentView,
 			.closable
 		]
 		window.level = .modalPanel

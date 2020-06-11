@@ -19,7 +19,7 @@
 		E324214A2384ED8300D28A91 /* Defaults in Frameworks */ = {isa = PBXBuildFile; productRef = E32421492384ED8300D28A91 /* Defaults */; };
 		E32421532384EF4600D28A91 /* LaunchAtLogin.framework.dSYM in Copy Debug Symbols */ = {isa = PBXBuildFile; fileRef = E32421522384EF4600D28A91 /* LaunchAtLogin.framework.dSYM */; };
 		E32421562384F09D00D28A91 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421552384F09D00D28A91 /* Constants.swift */; };
-		E32421582384F0E600D28A91 /* util.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421572384F0E600D28A91 /* util.swift */; };
+		E32421582384F0E600D28A91 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421572384F0E600D28A91 /* Utilities.swift */; };
 		E324215A2384FBE500D28A91 /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421592384FBE500D28A91 /* WebViewController.swift */; };
 		E333EB1B2385244E005FCE44 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E333EB1A2385244E005FCE44 /* PreferencesView.swift */; };
 		E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = E3805F5A2466ED5600489E6C /* KeyboardShortcuts */; };
@@ -68,7 +68,7 @@
 		E324214D2384EF2000D28A91 /* LaunchAtLogin.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LaunchAtLogin.framework; path = Carthage/Build/Mac/LaunchAtLogin.framework; sourceTree = "<group>"; };
 		E32421522384EF4600D28A91 /* LaunchAtLogin.framework.dSYM */ = {isa = PBXFileReference; lastKnownFileType = wrapper.dsym; name = LaunchAtLogin.framework.dSYM; path = Carthage/Build/Mac/LaunchAtLogin.framework.dSYM; sourceTree = "<group>"; };
 		E32421552384F09D00D28A91 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = Constants.swift; sourceTree = "<group>"; usesTabs = 1; };
-		E32421572384F0E600D28A91 /* util.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = util.swift; sourceTree = "<group>"; usesTabs = 1; };
+		E32421572384F0E600D28A91 /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = Utilities.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E32421592384FBE500D28A91 /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = WebViewController.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E333EB1A2385244E005FCE44 /* PreferencesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = PreferencesView.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E3F11BEB2386824D005EFD26 /* OpenURLWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = OpenURLWindowController.swift; sourceTree = "<group>"; usesTabs = 1; };
@@ -122,12 +122,9 @@
 				E32421352384E9D700D28A91 /* OpenURLView.swift */,
 				E3F11BED2386828C005EFD26 /* PreferencesWindowController.swift */,
 				E333EB1A2385244E005FCE44 /* PreferencesView.swift */,
-				E32421572384F0E600D28A91 /* util.swift */,
+				E32421572384F0E600D28A91 /* Utilities.swift */,
 				E32421372384E9D900D28A91 /* Assets.xcassets */,
-				E324213C2384E9D900D28A91 /* Main.storyboard */,
-				E324213F2384E9D900D28A91 /* Info.plist */,
-				E32421402384E9D900D28A91 /* Plash.entitlements */,
-				E3FA21AC23C74E6B00059E43 /* InternetAccessPolicy.json */,
+				E3EF205F24C0D1A100A5F802 /* Other */,
 				E32421392384E9D900D28A91 /* Preview Content */,
 			);
 			path = Plash;
@@ -148,6 +145,17 @@
 				E324214D2384EF2000D28A91 /* LaunchAtLogin.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		E3EF205F24C0D1A100A5F802 /* Other */ = {
+			isa = PBXGroup;
+			children = (
+				E324213C2384E9D900D28A91 /* Main.storyboard */,
+				E324213F2384E9D900D28A91 /* Info.plist */,
+				E32421402384E9D900D28A91 /* Plash.entitlements */,
+				E3FA21AC23C74E6B00059E43 /* InternetAccessPolicy.json */,
+			);
+			name = Other;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -282,7 +290,7 @@
 				E324215A2384FBE500D28A91 /* WebViewController.swift in Sources */,
 				E32421342384E9D700D28A91 /* AppDelegate.swift in Sources */,
 				E32421472384EB4E00D28A91 /* DesktopWindow.swift in Sources */,
-				E32421582384F0E600D28A91 /* util.swift in Sources */,
+				E32421582384F0E600D28A91 /* Utilities.swift in Sources */,
 				E3F11BEE2386828C005EFD26 /* PreferencesWindowController.swift in Sources */,
 				E30FD88923C4515200C716E9 /* SSWebView.swift in Sources */,
 				E32421562384F09D00D28A91 /* Constants.swift in Sources */,

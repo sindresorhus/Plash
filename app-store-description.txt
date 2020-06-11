@@ -39,3 +39,8 @@ You can interact with the website by enabling “Browsing Mode”. When in this 
 
 
 If you have some cool use-case you want to share or some other feedback, please do send me an email through the “Send Feedback” button in the app.
+
+
+■ Support
+
+Click the “Send Feedback…” menu item in the app.
