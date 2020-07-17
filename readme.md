@@ -72,7 +72,7 @@ No, we're not interested in localizing the app.
 
 #### What does “Plash” mean?
 
-[Click here.](http://letmegooglethat.com/?q=define+plash)
+[Click here.](https://lmgtfy.com/?q=define+plash)
 
 #### Can you add support for macOS 10.14 or older?
 
