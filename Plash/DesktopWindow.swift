@@ -6,7 +6,7 @@ final class DesktopWindow: NSWindow {
 	override var canBecomeKey: Bool { isInteractive }
 	override var acceptsFirstResponder: Bool { isInteractive }
 
-	private var cancelBag = Set<AnyCancellable>()
+	private var cancellables = Set<AnyCancellable>()
 
 	var targetScreen: NSScreen? {
 		didSet {
@@ -56,7 +56,7 @@ final class DesktopWindow: NSWindow {
 			.sink { [weak self] in
 				self?.setFrame()
 			}
-			.store(in: &cancelBag)
+			.store(in: &cancellables)
 	}
 
 	private func setFrame() {

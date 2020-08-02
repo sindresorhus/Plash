@@ -23,6 +23,8 @@
 		E324215A2384FBE500D28A91 /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421592384FBE500D28A91 /* WebViewController.swift */; };
 		E333EB1B2385244E005FCE44 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E333EB1A2385244E005FCE44 /* PreferencesView.swift */; };
 		E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = E3805F5A2466ED5600489E6C /* KeyboardShortcuts */; };
+		E384F28024C3B37E002FD21B /* Events.swift in Sources */ = {isa = PBXBuildFile; fileRef = E384F27F24C3B37E002FD21B /* Events.swift */; };
+		E384F28224C3B3CD002FD21B /* Menus.swift in Sources */ = {isa = PBXBuildFile; fileRef = E384F28124C3B3CD002FD21B /* Menus.swift */; };
 		E3959394247B986A0064CABE /* AppCenterCrashes in Frameworks */ = {isa = PBXBuildFile; productRef = E3959393247B986A0064CABE /* AppCenterCrashes */; };
 		E3F11BEC2386824D005EFD26 /* OpenURLWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F11BEB2386824D005EFD26 /* OpenURLWindowController.swift */; };
 		E3F11BEE2386828C005EFD26 /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F11BED2386828C005EFD26 /* PreferencesWindowController.swift */; };
@@ -71,6 +73,8 @@
 		E32421572384F0E600D28A91 /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = Utilities.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E32421592384FBE500D28A91 /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = WebViewController.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E333EB1A2385244E005FCE44 /* PreferencesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = PreferencesView.swift; sourceTree = "<group>"; usesTabs = 1; };
+		E384F27F24C3B37E002FD21B /* Events.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Events.swift; sourceTree = "<group>"; };
+		E384F28124C3B3CD002FD21B /* Menus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menus.swift; sourceTree = "<group>"; };
 		E3F11BEB2386824D005EFD26 /* OpenURLWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = OpenURLWindowController.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E3F11BED2386828C005EFD26 /* PreferencesWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = PreferencesWindowController.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E3FA21AC23C74E6B00059E43 /* InternetAccessPolicy.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; lineEnding = 0; path = InternetAccessPolicy.json; sourceTree = "<group>"; usesTabs = 1; };
@@ -115,6 +119,8 @@
 			children = (
 				E32421332384E9D700D28A91 /* AppDelegate.swift */,
 				E32421552384F09D00D28A91 /* Constants.swift */,
+				E384F27F24C3B37E002FD21B /* Events.swift */,
+				E384F28124C3B3CD002FD21B /* Menus.swift */,
 				E32421462384EB4E00D28A91 /* DesktopWindow.swift */,
 				E30FD88823C4515200C716E9 /* SSWebView.swift */,
 				E32421592384FBE500D28A91 /* WebViewController.swift */,
@@ -286,6 +292,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				E32421362384E9D700D28A91 /* OpenURLView.swift in Sources */,
+				E384F28024C3B37E002FD21B /* Events.swift in Sources */,
+				E384F28224C3B3CD002FD21B /* Menus.swift in Sources */,
 				E3F11BEC2386824D005EFD26 /* OpenURLWindowController.swift in Sources */,
 				E324215A2384FBE500D28A91 /* WebViewController.swift in Sources */,
 				E32421342384E9D700D28A91 /* AppDelegate.swift in Sources */,
@@ -369,7 +377,6 @@
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
-				VALID_ARCHS = x86_64;
 			};
 			name = Debug;
 		};
@@ -423,7 +430,6 @@
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
-				VALID_ARCHS = x86_64;
 			};
 			name = Release;
 		};
@@ -518,7 +524,7 @@
 			repositoryURL = "https://github.com/sindresorhus/Defaults";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.0.0;
+				minimumVersion = 4.1.0;
 			};
 		};
 		E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
@@ -526,7 +532,7 @@
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 0.1.1;
+				minimumVersion = 0.5.0;
 			};
 		};
 		E3959392247B986A0064CABE /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */ = {
@@ -534,7 +540,7 @@
 			repositoryURL = "https://github.com/microsoft/appcenter-sdk-apple";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 3.2.0;
+				minimumVersion = 3.3.3;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

@@ -3,7 +3,6 @@ import Combine
 import AppCenter
 import AppCenterCrashes
 import Defaults
-import KeyboardShortcuts
 
 @NSApplicationMain
 final class AppDelegate: NSObject, NSApplicationDelegate {
@@ -97,120 +96,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		showWelcomeScreenIfNeeded()
 	}
 
-	func setUpEvents() {
-		menu.onUpdate = { _ in
-			self.updateMenu()
-		}
-
-		webViewController.onLoaded = { error in
-			self.webViewError = error
-
-			guard error == nil else {
-				return
-			}
-
-			// Set the persisted zoom level.
-			let zoomLevel = self.webViewController.webView.zoomLevelWrapper
-			if zoomLevel != 1 {
-				self.webViewController.webView.zoomLevelWrapper = zoomLevel
-			}
-
-			if let url = Defaults[.url] {
-				let title = self.webViewController.webView.title.map { "\($0)\n" } ?? ""
-				let urlString = url.isFileURL ? url.lastPathComponent : url.absoluteString
-				self.statusItemButton.toolTip = "\(title)\(urlString)"
-			} else {
-				self.statusItemButton.toolTip = ""
-			}
-		}
-
-		powerSourceWatcher?.onChange = { _ in
-			guard Defaults[.deactivateOnBattery] else {
-				return
-			}
-
-			self.setEnabledStatus()
-		}
-
-		NSWorkspace.shared.notificationCenter
-			.publisher(for: NSWorkspace.didWakeNotification)
-			.sink { _ in
-				self.loadUserURL()
-			}
-			.store(in: &cancellables)
-
-		Defaults.observe(.url, options: []) { change in
-			self.resetTimer()
-			self.loadURL(change.newValue)
-		}
-			.tieToLifetime(of: self)
-
-		Defaults.observe(.opacity) { change in
-			self.isBrowsingMode = false
-			self.desktopWindow.alphaValue = CGFloat(change.newValue)
-		}
-			.tieToLifetime(of: self)
-
-		Defaults.observe(.reloadInterval) { _ in
-			self.resetTimer()
-		}
-			.tieToLifetime(of: self)
-
-		Defaults.observe(.display, options: []) { change in
-			self.desktopWindow.targetScreen = change.newValue.screen
-		}
-			.tieToLifetime(of: self)
-
-		Defaults.observe(.invertColors, options: []) { _ in
-			self.recreateWebViewAndReload()
-		}
-			.tieToLifetime(of: self)
-
-		Defaults.observe(.customCSS, options: []) { _ in
-			self.recreateWebViewAndReload()
-		}
-			.tieToLifetime(of: self)
-
-		Defaults.observe(.deactivateOnBattery) { _ in
-			self.setEnabledStatus()
-		}
-			.tieToLifetime(of: self)
-
-		Defaults.observe(.showOnAllSpaces) { change in
-			self.desktopWindow.collectionBehavior.toggleExistence(.canJoinAllSpaces, shouldExist: change.newValue)
-		}
-			.tieToLifetime(of: self)
-
-		KeyboardShortcuts.onKeyUp(for: .toggleBrowsingMode) {
-			self.isBrowsingMode.toggle()
-		}
-	}
-
 	func setEnabledStatus() {
 		isEnabled = !(Defaults[.deactivateOnBattery] && powerSourceWatcher?.powerSource.isUsingBattery == true)
-	}
-
-	func showWelcomeScreenIfNeeded() {
-		guard App.isFirstLaunch else {
-			return
-		}
-
-		NSApp.activate(ignoringOtherApps: true)
-		NSAlert.showModal(
-			message: "Welcome to Plash!",
-			informativeText:
-				"""
-				Plash lives in the menu bar (droplet icon). Click it and then select “Open URL…” to get started.
-
-				Note: Support for multiple displays is currently limited to the ability to choose which display to show the website on. Support for setting a separate website for each display is planned.
-
-				See the project page for what else is planned: https://github.com/sindresorhus/Plash/issues
-
-				If you have any feedback, bug reports, or feature requests, kindly use the “Send Feedback” button in the Plash menu. We respond to all submissions and reported issues will be dealt with swiftly. It's preferable that you report bugs this way rather than as an App Store review, since the App Store will not allow us to contact you for more information.
-				"""
-		)
-
-		statusItemButton.playRainbowAnimation()
 	}
 
 	func resetTimer() {
@@ -317,130 +204,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		}
 	}
 
-	func addInfoMenuItem() {
-		guard let url = Defaults[.url] else {
+	func showWelcomeScreenIfNeeded() {
+		guard App.isFirstLaunch else {
 			return
 		}
 
-		let maxLength = 30
+		NSApp.activate(ignoringOtherApps: true)
+		NSAlert.showModal(
+			message: "Welcome to Plash!",
+			informativeText:
+				"""
+				Plash lives in the menu bar (droplet icon at the top-right of the screen). Click it and then select “Open URL…” to get started.
 
-		if
-			let title = webViewController.webView.title,
-			!title.isEmpty
-		{
-			let menuItem = menu.addDisabled(title.truncating(to: maxLength))
-			menuItem.toolTip = title
-		}
+				Note: Support for multiple displays is currently limited to the ability to choose which display to show the website on. Support for setting a separate website for each display is planned.
 
-		let urlString = url.isFileURL ? url.tildePath : url.absoluteString
+				See the project page for what else is planned: https://github.com/sindresorhus/Plash/issues
 
-		var newUrlString = urlString
-		if urlString.count > maxLength {
-			newUrlString = urlString.removingSchemeAndWWWFromURL
-		}
-
-		let menuItem = menu.addDisabled(newUrlString.truncating(to: maxLength))
-		menuItem.toolTip = urlString
-	}
-
-	func createMoreMenu() -> SSMenu {
-		let menu = SSMenu()
-
-		menu.addAboutItem()
-
-		menu.addSeparator()
-
-		menu.addUrlItem(
-			"Website",
-			url: URL("https://sindresorhus.com/plash")
+				If you have any feedback, bug reports, or feature requests, kindly use the “Send Feedback” button in the Plash menu. We respond to all submissions and reported issues will be dealt with swiftly. It's preferable that you report bugs this way rather than as an App Store review, since the App Store will not allow us to contact you for more information.
+				"""
 		)
 
-		menu.addUrlItem(
-			"Roadmap",
-			url: URL("https://github.com/sindresorhus/Plash/issues")
-		)
+		statusItemButton.playRainbowAnimation()
 
-		menu.addUrlItem(
-			"Examples",
-			url: URL("https://github.com/sindresorhus/Plash/issues/1")
-		)
-
-		menu.addSeparator()
-
-		menu.addMoreAppsItem()
-
-		return menu
-	}
-
-	func updateMenu() {
-		menu.removeAllItems()
-
-		if isEnabled {
-			if let error = webViewError {
-				menu.addDisabled("Error: \(error.localizedDescription)".wrapped(atLength: 36).attributedString)
-				menu.addSeparator()
-			}
-
-			addInfoMenuItem()
-		} else {
-			menu.addDisabled("Deactivated While on Battery")
+		delay(seconds: 1) {
+			self.statusItemButton.performClick(nil)
 		}
-
-		menu.addSeparator()
-
-		menu.addCallbackItem(
-			"Open URL…",
-			key: "o",
-			isEnabled: isEnabled
-		) { _ in
-			OpenURLWindowController.showWindow()
-		}
-
-		menu.addCallbackItem(
-			"Open Local Website…",
-			key: "o",
-			keyModifiers: .option,
-			isEnabled: isEnabled
-		) { _ in
-			self.openLocalWebsite()
-		}
-
-		menu.addSeparator()
-
-		menu.addCallbackItem(
-			"Reload",
-			key: "r",
-			isEnabled: isEnabled && Defaults[.url] != nil
-		) { _ in
-			self.loadUserURL()
-		}
-
-		menu.addCallbackItem(
-			"Browsing Mode",
-			key: "b",
-			isEnabled: isEnabled && Defaults[.url] != nil,
-			isChecked: isBrowsingMode
-		) { _ in
-			self.isBrowsingMode.toggle()
-		}
-
-		menu.addSeparator()
-
-		menu.addCallbackItem("Preferences…", key: ",") { _ in
-			PreferencesWindowController.showWindow()
-		}
-
-		menu.addSeparator()
-
-		menu.addCallbackItem("Send Feedback…") { _ in
-			App.openSendFeedbackPage()
-		}
-
-		let moreMenuItem = menu.addItem("More")
-		moreMenuItem.submenu = createMoreMenu()
-
-		menu.addSeparator()
-
-		menu.addQuitItem()
 	}
 }

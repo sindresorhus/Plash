@@ -2196,7 +2196,7 @@ extension NSStatusBarButton {
 			withTimeInterval: 0.1,
 			duration: duration,
 			onRepeat: { _ in
-				self.contentTintColor = NSColor.uniqueRandomSystemColor()
+				self.contentTintColor = .uniqueRandomSystemColor()
 			},
 			onFinish: {
 				self.contentTintColor = originalTintColor
@@ -2773,6 +2773,11 @@ class SingletonWindowController: NSWindowController, NSWindowDelegate {
 }
 
 
+/// A protocol for making generic type constraints of Optionals.
+protocol _OptionalType: ExpressibleByNilLiteral {}
+extension Optional: _OptionalType {}
+
+
 enum AssociationPolicy {
 	case assign
 	case retainNonatomic
@@ -2796,18 +2801,18 @@ enum AssociationPolicy {
 	}
 }
 
-final class ObjectAssociation<T: Any> {
+final class ObjectAssociation<Value: Any> {
+	private let defaultValue: Value
 	private let policy: AssociationPolicy
 
-	init(policy: AssociationPolicy = .retainNonatomic) {
+	init(defaultValue: Value, policy: AssociationPolicy = .retainNonatomic) {
+		self.defaultValue = defaultValue
 		self.policy = policy
 	}
 
-	subscript(index: AnyObject) -> T? {
+	subscript(index: AnyObject) -> Value {
 		get {
-			// Force-cast is fine here as we want it to fail loudly if we don't use the correct type.
-			// swiftlint:disable:next force_cast
-			objc_getAssociatedObject(index, Unmanaged.passUnretained(self).toOpaque()) as! T?
+			objc_getAssociatedObject(index, Unmanaged.passUnretained(self).toOpaque()) as? Value ?? defaultValue
 		}
 		set {
 			objc_setAssociatedObject(index, Unmanaged.passUnretained(self).toOpaque(), newValue, policy.rawValue)
@@ -2815,12 +2820,18 @@ final class ObjectAssociation<T: Any> {
 	}
 }
 
+extension ObjectAssociation where Value: _OptionalType {
+	convenience init(policy: AssociationPolicy = .retainNonatomic) {
+		self.init(defaultValue: nil, policy: policy)
+	}
+}
 
-private let bindLifetimeAssociatedObjectKey = ObjectAssociation<[AnyObject]>()
+
+private let bindLifetimeAssociatedObjectKey = ObjectAssociation<[AnyObject]>(defaultValue: [])
 
 /// Binds the lifetime of object A to object B, so when B deallocates, so does A, but not before.
 func bindLifetime(of object: AnyObject, to target: AnyObject) {
-	var retainedObjects = bindLifetimeAssociatedObjectKey[target] ?? []
+	var retainedObjects = bindLifetimeAssociatedObjectKey[target]
 	retainedObjects.append(object)
 	bindLifetimeAssociatedObjectKey[target] = retainedObjects
 }

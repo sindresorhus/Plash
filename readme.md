@@ -68,7 +68,7 @@ You can interact with the website by enabling “Browsing Mode”. When in this 
 
 #### Can I contribute localizations?
 
-No, we're not interested in localizing the app.
+We don't have any immediate plans to localize the app.
 
 #### What does “Plash” mean?
 
