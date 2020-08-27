@@ -134,8 +134,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	func loadURL(_ url: URL?) {
 		webViewError = nil
 
-		guard let url = url else {
+		guard var url = url else {
 			return
+		}
+
+		// Sub out placeholder variables for actual values.
+
+		// Here we swap out [screenWidth] and [screenHeight] for their actual values.
+		// We proceed only if we have an NSScreen to work with.
+		if let screen = desktopWindow.targetScreen?.withFallbackToMain ?? .main {
+			let screenResolution = screen.visibleFrameWithoutStatusBar
+			let urlString = url.absoluteString
+				.replacingOccurrences(of: "%5BscreenWidth%5D", with: String(format: "%.0f", screenResolution.width))
+				.replacingOccurrences(of: "%5BscreenHeight%5D", with: String(format: "%.0f", screenResolution.height))
+			if let newURL = URL(string: urlString) {
+				// If the substitution evaluates to a proper URL, we'll use it.
+				url = newURL
+			}
 		}
 
 		// TODO: This is just a quick fix. The proper fix is to create a new web view below the existing one (with no opacity), load the URL, if it succeeds, we fade out the old one while fading in the new one. If it fails, we discard the new web view.

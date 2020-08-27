@@ -10,7 +10,7 @@ struct OpenURLView: View {
 			return ""
 		}
 
-		return url.absoluteString
+		return url.absoluteString.removingPercentEncoding ?? url.absoluteString
 	}()
 
 	// TODO: Do a `URL(humanString:)` extension.
