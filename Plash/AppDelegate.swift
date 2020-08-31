@@ -138,20 +138,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			return
 		}
 
-		// Sub out placeholder variables for actual values.
-
-		// Here we swap out [screenWidth] and [screenHeight] for their actual values.
-		// We proceed only if we have an NSScreen to work with.
-		if let screen = desktopWindow.targetScreen?.withFallbackToMain ?? .main {
-			let screenResolution = screen.visibleFrameWithoutStatusBar
-			let urlString = url.absoluteString
-				.replacingOccurrences(of: "%5BscreenWidth%5D", with: String(format: "%.0f", screenResolution.width))
-				.replacingOccurrences(of: "%5BscreenHeight%5D", with: String(format: "%.0f", screenResolution.height))
-			if let newURL = URL(string: urlString) {
-				// If the substitution evaluates to a proper URL, we'll use it.
-				url = newURL
-			}
-		}
+		url = replacePlaceholders(of: url) ?? url
 
 		// TODO: This is just a quick fix. The proper fix is to create a new web view below the existing one (with no opacity), load the URL, if it succeeds, we fade out the old one while fading in the new one. If it fails, we discard the new web view.
 		if !url.isFileURL, !Reachability.isOnlineExtensive() {
@@ -243,6 +230,32 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 		delay(seconds: 1) {
 			self.statusItemButton.performClick(nil)
+		}
+	}
+
+	/**
+	Scans the given URL for placeholders and subtitutes them with
+	their corresponding values.
+	*/
+	private func replacePlaceholders(of url: URL) -> URL? {
+		// Here we swap out [[screenWidth]] and [[screenHeight]] for their actual values.
+		// We proceed only if we have an NSScreen to work with.
+		guard let screen = desktopWindow.targetScreen?.withFallbackToMain ?? .main else {
+			print("No screen was found to read dimensions from!")
+			return nil
+		}
+		let screenWidthPlaceholder = URLPlaceholder(token: "[[screenWidth]]") { () -> String in
+			String(format: "%.0f", screen.visibleFrameWithoutStatusBar.width)
+		}
+		let screenHeightPlaceholder = URLPlaceholder(token: "[[screenHeight]]") { () -> String in
+			String(format: "%.0f", screen.visibleFrameWithoutStatusBar.height)
+		}
+
+		do {
+			return try url.replacingPlaceholder(screenWidthPlaceholder).replacingPlaceholder(screenHeightPlaceholder)
+		} catch {
+			print(error.localizedDescription)
+			return nil
 		}
 	}
 }
