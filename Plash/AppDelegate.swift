@@ -138,7 +138,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			return
 		}
 
-		url = replacePlaceholders(of: url) ?? url
+		do {
+			url = try replacePlaceholders(of: url) ?? url
+		} catch {
+			error.presentAsModal()
+		}
 
 		// TODO: This is just a quick fix. The proper fix is to create a new web view below the existing one (with no opacity), load the URL, if it succeeds, we fade out the old one while fading in the new one. If it fails, we discard the new web view.
 		if !url.isFileURL, !Reachability.isOnlineExtensive() {
@@ -237,20 +241,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	Replaces application-specific placeholder strings in the given
 	URL with a corresponding value.
 	*/
-	private func replacePlaceholders(of url: URL) -> URL? {
+	private func replacePlaceholders(of url: URL) throws -> URL? {
 		// Here we swap out [[screenWidth]] and [[screenHeight]] for their actual values.
 		// We proceed only if we have an NSScreen to work with.
 		guard let screen = desktopWindow.targetScreen?.withFallbackToMain ?? .main else {
 			return nil
 		}
 
-		do {
-			return try url
-				.replacingPlaceholder("[[screenWidth]]", with: String(format: "%.0f", screen.visibleFrameWithoutStatusBar.width))
-				.replacingPlaceholder("[[screenHeight]]", with: String(format: "%.0f", screen.visibleFrameWithoutStatusBar.height))
-		} catch {
-			print(error.localizedDescription)
-			return nil
-		}
+		return try url
+			.replacingPlaceholder("[[screenWidth]]", with: String(format: "%.0f", screen.visibleFrameWithoutStatusBar.width))
+			.replacingPlaceholder("[[screenHeight]]", with: String(format: "%.0f", screen.visibleFrameWithoutStatusBar.height))
 	}
 }
