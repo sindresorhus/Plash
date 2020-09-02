@@ -15,9 +15,9 @@ enum URLPlaceholderError: Error, LocalizedError {
 	var errorDescription: String? {
 		switch self {
 		case .failedToEncodeToken(let token):
-			return "Failed to encode token \"\(token)\""
+			return "Failed to encode token “\(token)”"
 		case .invalidURLAfterSubstitution(let urlString):
-			return "New URL was not valid after substituting placeholders. URL string is \"\(urlString)\""
+			return "New URL was not valid after substituting placeholders. URL string is “\(urlString)”"
 		}
 	}
 }
