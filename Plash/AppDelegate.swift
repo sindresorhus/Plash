@@ -241,7 +241,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		// Here we swap out [[screenWidth]] and [[screenHeight]] for their actual values.
 		// We proceed only if we have an NSScreen to work with.
 		guard let screen = desktopWindow.targetScreen?.withFallbackToMain ?? .main else {
-			print("No screen was found to read dimensions from!")
 			return nil
 		}
 
