@@ -234,8 +234,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	/**
-	Scans the given URL for placeholders and subtitutes them with
-	their corresponding values.
+	Replaces application-specific placeholder strings in the given
+	URL with a corresponding value.
 	*/
 	private func replacePlaceholders(of url: URL) -> URL? {
 		// Here we swap out [[screenWidth]] and [[screenHeight]] for their actual values.
@@ -244,15 +244,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			print("No screen was found to read dimensions from!")
 			return nil
 		}
-		let screenWidthPlaceholder = URLPlaceholder(token: "[[screenWidth]]") { () -> String in
-			String(format: "%.0f", screen.visibleFrameWithoutStatusBar.width)
-		}
-		let screenHeightPlaceholder = URLPlaceholder(token: "[[screenHeight]]") { () -> String in
-			String(format: "%.0f", screen.visibleFrameWithoutStatusBar.height)
-		}
 
 		do {
-			return try url.replacingPlaceholder(screenWidthPlaceholder).replacingPlaceholder(screenHeightPlaceholder)
+			return try url
+				.replacingPlaceholder("[[screenWidth]]", with: String(format: "%.0f", screen.visibleFrameWithoutStatusBar.width))
+				.replacingPlaceholder("[[screenHeight]]", with: String(format: "%.0f", screen.visibleFrameWithoutStatusBar.height))
 		} catch {
 			print(error.localizedDescription)
 			return nil
