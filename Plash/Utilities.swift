@@ -2701,6 +2701,7 @@ extension Dictionary {
 	}
 }
 
+
 extension NSResponder {
 	// This method is internally implemented on `NSResponder` as `Error` is generic which comes with many limitations.
 	fileprivate func presentErrorAsSheet(
