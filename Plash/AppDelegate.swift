@@ -239,8 +239,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	/**
-	Replaces application-specific placeholder strings in the given
-	URL with a corresponding value.
+	Replaces app-specific placeholder strings in the given URL with a corresponding value.
 	*/
 	private func replacePlaceholders(of url: URL) throws -> URL? {
 		// Here we swap out `[[screenWidth]]` and `[[screenHeight]]` for their actual values.
