@@ -27,11 +27,14 @@ extension URL {
 		guard let token = placeholder.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
 			throw URLPlaceholderError.failedToEncodeToken(placeholder)
 		}
-		let urlString = self.absoluteString
+
+		let urlString = absoluteString
 			.replacingOccurrences(of: token, with: replacement)
+
 		guard let newURL = URL(string: urlString) else {
 			throw URLPlaceholderError.invalidURLAfterSubstitution(urlString)
 		}
+
 		return newURL
 	}
 }
