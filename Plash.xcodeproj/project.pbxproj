@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		B42C989424FDADB300F1807A /* URL+Placeholder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B42C989324FDADB300F1807A /* URL+Placeholder.swift */; };
 		E30FD88523C4355D00C716E9 /* LaunchAtLogin.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E324214D2384EF2000D28A91 /* LaunchAtLogin.framework */; settings = {ATTRIBUTES = (Required, ); }; };
 		E30FD88623C4355D00C716E9 /* LaunchAtLogin.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = E324214D2384EF2000D28A91 /* LaunchAtLogin.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		E30FD88923C4515200C716E9 /* SSWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30FD88823C4515200C716E9 /* SSWebView.swift */; };
@@ -58,7 +57,6 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		B42C989324FDADB300F1807A /* URL+Placeholder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "URL+Placeholder.swift"; sourceTree = "<group>"; };
 		E30FD88823C4515200C716E9 /* SSWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = SSWebView.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E32421302384E9D700D28A91 /* Plash.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Plash.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E32421332384E9D700D28A91 /* AppDelegate.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = AppDelegate.swift; sourceTree = "<group>"; usesTabs = 1; };
@@ -131,7 +129,6 @@
 				E3F11BED2386828C005EFD26 /* PreferencesWindowController.swift */,
 				E333EB1A2385244E005FCE44 /* PreferencesView.swift */,
 				E32421572384F0E600D28A91 /* Utilities.swift */,
-				B42C989324FDADB300F1807A /* URL+Placeholder.swift */,
 				E32421372384E9D900D28A91 /* Assets.xcassets */,
 				E3EF205F24C0D1A100A5F802 /* Other */,
 				E32421392384E9D900D28A91 /* Preview Content */,
@@ -303,7 +300,6 @@
 				E32421472384EB4E00D28A91 /* DesktopWindow.swift in Sources */,
 				E32421582384F0E600D28A91 /* Utilities.swift in Sources */,
 				E3F11BEE2386828C005EFD26 /* PreferencesWindowController.swift in Sources */,
-				B42C989424FDADB300F1807A /* URL+Placeholder.swift in Sources */,
 				E30FD88923C4515200C716E9 /* SSWebView.swift in Sources */,
 				E32421562384F09D00D28A91 /* Constants.swift in Sources */,
 				E333EB1B2385244E005FCE44 /* PreferencesView.swift in Sources */,
