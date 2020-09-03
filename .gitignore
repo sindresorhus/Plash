@@ -3,3 +3,4 @@ project.xcworkspace
 Carthage/Checkouts
 Carthage/Build
 Release
+.DS_Store
