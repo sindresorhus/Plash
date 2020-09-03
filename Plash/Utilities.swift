@@ -2773,11 +2773,6 @@ class SingletonWindowController: NSWindowController, NSWindowDelegate {
 }
 
 
-/// A protocol for making generic type constraints of Optionals.
-protocol _OptionalType: ExpressibleByNilLiteral {}
-extension Optional: _OptionalType {}
-
-
 enum AssociationPolicy {
 	case assign
 	case retainNonatomic
@@ -2820,8 +2815,8 @@ final class ObjectAssociation<Value: Any> {
 	}
 }
 
-extension ObjectAssociation where Value: _OptionalType {
-	convenience init(policy: AssociationPolicy = .retainNonatomic) {
+extension ObjectAssociation {
+	convenience init<T>(policy: AssociationPolicy = .retainNonatomic) where Value == T? {
 		self.init(defaultValue: nil, policy: policy)
 	}
 }
