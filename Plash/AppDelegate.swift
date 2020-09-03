@@ -142,6 +142,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			url = try replacePlaceholders(of: url) ?? url
 		} catch {
 			error.presentAsModal()
+			return
 		}
 
 		// TODO: This is just a quick fix. The proper fix is to create a new web view below the existing one (with no opacity), load the URL, if it succeeds, we fade out the old one while fading in the new one. If it fails, we discard the new web view.
