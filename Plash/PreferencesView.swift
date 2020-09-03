@@ -83,7 +83,7 @@ private struct ShowOnAllSpacesPreference: View {
 			"Show on All Spaces",
 			isOn: $showOnAllSpaces
 		)
-			.tooltip("When disabled, the website will be shown on the space that was active when Plash launched.")
+			.help2("When disabled, the website will be shown on the space that was active when Plash launched.")
 	}
 }
 
@@ -96,7 +96,7 @@ private struct InvertColorsPreference: View {
 				"Invert Website Colors",
 				isOn: $invertColors
 			)
-				.tooltip("This creates a fake dark mode.")
+				.help2("This creates a fake dark mode.")
 		}
 	}
 }
@@ -119,11 +119,19 @@ private struct DisplayPreference: View {
 }
 
 private struct KeyboardShortcutsSection: View {
+	private let maxWidth: CGFloat = 160
+
 	var body: some View {
 		VStack {
 			HStack {
 				Text("Toggle “Browsing Mode”:")
+					.frame(width: maxWidth, alignment: .trailing)
 				KeyboardShortcuts.Recorder(for: .toggleBrowsingMode)
+			}
+			HStack {
+				Text("Reload:")
+					.frame(width: maxWidth, alignment: .trailing)
+				KeyboardShortcuts.Recorder(for: .reload)
 			}
 		}
 	}
@@ -153,7 +161,7 @@ private struct ClearWebsiteDataPreference: View {
 			AppDelegate.shared.webViewController.webView.clearWebsiteData(completion: nil)
 		}
 			.disabled(hasCleared)
-			.tooltip("Clears all cookies, local storage, caches, etc.")
+			.help2("Clears all cookies, local storage, caches, etc.")
 	}
 }
 
@@ -188,7 +196,7 @@ struct PreferencesView: View {
 				ClearWebsiteDataPreference()
 			}
 		}
-			.frame(width: 340)
+			.frame(width: 380)
 			.padding()
 			.padding()
 	}

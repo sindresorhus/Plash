@@ -2069,7 +2069,8 @@ private struct TooltipView: NSViewRepresentable {
 }
 
 extension View {
-	func tooltip(_ text: String?) -> some View {
+	@available(macOS, obsoleted: 11, renamed: "help")
+	func help2(_ text: String?) -> some View {
 		overlay(TooltipView(text))
 	}
 }

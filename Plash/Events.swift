@@ -90,5 +90,9 @@ extension AppDelegate {
 		KeyboardShortcuts.onKeyUp(for: .toggleBrowsingMode) {
 			self.isBrowsingMode.toggle()
 		}
+
+		KeyboardShortcuts.onKeyUp(for: .reload) {
+			self.loadUserURL()
+		}
 	}
 }
