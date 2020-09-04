@@ -18,6 +18,7 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 - [**Random Unsplash image**](https://source.unsplash.com)\
 	Example: https://source.unsplash.com/random/2880x1756?puppy \
 		This returns a new random puppy image each time.
+	See the [tip](#tips) on how to get exact screen size.
 - [**Bing Photo of the Day**](https://github.com/sindresorhus/plash-bing-photo-of-the-day)
 - **Calendar**\
 	For example, Google Calendar or Outlook 365.
@@ -54,11 +55,13 @@ You can try out the bleeding edge [here](https://install.appcenter.ms/users/sind
 
 ## Tips
 
-### Browsing Mode
+### Browsing mode
+
 You can interact with the website by enabling “Browsing Mode”. When in this mode, you can right-click to be able to go back/forward, reload, and zoom in the page contents (the zoom level is saved). You can also pinch to magnify. This is different from zooming the page contents in that it will zoom in to a specific part of the page instead of just enlarging everything.
 
 ### URL placeholders for screen width and height
-Use `[[screenWidth]]` and `[[screenHeight]]` in any URL and Plash will substitute the right values for you, e.g. `https://source.unsplash.com/random/[[screenWidth]]x[[screenHeight]]?puppy`.
+
+Use `[[screenWidth]]` and `[[screenHeight]]` in any URL and Plash will substitute the right values for you. For example, `https://source.unsplash.com/random/[[screenWidth]]x[[screenHeight]]?puppy`.
 
 ## Screenshots
 
