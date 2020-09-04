@@ -24,7 +24,7 @@ Note: Support for multiple displays is currently limited to the ability to choos
 
 - Show a random puppy image
 	Example URL: https://source.unsplash.com/random/2880x1756?puppy
-	See the [tip](#tips) on how to get exact screen size.
+	See the “Tips” on how to get exact screen size.
 - Bing Photo of the Day
 	Read more: https://github.com/sindresorhus/plash-bing-photo-of-the-day
 - Random street view image
@@ -37,7 +37,7 @@ Note: Support for multiple displays is currently limited to the ability to choos
 
 You can interact with the website by enabling “Browsing Mode”. When in this mode, you can right-click to be able to go back/forward, reload, and zoom in the page contents (the zoom level is saved). You can also pinch to magnify. This is different from zooming the page contents in that it will zoom in to a specific part of the page instead of just enlarging everything.
 
-Use `[[screenWidth]]` and `[[screenHeight]]` in any URL and Plash will substitute the right values for you, e.g. `https://source.unsplash.com/random/[[screenWidth]]x[[screenHeight]]?puppy`.
+Use `[[screenWidth]]` and `[[screenHeight]]` in any URL and Plash will substitute the right values for you. For example,  “https://source.unsplash.com/random/[[screenWidth]]x[[screenHeight]]?puppy”.
 
 
 If you have some cool use-case you want to share or some other feedback, please do send me an email through the “Send Feedback” button in the app.
