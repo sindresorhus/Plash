@@ -2604,14 +2604,14 @@ extension URL {
 
 
 extension URL {
-	enum PlaceholderError: Error, LocalizedError {
-		case failedToEncodeToken(String)
+	enum PlaceholderError: LocalizedError {
+		case failedToEncodePlaceholder(String)
 		case invalidURLAfterSubstitution(String)
 
 		var errorDescription: String? {
 			switch self {
-			case .failedToEncodeToken(let token):
-				return "Failed to encode token “\(token)”"
+			case .failedToEncodePlaceholder(let placeholder):
+				return "Failed to encode placeholder “\(placeholder)”"
 			case .invalidURLAfterSubstitution(let urlString):
 				return "New URL was not valid after substituting placeholders. URL string is “\(urlString)”"
 			}
@@ -2619,16 +2619,19 @@ extension URL {
 	}
 
 	/**
-	Replaces any occurences of `placeholder` in the url with `replacement`.
-	Throws an error if the replacement would create an invalid URL.
+	Replaces any occurrences of `placeholder` in the URL with `replacement`.
+	
+	- Throws: An error if the placeholder could not be encoded or if the replacement would create an invalid URL.
 	*/
 	func replacingPlaceholder(_ placeholder: String, with replacement: String) throws -> URL {
-		guard let token = placeholder.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed) else {
-			throw PlaceholderError.failedToEncodeToken(placeholder)
+		guard
+			let encodedPlaceholder = placeholder.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)
+		else {
+			throw PlaceholderError.failedToEncodePlaceholder(placeholder)
 		}
 
 		let urlString = absoluteString
-			.replacingOccurrences(of: token, with: replacement)
+			.replacingOccurrences(of: encodedPlaceholder, with: replacement)
 
 		guard let newURL = URL(string: urlString) else {
 			throw PlaceholderError.invalidURLAfterSubstitution(urlString)
