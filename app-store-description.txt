@@ -24,7 +24,7 @@ Note: Support for multiple displays is currently limited to the ability to choos
 
 - Show a random puppy image
 	Example URL: https://source.unsplash.com/random/2880x1756?puppy
-	Replace the numbers with your screen resolution. Subtract 44 (or 22 for non-retina) on the height to account for the menu bar.
+	See the [tip](#tips) on how to get exact screen size.
 - Bing Photo of the Day
 	Read more: https://github.com/sindresorhus/plash-bing-photo-of-the-day
 - Random street view image
