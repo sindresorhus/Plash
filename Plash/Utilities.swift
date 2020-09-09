@@ -1524,18 +1524,31 @@ extension WKWebView {
 		alert.addButton(withTitle: "Log In")
 		alert.addButton(withTitle: "Cancel")
 
-		let view = NSView(frame: CGRect(x: 0, y: 0, width: 200, height: 49))
+		let view = NSView(frame: CGRect(x: 0, y: 0, width: 200, height: 54))
 		alert.accessoryView = view
 
-		// TODO: Add `.contentType` to these when on Xcode 12.
-		let username = AutofocusedTextField(frame: CGRect(x: 0, y: 27, width: 200, height: 21))
+		let username = AutofocusedTextField(frame: CGRect(x: 0, y: 32, width: 200, height: 22))
+		// TODO: Enable these when on Xcode 12.
+//		if #available(macOS 11, *) {
+//			username.contentType = .username
+//		}
 		username.placeholderString = "Username"
 		view.addSubview(username)
 
-		let password = NSSecureTextField(frame: CGRect(x: 0, y: 0, width: 200, height: 21))
+		let password = NSSecureTextField(frame: CGRect(x: 0, y: 0, width: 200, height: 22))
+//		if #available(macOS 11, *) {
+//			password.contentType = .password
+//		}
 		password.placeholderString = "Password"
 		view.addSubview(password)
+
+		// TODO: It doesn't continue tabbing to the buttons after the password field.
 		username.nextKeyView = password
+
+		// Menu bar apps need to be activated, otherwise, things like input focus doesn't work.
+		if NSApp.activationPolicy() == .accessory {
+			NSApp.activate(ignoringOtherApps: true)
+		}
 
 		guard alert.runModal() == .alertFirstButtonReturn else {
 			completion(.rejectProtectionSpace, nil)
