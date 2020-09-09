@@ -134,7 +134,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	func loadURL(_ url: URL?) {
 		webViewError = nil
 
-		guard let url = url else {
+		guard var url = url else {
+			return
+		}
+
+		do {
+			url = try replacePlaceholders(of: url) ?? url
+		} catch {
+			error.presentAsModal()
 			return
 		}
 
@@ -229,5 +236,20 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		delay(seconds: 1) {
 			self.statusItemButton.performClick(nil)
 		}
+	}
+
+	/**
+	Replaces app-specific placeholder strings in the given URL with a corresponding value.
+	*/
+	func replacePlaceholders(of url: URL) throws -> URL? {
+		// Here we swap out `[[screenWidth]]` and `[[screenHeight]]` for their actual values.
+		// We proceed only if we have an `NSScreen` to work with.
+		guard let screen = desktopWindow.targetScreen?.withFallbackToMain ?? .main else {
+			return nil
+		}
+
+		return try url
+			.replacingPlaceholder("[[screenWidth]]", with: String(format: "%.0f", screen.visibleFrameWithoutStatusBar.width))
+			.replacingPlaceholder("[[screenHeight]]", with: String(format: "%.0f", screen.visibleFrameWithoutStatusBar.height))
 	}
 }

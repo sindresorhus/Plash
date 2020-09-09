@@ -2603,6 +2603,45 @@ extension URL {
 }
 
 
+extension URL {
+	enum PlaceholderError: LocalizedError {
+		case failedToEncodePlaceholder(String)
+		case invalidURLAfterSubstitution(String)
+
+		var errorDescription: String? {
+			switch self {
+			case .failedToEncodePlaceholder(let placeholder):
+				return "Failed to encode placeholder “\(placeholder)”"
+			case .invalidURLAfterSubstitution(let urlString):
+				return "New URL was not valid after substituting placeholders. URL string is “\(urlString)”"
+			}
+		}
+	}
+
+	/**
+	Replaces any occurrences of `placeholder` in the URL with `replacement`.
+	
+	- Throws: An error if the placeholder could not be encoded or if the replacement would create an invalid URL.
+	*/
+	func replacingPlaceholder(_ placeholder: String, with replacement: String) throws -> URL {
+		guard
+			let encodedPlaceholder = placeholder.addingPercentEncoding(withAllowedCharacters: .urlPathAllowed)
+		else {
+			throw PlaceholderError.failedToEncodePlaceholder(placeholder)
+		}
+
+		let urlString = absoluteString
+			.replacingOccurrences(of: encodedPlaceholder, with: replacement)
+
+		guard let newURL = URL(string: urlString) else {
+			throw PlaceholderError.invalidURLAfterSubstitution(urlString)
+		}
+
+		return newURL
+	}
+}
+
+
 struct Reachability {
 	/// Checks whether we're currently online.
 	static func isOnline(host: String = "apple.com") -> Bool {
@@ -2698,6 +2737,64 @@ extension Dictionary {
 		set {
 			self[HashableType(key)] = newValue
 		}
+	}
+}
+
+
+extension NSResponder {
+	// This method is internally implemented on `NSResponder` as `Error` is generic which comes with many limitations.
+	fileprivate func presentErrorAsSheet(
+		_ error: Error,
+		for window: NSWindow,
+		didPresent: (() -> Void)?
+	) {
+		final class DelegateHandler {
+			var didPresent: (() -> Void)?
+
+			@objc
+			func didPresentHandler() {
+				didPresent?()
+			}
+		}
+
+		let delegate = DelegateHandler()
+		delegate.didPresent = didPresent
+
+		presentError(
+			error,
+			modalFor: window,
+			delegate: delegate,
+			didPresent: #selector(delegate.didPresentHandler),
+			contextInfo: nil
+		)
+	}
+}
+
+extension Error {
+	/// Present the error as an async sheet on the given window.
+	/// - Note: This exists because the built-in `NSResponder#presentError(forModal:)` method requires too many arguments, selector as callback, and it says it's modal but it's not blocking, which is surprising.
+	func presentAsSheet(for window: NSWindow, didPresent: (() -> Void)?) {
+		NSApp.presentErrorAsSheet(self, for: window, didPresent: didPresent)
+	}
+
+	/// Present the error as a blocking modal sheet on the given window.
+	/// If the window is nil, the error will be presented in an app-level modal dialog.
+	func presentAsModalSheet(for window: NSWindow?) {
+		guard let window = window else {
+			presentAsModal()
+			return
+		}
+
+		presentAsSheet(for: window) {
+			NSApp.stopModal()
+		}
+
+		NSApp.runModal(for: window)
+	}
+
+	/// Present the error as a blocking app-level modal dialog.
+	func presentAsModal() {
+		NSApp.presentError(self)
 	}
 }
 

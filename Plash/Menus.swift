@@ -3,7 +3,14 @@ import Defaults
 
 extension AppDelegate {
 	private func addInfoMenuItem() {
-		guard let url = Defaults[.url] else {
+		guard var url = Defaults[.url] else {
+			return
+		}
+
+		do {
+			url = try replacePlaceholders(of: url) ?? url
+		} catch {
+			error.presentAsModal()
 			return
 		}
 
