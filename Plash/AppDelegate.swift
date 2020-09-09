@@ -241,7 +241,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	/**
 	Replaces app-specific placeholder strings in the given URL with a corresponding value.
 	*/
-	private func replacePlaceholders(of url: URL) throws -> URL? {
+	func replacePlaceholders(of url: URL) throws -> URL? {
 		// Here we swap out `[[screenWidth]]` and `[[screenHeight]]` for their actual values.
 		// We proceed only if we have an `NSScreen` to work with.
 		guard let screen = desktopWindow.targetScreen?.withFallbackToMain ?? .main else {
