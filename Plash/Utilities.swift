@@ -1449,6 +1449,10 @@ extension WebViewController: WKUIDelegate {
 	func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void) {
 		webView.defaultUploadPanelHandler(parameters: parameters, completion: completionHandler)
 	}
+
+	func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+		webView.defaultAuthChallengeHandler(challenge: challenge, completion: completionHandler)
+	}
 }
 ```
 */
@@ -1501,6 +1505,50 @@ extension WKWebView {
 		openPanel.begin {
 			completion($0 == .OK ? openPanel.urls : nil)
 		}
+	}
+
+	// Can be tested at https://jigsaw.w3.org/HTTP/Basic/ with `guest` as username and password.
+	/// Default handler for websites requiring basic authentication. To be used in `WKDelegate`.
+	func defaultAuthChallengeHandler(challenge: URLAuthenticationChallenge, completion: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+		guard
+			let host = url?.host,
+			challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodHTTPBasic
+				|| challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodHTTPDigest
+		else {
+			completion(.performDefaultHandling, nil)
+			return
+		}
+
+		let alert = NSAlert()
+		alert.messageText = "Log in to \(host)"
+		alert.addButton(withTitle: "Log In")
+		alert.addButton(withTitle: "Cancel")
+
+		let view = NSView(frame: CGRect(x: 0, y: 0, width: 200, height: 49))
+		alert.accessoryView = view
+
+		// TODO: Add `.contentType` to these when on Xcode 12.
+		let username = AutofocusedTextField(frame: CGRect(x: 0, y: 27, width: 200, height: 21))
+		username.placeholderString = "Username"
+		view.addSubview(username)
+
+		let password = NSSecureTextField(frame: CGRect(x: 0, y: 0, width: 200, height: 21))
+		password.placeholderString = "Password"
+		view.addSubview(password)
+		username.nextKeyView = password
+
+		guard alert.runModal() == .alertFirstButtonReturn else {
+			completion(.rejectProtectionSpace, nil)
+			return
+		}
+
+		let credential = URLCredential(
+			user: username.stringValue,
+			password: password.stringValue,
+			persistence: .synchronizable
+		)
+
+		completion(.useCredential, credential)
 	}
 }
 
