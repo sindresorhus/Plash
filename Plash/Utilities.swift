@@ -1449,6 +1449,10 @@ extension WebViewController: WKUIDelegate {
 	func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void) {
 		webView.defaultUploadPanelHandler(parameters: parameters, completion: completionHandler)
 	}
+
+	func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+		webView.defaultAuthChallengeHandler(challenge: challenge, completion: completionHandler)
+	}
 }
 ```
 */
@@ -1501,6 +1505,63 @@ extension WKWebView {
 		openPanel.begin {
 			completion($0 == .OK ? openPanel.urls : nil)
 		}
+	}
+
+	// Can be tested at https://jigsaw.w3.org/HTTP/Basic/ with `guest` as username and password.
+	/// Default handler for websites requiring basic authentication. To be used in `WKDelegate`.
+	func defaultAuthChallengeHandler(challenge: URLAuthenticationChallenge, completion: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+		guard
+			let host = url?.host,
+			challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodHTTPBasic
+				|| challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodHTTPDigest
+		else {
+			completion(.performDefaultHandling, nil)
+			return
+		}
+
+		let alert = NSAlert()
+		alert.messageText = "Log in to \(host)"
+		alert.addButton(withTitle: "Log In")
+		alert.addButton(withTitle: "Cancel")
+
+		let view = NSView(frame: CGRect(x: 0, y: 0, width: 200, height: 54))
+		alert.accessoryView = view
+
+		let username = AutofocusedTextField(frame: CGRect(x: 0, y: 32, width: 200, height: 22))
+		// TODO: Enable these when on Xcode 12.
+//		if #available(macOS 11, *) {
+//			username.contentType = .username
+//		}
+		username.placeholderString = "Username"
+		view.addSubview(username)
+
+		let password = NSSecureTextField(frame: CGRect(x: 0, y: 0, width: 200, height: 22))
+//		if #available(macOS 11, *) {
+//			password.contentType = .password
+//		}
+		password.placeholderString = "Password"
+		view.addSubview(password)
+
+		// TODO: It doesn't continue tabbing to the buttons after the password field.
+		username.nextKeyView = password
+
+		// Menu bar apps need to be activated, otherwise, things like input focus doesn't work.
+		if NSApp.activationPolicy() == .accessory {
+			NSApp.activate(ignoringOtherApps: true)
+		}
+
+		guard alert.runModal() == .alertFirstButtonReturn else {
+			completion(.rejectProtectionSpace, nil)
+			return
+		}
+
+		let credential = URLCredential(
+			user: username.stringValue,
+			password: password.stringValue,
+			persistence: .synchronizable
+		)
+
+		completion(.useCredential, credential)
 	}
 }
 

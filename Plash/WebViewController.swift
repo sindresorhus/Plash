@@ -198,6 +198,12 @@ extension WebViewController: WKUIDelegate {
 		webView.defaultUploadPanelHandler(parameters: parameters, completion: completionHandler)
 	}
 
+	func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+		// We're intentionally allowing this in non-browsing mode as loading the URL would fail otherwise.
+
+		webView.defaultAuthChallengeHandler(challenge: challenge, completion: completionHandler)
+	}
+
 	func webViewDidClose(_ webView: WKWebView) {
 		if webView.window == popupWindow {
 			popupWindow?.close()
