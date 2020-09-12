@@ -1485,7 +1485,7 @@ extension WKWebView {
 		alert.addButton(withTitle: "OK")
 		alert.addButton(withTitle: "Cancel")
 
-		let textField = AutofocusedTextField(frame: CGRect(x: 0, y: 0, width: 200, height: 21))
+		let textField = AutofocusedTextField(frame: CGRect(x: 0, y: 0, width: 200, height: 22))
 		textField.stringValue = defaultText ?? ""
 		alert.accessoryView = textField
 
@@ -1502,9 +1502,9 @@ extension WKWebView {
 		openPanel.canChooseFiles = !parameters.allowsDirectories
 		openPanel.canChooseDirectories = parameters.allowsDirectories
 
-		openPanel.begin {
-			completion($0 == .OK ? openPanel.urls : nil)
-		}
+		// It's intentionally modal as we don't want the user to interact with the website until they're done with the panel.
+		let result = openPanel.runModal() == .OK ? openPanel.urls : nil
+		completion(result)
 	}
 
 	// Can be tested at https://jigsaw.w3.org/HTTP/Basic/ with `guest` as username and password.

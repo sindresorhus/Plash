@@ -42,6 +42,12 @@ extension AppDelegate {
 
 		menu.addSeparator()
 
+		menu.addCallbackItem("Send Feedback…") { _ in
+			App.openSendFeedbackPage()
+		}
+
+		menu.addSeparator()
+
 		menu.addUrlItem(
 			"Website",
 			url: URL("https://sindresorhus.com/plash")
@@ -59,7 +65,19 @@ extension AppDelegate {
 
 		menu.addSeparator()
 
+		menu.addUrlItem(
+			"Rate on the App Store",
+			url: URL("macappstore://apps.apple.com/app/id1494023538?action=write-review")
+		)
+
 		menu.addMoreAppsItem()
+
+		menu.addSeparator()
+
+		menu.addUrlItem(
+			"Donate",
+			url: URL("https://sindresorhus.com/donate")
+		)
 
 		return menu
 	}
@@ -120,12 +138,6 @@ extension AppDelegate {
 
 		menu.addCallbackItem("Preferences…", key: ",") { _ in
 			PreferencesWindowController.showWindow()
-		}
-
-		menu.addSeparator()
-
-		menu.addCallbackItem("Send Feedback…") { _ in
-			App.openSendFeedbackPage()
 		}
 
 		let moreMenuItem = menu.addItem("More")

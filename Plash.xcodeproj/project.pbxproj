@@ -26,6 +26,7 @@
 		E384F28024C3B37E002FD21B /* Events.swift in Sources */ = {isa = PBXBuildFile; fileRef = E384F27F24C3B37E002FD21B /* Events.swift */; };
 		E384F28224C3B3CD002FD21B /* Menus.swift in Sources */ = {isa = PBXBuildFile; fileRef = E384F28124C3B3CD002FD21B /* Menus.swift */; };
 		E3959394247B986A0064CABE /* AppCenterCrashes in Frameworks */ = {isa = PBXBuildFile; productRef = E3959393247B986A0064CABE /* AppCenterCrashes */; };
+		E3EC5A86250D7A0C00ABE1A1 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3EC5A85250D7A0C00ABE1A1 /* WelcomeView.swift */; };
 		E3F11BEC2386824D005EFD26 /* OpenURLWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F11BEB2386824D005EFD26 /* OpenURLWindowController.swift */; };
 		E3F11BEE2386828C005EFD26 /* PreferencesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F11BED2386828C005EFD26 /* PreferencesWindowController.swift */; };
 		E3FA21AD23C74E6B00059E43 /* InternetAccessPolicy.json in Resources */ = {isa = PBXBuildFile; fileRef = E3FA21AC23C74E6B00059E43 /* InternetAccessPolicy.json */; };
@@ -75,6 +76,7 @@
 		E333EB1A2385244E005FCE44 /* PreferencesView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = PreferencesView.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E384F27F24C3B37E002FD21B /* Events.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Events.swift; sourceTree = "<group>"; };
 		E384F28124C3B3CD002FD21B /* Menus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menus.swift; sourceTree = "<group>"; };
+		E3EC5A85250D7A0C00ABE1A1 /* WelcomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = WelcomeView.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E3F11BEB2386824D005EFD26 /* OpenURLWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = OpenURLWindowController.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E3F11BED2386828C005EFD26 /* PreferencesWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = PreferencesWindowController.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E3FA21AC23C74E6B00059E43 /* InternetAccessPolicy.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; lineEnding = 0; path = InternetAccessPolicy.json; sourceTree = "<group>"; usesTabs = 1; };
@@ -128,6 +130,7 @@
 				E32421352384E9D700D28A91 /* OpenURLView.swift */,
 				E3F11BED2386828C005EFD26 /* PreferencesWindowController.swift */,
 				E333EB1A2385244E005FCE44 /* PreferencesView.swift */,
+				E3EC5A85250D7A0C00ABE1A1 /* WelcomeView.swift */,
 				E32421572384F0E600D28A91 /* Utilities.swift */,
 				E32421372384E9D900D28A91 /* Assets.xcassets */,
 				E3EF205F24C0D1A100A5F802 /* Other */,
@@ -303,6 +306,7 @@
 				E30FD88923C4515200C716E9 /* SSWebView.swift in Sources */,
 				E32421562384F09D00D28A91 /* Constants.swift in Sources */,
 				E333EB1B2385244E005FCE44 /* PreferencesView.swift in Sources */,
+				E3EC5A86250D7A0C00ABE1A1 /* WelcomeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
