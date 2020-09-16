@@ -157,7 +157,7 @@ private struct ClearWebsiteDataPreference: View {
 
 	var body: some View {
 		Button("Clear Website Data") {
-			self.hasCleared = true
+			hasCleared = true
 			AppDelegate.shared.webViewController.webView.clearWebsiteData(completion: nil)
 		}
 			.disabled(hasCleared)

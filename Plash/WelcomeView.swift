@@ -30,8 +30,8 @@ extension AppDelegate {
 
 		statusItemButton.playRainbowAnimation()
 
-		delay(seconds: 1) {
-			self.statusItemButton.performClick(nil)
+		delay(seconds: 1) { [self] in
+			statusItemButton.performClick(nil)
 		}
 	}
 }

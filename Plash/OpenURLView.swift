@@ -28,7 +28,7 @@ struct OpenURLView: View {
 					HStack(spacing: 3) {
 						Text("You could, for example,")
 						Button("show the time.") {
-							self.urlString = "https://time.pablopunk.com/?seconds&fg=white&bg=transparent"
+							urlString = "https://time.pablopunk.com/?seconds&fg=white&bg=transparent"
 						}
 							.buttonStyle(LinkButtonStyle())
 					}
@@ -44,17 +44,19 @@ struct OpenURLView: View {
 				"sindresorhus.com",
 				// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines.
 				// TODO: Report to Apple.
+				// TODO: Check if it's fixed on macOS 11.
 				text: $urlString.setMap(\.removingNewlines)
 			)
 				.lineLimit(1)
 				.frame(minWidth: 400)
 				.padding(.vertical)
+			// TODO: Use `Button` when targeting macOS 11.
 			NativeButton("Open", keyEquivalent: .return) {
-				guard let url = URL(string: self.normalizedUrlString) else {
+				guard let url = URL(string: normalizedUrlString) else {
 					return
 				}
 
-				self.loadHandler(url)
+				loadHandler(url)
 			}
 				.disabled(!URL.isValid(string: normalizedUrlString))
 		}

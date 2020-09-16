@@ -111,8 +111,8 @@ extension AppDelegate {
 			key: "o",
 			keyModifiers: .option,
 			isEnabled: isEnabled
-		) { _ in
-			self.openLocalWebsite()
+		) { [weak self] _ in
+			self?.openLocalWebsite()
 		}
 
 		menu.addSeparator()
@@ -121,8 +121,8 @@ extension AppDelegate {
 			"Reload",
 			key: "r",
 			isEnabled: isEnabled && Defaults[.url] != nil
-		) { _ in
-			self.loadUserURL()
+		) { [weak self] _ in
+			self?.loadUserURL()
 		}
 
 		menu.addCallbackItem(
@@ -130,8 +130,8 @@ extension AppDelegate {
 			key: "b",
 			isEnabled: isEnabled && Defaults[.url] != nil,
 			isChecked: isBrowsingMode
-		) { _ in
-			self.isBrowsingMode.toggle()
+		) { [weak self] _ in
+			self?.isBrowsingMode.toggle()
 		}
 
 		menu.addSeparator()

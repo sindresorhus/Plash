@@ -138,10 +138,10 @@ public struct FatalReason: CustomStringConvertible {
 public func fatalError(
 	because reason: FatalReason,
 	function: StaticString = #function,
-	file: StaticString = #file,
-	line: UInt = #line
+	file: StaticString = #fileID,
+	line: Int = #line
 ) -> Never {
-	fatalError("\(function): \(reason)", file: file, line: line)
+	fatalError("\(function): \(reason)", file: file, line: UInt(line))
 }
 ///
 
@@ -812,7 +812,7 @@ struct NativeButton: NSViewRepresentable {
 		nsView.keyEquivalent = keyEquivalent?.rawValue ?? ""
 
 		nsView.onAction { _ in
-			self.action()
+			action()
 		}
 	}
 }
@@ -849,7 +849,7 @@ extension URL {
 
 	/// Check if the `host` part of a URL is an IP address.
 	var isHostAnIPAddress: Bool {
-		guard let host = self.host else {
+		guard let host = host else {
 			return false
 		}
 
@@ -871,7 +871,7 @@ extension URL {
 
 		guard
 			scheme != nil,
-			let host = self.host
+			let host = host
 		else {
 			return false
 		}
@@ -907,11 +907,11 @@ extension Binding where Value: Equatable {
 	*/
 	func onChange(_ action: @escaping (Value) -> Void) -> Self {
 		.init(
-			get: { self.wrappedValue },
+			get: { wrappedValue },
 			set: {
-				let oldValue = self.wrappedValue
-				self.wrappedValue = $0
-				let newValue = self.wrappedValue
+				let oldValue = wrappedValue
+				wrappedValue = $0
+				let newValue = wrappedValue
 				if newValue != oldValue {
 					action(newValue)
 				}
@@ -959,9 +959,9 @@ extension Binding {
 	*/
 	func withDefaultValue<T>(_ defaultValue: T) -> Binding<T> where Value == T? {
 		.init(
-			get: { self.wrappedValue ?? defaultValue },
+			get: { wrappedValue ?? defaultValue },
 			set: {
-				self.wrappedValue = $0
+				wrappedValue = $0
 			}
 		)
 	}
@@ -988,9 +988,9 @@ extension Binding {
 	*/
 	func isNil<T>(falseSetValue: T) -> Binding<Bool> where Value == T? {
 		.init(
-			get: { self.wrappedValue == nil },
+			get: { wrappedValue == nil },
 			set: {
-				self.wrappedValue = $0 ? nil : falseSetValue
+				wrappedValue = $0 ? nil : falseSetValue
 			}
 		)
 	}
@@ -1014,9 +1014,9 @@ extension Binding {
 	*/
 	func isNotNil<T>(trueSetValue: T) -> Binding<Bool> where Value == T? {
 		.init(
-			get: { self.wrappedValue != nil },
+			get: { wrappedValue != nil },
 			set: {
-				self.wrappedValue = $0 ? trueSetValue : nil
+				wrappedValue = $0 ? trueSetValue : nil
 			}
 		)
 	}
@@ -1126,9 +1126,9 @@ extension Binding {
 		set: @escaping (Result) -> Value
 	) -> Binding<Result> {
 		.init(
-			get: { get(self.wrappedValue) },
+			get: { get(wrappedValue) },
 			set: { newValue in
-				self.wrappedValue = set(newValue)
+				wrappedValue = set(newValue)
 			}
 		)
 	}
@@ -1144,9 +1144,9 @@ extension Binding {
 		_ set: @escaping (Value) -> Value
 	) -> Self {
 		.init(
-			get: { self.wrappedValue },
+			get: { wrappedValue },
 			set: { newValue in
-				self.wrappedValue = set(newValue)
+				wrappedValue = set(newValue)
 			}
 		)
 	}
@@ -1164,9 +1164,9 @@ extension Binding {
 		_ get: @escaping (Value) -> Value
 	) -> Self {
 		.init(
-			get: { get(self.wrappedValue) },
+			get: { get(wrappedValue) },
 			set: { newValue in
-				self.wrappedValue = newValue
+				wrappedValue = newValue
 			}
 		)
 	}
@@ -2183,12 +2183,11 @@ extension Collection {
 		return AnyIterator {
 			var offset: Int
 			repeat {
-				offset = Int.random(in: 0..<self.count)
+				offset = Int.random(in: 0..<count)
 			} while offset == previousNumber
 			previousNumber = offset
 
-			let index = self.index(self.startIndex, offsetBy: offset)
-			return self[index]
+			return self[index(startIndex, offsetBy: offset)]
 		}
 	}
 }
@@ -2257,11 +2256,11 @@ extension NSStatusBarButton {
 		Timer.scheduledRepeatingTimer(
 			withTimeInterval: 0.1,
 			duration: duration,
-			onRepeat: { _ in
-				self.contentTintColor = .uniqueRandomSystemColor()
+			onRepeat: { [weak self] _ in
+				self?.contentTintColor = .uniqueRandomSystemColor()
 			},
-			onFinish: {
-				self.contentTintColor = originalTintColor
+			onFinish: { [weak self] in
+				self?.contentTintColor = originalTintColor
 			}
 		)
 	}
@@ -2387,7 +2386,7 @@ extension URL {
 
 	```
 	directoryUrl.accessSecurityScopedResourceAsync { completion in
-		self.startConversion(urls, outputDirectory: directoryUrl) {
+		startConversion(urls, outputDirectory: directoryUrl) {
 			completion()
 		}
 	}
@@ -2398,7 +2397,7 @@ extension URL {
 
 		return try accessor {
 			if didStartAccessing {
-				self.stopAccessingSecurityScopedResource()
+				stopAccessingSecurityScopedResource()
 			}
 		}
 	}
@@ -2681,7 +2680,7 @@ extension URL {
 
 	/**
 	Replaces any occurrences of `placeholder` in the URL with `replacement`.
-	
+
 	- Throws: An error if the placeholder could not be encoded or if the replacement would create an invalid URL.
 	*/
 	func replacingPlaceholder(_ placeholder: String, with replacement: String) throws -> URL {

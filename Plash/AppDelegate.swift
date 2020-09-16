@@ -111,8 +111,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			return
 		}
 
-		reloadTimer = Timer.scheduledTimer(withTimeInterval: reloadInterval, repeats: true) { _ in
-			self.loadUserURL()
+		reloadTimer = Timer.scheduledTimer(withTimeInterval: reloadInterval, repeats: true) { [self] _ in
+			loadUserURL()
 		}
 	}
 
@@ -160,8 +160,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 		// TODO: Add a callback to `loadURL` when it's done loading instead.
 		// TODO: Fade in the web view.
-		delay(seconds: 1) {
-			self.desktopWindow.contentView?.isHidden = false
+		delay(seconds: 1) { [self] in
+			desktopWindow.contentView?.isHidden = false
 		}
 	}
 
@@ -185,8 +185,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			panel.directoryURL = url
 		}
 
-		panel.begin {
+		panel.begin { [weak self] in
 			guard
+				let self = self,
 				$0 == .OK,
 				let url = panel.url
 			else {
