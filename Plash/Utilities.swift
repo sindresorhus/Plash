@@ -5,7 +5,6 @@ import SwiftUI
 import Combine
 import Network
 import SystemConfiguration
-import LaunchAtLogin
 import Defaults
 
 
@@ -1086,23 +1085,6 @@ extension String {
 			return Self(prefix(number - truncationIndicator.count)).trimmedTrailing + truncationIndicator
 		} else {
 			return self
-		}
-	}
-}
-
-
-// TODO: Move this to the `LaunchAtLogin` package.
-extension LaunchAtLogin {
-	struct Toggle: View {
-		@State private var launchAtLogin = isEnabled
-
-		var body: some View {
-			SwiftUI.Toggle(
-				"Launch at Login",
-				isOn: $launchAtLogin.onChange {
-					isEnabled = $0
-				}
-			)
 		}
 	}
 }
