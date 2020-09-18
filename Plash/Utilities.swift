@@ -1679,19 +1679,24 @@ extension WKWebView {
 	// TODO: Use https://developer.apple.com/documentation/webkit/wkwebview/3516410-mediatype when macOS 10.15.4 is out.
 	// TODO: Move this to `SSWebView` instead and also expose a `response` property so we don't need the `mimeType` parameter.
 	// https://github.com/feedback-assistant/reports/issues/82
-	/// Center a standalone image as WKWebView doesn't center it like Chrome and Firefox do...
-	func centerImage(mimeType: String?) {
+	/**
+	Centers a standalone image as WKWebView doesn't center it like Chrome and Firefox do.
+	The image will aspect-fill the space available.
+	*/
+	func centerAndAspectFillImage(mimeType: String?) {
 		guard mimeType?.hasPrefix("image/") == true else {
 			return
 		}
 
 		let js = Self.createCSSInjectScript(
 			"""
+			/* Center image */
 			body {
 				display: flex;
 				align-items: center;
 				justify-content: center;
 			}
+			/* Aspect fill image */
 			img {
 				width: 100%;
 				height: 100%;
