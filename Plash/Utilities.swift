@@ -1696,7 +1696,8 @@ extension WKWebView {
 				align-items: center;
 				justify-content: center;
 			}
-			/* Aspect fill image */
+
+			/* Aspect-fill image */
 			img {
 				width: 100%;
 				height: 100%;
