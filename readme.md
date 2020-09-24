@@ -78,8 +78,8 @@ We don't have any immediate plans to localize the app.
 
 #### What does “Plash” mean?
 
-[Click here.](http://letmegooglethat.com/?q=define+plash) 
- 
+[Click here.](http://letmegooglethat.com/?q=define+plash)
+
 #### Can you add support for macOS 10.14 or older?
 
 No, this app uses SwiftUI, which only works on macOS 10.15 and later.
