@@ -1920,6 +1920,34 @@ extension String {
 }
 
 
+extension NSWorkspace {
+	/// Returns the height of the Dock.
+	/// It's `nil` if there's no primary screen or if the Dock is set to be automatically hidden.
+	var dockHeight: Double? {
+		guard let screen = NSScreen.primary else {
+			return nil
+		}
+
+		let height = Double(screen.visibleFrame.origin.y - screen.frame.origin.y)
+
+		guard height != 0 else {
+			return nil
+		}
+
+		return height
+	}
+
+	/// Whether the user has "Turn Hiding On" enabled in the Dock preferences.
+	var isDockAutomaticallyToggled: Bool {
+		guard NSScreen.primary != nil else {
+			return false
+		}
+
+		return dockHeight == nil
+	}
+}
+
+
 extension NSStatusBar {
 	/// Whether the user has "Automatically hide and show the menu bar" enabled in system preferences.
 	static var isAutomaticallyToggled: Bool {
@@ -1927,7 +1955,13 @@ extension NSStatusBar {
 			return false
 		}
 
-		return screen.frame.height - screen.visibleFrame.height < system.thickness
+		// Seems like `NSStatusBar.system.thickness` doesn't include this.
+		let menuBarBottomBorder: CGFloat = 1
+
+		let menuBarHeight = system.thickness - menuBarBottomBorder
+		let dockHeight = CGFloat(NSWorkspace.shared.dockHeight ?? 0)
+
+		return (screen.frame.height - screen.visibleFrame.height - dockHeight) <= menuBarHeight
 	}
 }
 
