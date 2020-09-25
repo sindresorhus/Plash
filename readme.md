@@ -44,6 +44,7 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 - [Transparent background](https://github.com/sindresorhus/Plash/issues/1#issuecomment-573513816)
 - Automatically deactivate while on battery
 - Audio is muted
+- Images always aspect-fill your screen
 
 ## Download
 
