@@ -87,7 +87,7 @@ extension WebViewController: WKNavigationDelegate {
 	}
 
 	func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-		webView.centerImage(mimeType: response?.mimeType)
+		webView.centerAndAspectFillImage(mimeType: response?.mimeType)
 
 		internalOnLoaded(nil)
 	}
