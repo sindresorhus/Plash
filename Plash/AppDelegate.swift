@@ -4,7 +4,7 @@ import AppCenter
 import AppCenterCrashes
 import Defaults
 
-@NSApplicationMain
+@main
 final class AppDelegate: NSObject, NSApplicationDelegate {
 	var cancellables = Set<AnyCancellable>()
 

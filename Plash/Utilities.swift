@@ -422,7 +422,7 @@ extension NSMenu {
 	@discardableResult
 	func addMoreAppsItem() -> NSMenuItem {
 		addUrlItem(
-			"More Apps",
+			"More Apps By Me",
 			url: URL("macappstore://apps.apple.com/us/developer/sindresorhus/id328077650?mt=8")
 		)
 	}
@@ -492,14 +492,14 @@ extension NSMenu {
 	func addQuitItem() -> NSMenuItem {
 		addSeparator()
 
-		return addCallbackItem("Quit \(App.name)", key: "q") { _ in
-			App.quit()
+		return addCallbackItem("Quit \(SSApp.name)", key: "q") { _ in
+			SSApp.quit()
 		}
 	}
 }
 
 
-enum App {
+enum SSApp {
 	static let id = Bundle.main.bundleIdentifier!
 	static let name = Bundle.main.object(forInfoDictionaryKey: kCFBundleNameKey as String) as! String
 	static let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String
@@ -526,13 +526,13 @@ enum App {
 	static func openSendFeedbackPage() {
 		let metadata =
 			"""
-			\(App.name) \(App.versionWithBuild) - \(App.id)
+			\(SSApp.name) \(SSApp.versionWithBuild) - \(SSApp.id)
 			macOS \(Device.osVersion)
 			\(Device.hardwareModel)
 			"""
 
 		let query: [String: String] = [
-			"product": App.name,
+			"product": SSApp.name,
 			"metadata": metadata
 		]
 
@@ -1234,19 +1234,43 @@ extension NSAlert {
 		for window: NSWindow? = nil,
 		message: String,
 		informativeText: String? = nil,
-		style: Style = .warning
+		style: Style = .warning,
+		buttonTitles: [String] = [],
+		defaultButtonIndex: Int? = nil
 	) -> NSApplication.ModalResponse {
 		NSAlert(
 			message: message,
 			informativeText: informativeText,
-			style: style
+			style: style,
+			buttonTitles: buttonTitles,
+			defaultButtonIndex: defaultButtonIndex
 		).runModal(for: window)
+	}
+
+	/// The index in the `buttonTitles` array for the button to use as default.
+	/// Set `-1` to not have any default. Useful for really destructive actions.
+	var defaultButtonIndex: Int {
+		get {
+			buttons.firstIndex { $0.keyEquivalent == "\r" } ?? -1
+		}
+		set {
+			// Clear the default button indicator from other buttons.
+			for button in buttons where button.keyEquivalent == "\r" {
+				button.keyEquivalent = ""
+			}
+
+			if newValue != -1 {
+				buttons[newValue].keyEquivalent = "\r"
+			}
+		}
 	}
 
 	convenience init(
 		message: String,
 		informativeText: String? = nil,
-		style: Style = .warning
+		style: Style = .warning,
+		buttonTitles: [String] = [],
+		defaultButtonIndex: Int? = nil
 	) {
 		self.init()
 		self.messageText = message
@@ -1254,6 +1278,12 @@ extension NSAlert {
 
 		if let informativeText = informativeText {
 			self.informativeText = informativeText
+		}
+
+		addButtons(withTitles: buttonTitles)
+
+		if let defaultButtonIndex = defaultButtonIndex {
+			self.defaultButtonIndex = defaultButtonIndex
 		}
 	}
 
@@ -1269,6 +1299,13 @@ extension NSAlert {
 		}
 
 		return NSApp.runModal(for: window)
+	}
+
+	/// Adds buttons with the given titles to the alert.
+	func addButtons(withTitles buttonTitles: [String]) {
+		for buttonTitle in buttonTitles {
+			addButton(withTitle: buttonTitle)
+		}
 	}
 }
 
@@ -1510,17 +1547,16 @@ extension WKWebView {
 		alert.accessoryView = view
 
 		let username = AutofocusedTextField(frame: CGRect(x: 0, y: 32, width: 200, height: 22))
-		// TODO: Enable these when on Xcode 12.
-//		if #available(macOS 11, *) {
-//			username.contentType = .username
-//		}
+		if #available(macOS 11, *) {
+			username.contentType = .username
+		}
 		username.placeholderString = "Username"
 		view.addSubview(username)
 
 		let password = NSSecureTextField(frame: CGRect(x: 0, y: 0, width: 200, height: 22))
-//		if #available(macOS 11, *) {
-//			password.contentType = .password
-//		}
+		if #available(macOS 11, *) {
+			password.contentType = .password
+		}
 		password.placeholderString = "Password"
 		view.addSubview(password)
 
@@ -2543,7 +2579,7 @@ final class SecurityScopedBookmarkManager {
 				$0.canChooseFiles = false
 				$0.canCreateDirectories = false
 				$0.title = "Permission"
-				$0.message = message ?? "\(App.name) needs access to the “\(directoryURL.lastPathComponent)” directory. Click “Allow” to proceed."
+				$0.message = message ?? "\(SSApp.name) needs access to the “\(directoryURL.lastPathComponent)” directory. Click “Allow” to proceed."
 				$0.prompt = "Allow"
 			}
 
@@ -2785,7 +2821,7 @@ extension NSError {
 		}
 
 		return .init(
-			domain: domainPostfix.map { "\(App.id) - \($0)" } ?? App.id,
+			domain: domainPostfix.map { "\(SSApp.id) - \($0)" } ?? SSApp.id,
 			code: 1, // This is what Swift errors end up as.
 			userInfo: userInfo
 		)
@@ -3082,3 +3118,26 @@ extension NSObjectProtocol where Self: NSObject {
 	}
 }
 // MARK: -
+
+
+extension URL {
+	/**
+	Create a URL from a human string, gracefully.
+
+	```
+	URL(humanString: "sindresorhus.com")?.absoluteString
+	//=> "http://sindresorhus.com"
+	```
+	*/
+	init?(humanString: String) {
+		let string = humanString.trimmed
+
+		guard !string.isEmpty else {
+			return nil
+		}
+
+		let url = string.replacingOccurrences(of: #"^(?!(?:\w+:)?\/\/)"#, with: "http://", options: .regularExpression)
+
+		self.init(string: url)
+	}
+}

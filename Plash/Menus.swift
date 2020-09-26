@@ -43,7 +43,7 @@ extension AppDelegate {
 		menu.addSeparator()
 
 		menu.addCallbackItem("Send Feedback…") { _ in
-			App.openSendFeedbackPage()
+			SSApp.openSendFeedbackPage()
 		}
 
 		menu.addSeparator()

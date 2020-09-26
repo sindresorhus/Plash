@@ -13,17 +13,15 @@ struct OpenURLView: View {
 		return url.absoluteString.removingPercentEncoding ?? url.absoluteString
 	}()
 
-	// TODO: Do a `URL(humanString:)` extension.
 	private var normalizedUrlString: String {
-		let hasScheme = urlString.hasPrefix("https://") || urlString.hasPrefix("http://") || urlString.hasPrefix("file://")
-		return hasScheme ? urlString : "http://\(urlString)"
+		URL(humanString: urlString)?.absoluteString ?? urlString
 	}
 
 	let loadHandler: (URL) -> Void
 
 	var body: some View {
 		VStack(alignment: .trailing) {
-			if App.isFirstLaunch {
+			if SSApp.isFirstLaunch {
 				HStack {
 					HStack(spacing: 3) {
 						Text("You could, for example,")
@@ -43,8 +41,7 @@ struct OpenURLView: View {
 			TextField(
 				"sindresorhus.com",
 				// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines.
-				// TODO: Report to Apple.
-				// TODO: Check if it's fixed on macOS 11.
+				// TODO: Report to Apple. Still an issue on macOS 11.
 				text: $urlString.setMap(\.removingNewlines)
 			)
 				.lineLimit(1)
