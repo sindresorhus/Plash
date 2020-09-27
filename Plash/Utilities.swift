@@ -1681,9 +1681,8 @@ extension WKWebView {
 	// https://github.com/feedback-assistant/reports/issues/82
 	/**
 	Centers a standalone image as WKWebView doesn't center it like Chrome and Firefox do.
-	The image will aspect-fill the space available.
 
-	You can test this functionality at https://codepen.io/colejd/pen/MWyxezd
+	The image will aspect-fill the space available.
 	*/
 	func centerAndAspectFillImage(mimeType: String?) {
 		guard mimeType?.hasPrefix("image/") == true else {
