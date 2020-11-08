@@ -14,10 +14,10 @@
 		E324213B2384E9D900D28A91 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E324213A2384E9D900D28A91 /* Preview Assets.xcassets */; };
 		E324213E2384E9D900D28A91 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E324213C2384E9D900D28A91 /* Main.storyboard */; };
 		E32421472384EB4E00D28A91 /* DesktopWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421462384EB4E00D28A91 /* DesktopWindow.swift */; };
-		E324214A2384ED8300D28A91 /* Defaults in Frameworks */ = {isa = PBXBuildFile; productRef = E32421492384ED8300D28A91 /* Defaults */; };
 		E32421562384F09D00D28A91 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421552384F09D00D28A91 /* Constants.swift */; };
 		E32421582384F0E600D28A91 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421572384F0E600D28A91 /* Utilities.swift */; };
 		E324215A2384FBE500D28A91 /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421592384FBE500D28A91 /* WebViewController.swift */; };
+		E3294F7E255783A800D4172F /* Defaults in Frameworks */ = {isa = PBXBuildFile; productRef = E3294F7D255783A800D4172F /* Defaults */; };
 		E333EB1B2385244E005FCE44 /* PreferencesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E333EB1A2385244E005FCE44 /* PreferencesView.swift */; };
 		E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = E3805F5A2466ED5600489E6C /* KeyboardShortcuts */; };
 		E384F28024C3B37E002FD21B /* Events.swift in Sources */ = {isa = PBXBuildFile; fileRef = E384F27F24C3B37E002FD21B /* Events.swift */; };
@@ -58,8 +58,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E3294F7E255783A800D4172F /* Defaults in Frameworks */,
 				E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */,
-				E324214A2384ED8300D28A91 /* Defaults in Frameworks */,
 				E3C4E281251540F7007A6078 /* LaunchAtLogin in Frameworks */,
 				E3959394247B986A0064CABE /* AppCenterCrashes in Frameworks */,
 			);
@@ -147,10 +147,10 @@
 			);
 			name = Plash;
 			packageProductDependencies = (
-				E32421492384ED8300D28A91 /* Defaults */,
 				E3805F5A2466ED5600489E6C /* KeyboardShortcuts */,
 				E3959393247B986A0064CABE /* AppCenterCrashes */,
 				E3C4E280251540F7007A6078 /* LaunchAtLogin */,
+				E3294F7D255783A800D4172F /* Defaults */,
 			);
 			productName = Plash;
 			productReference = E32421302384E9D700D28A91 /* Plash.app */;
@@ -408,7 +408,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_ASSET_PATHS = "\"Plash/Preview Content\"";
 				DEVELOPMENT_TEAM = YG56YK5RN5;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -419,7 +419,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 1.6.0;
+				MARKETING_VERSION = 1.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sindresorhus.Plash;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -435,7 +435,7 @@
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_ASSET_PATHS = "\"Plash/Preview Content\"";
 				DEVELOPMENT_TEAM = YG56YK5RN5;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -446,7 +446,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.15;
-				MARKETING_VERSION = 1.6.0;
+				MARKETING_VERSION = 1.7.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.sindresorhus.Plash;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -491,7 +491,7 @@
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 0.5.0;
+				minimumVersion = 0.6.0;
 			};
 		};
 		E3959392247B986A0064CABE /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */ = {
@@ -499,7 +499,7 @@
 			repositoryURL = "https://github.com/microsoft/appcenter-sdk-apple";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 3.3.3;
+				minimumVersion = 3.3.4;
 			};
 		};
 		E3C4E27F251540F7007A6078 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */ = {
@@ -513,7 +513,7 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		E32421492384ED8300D28A91 /* Defaults */ = {
+		E3294F7D255783A800D4172F /* Defaults */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E32421482384ED8300D28A91 /* XCRemoteSwiftPackageReference "Defaults" */;
 			productName = Defaults;
