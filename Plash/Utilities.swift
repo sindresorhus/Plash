@@ -423,7 +423,7 @@ extension NSMenu {
 	func addMoreAppsItem() -> NSMenuItem {
 		addUrlItem(
 			"More Apps By Me",
-			url: URL("macappstore://apps.apple.com/us/developer/sindresorhus/id328077650?mt=8")
+			url: URL("macappstore://apps.apple.com/developer/id328077650")
 		)
 	}
 
@@ -573,7 +573,7 @@ extension URL {
 }
 
 
-struct Device {
+enum Device {
 	static let osVersion: String = {
 		let os = ProcessInfo.processInfo.operatingSystemVersion
 		return "\(os.majorVersion).\(os.minorVersion).\(os.patchVersion)"
@@ -817,7 +817,7 @@ struct NativeButton: NSViewRepresentable {
 }
 
 
-struct Validators {
+enum Validators {
 	static func isIPv4(_ string: String) -> Bool {
 		IPv4Address(string) != nil
 	}
@@ -2470,7 +2470,7 @@ extension URL {
 
 // TODO: I plan to extract this into a Swift Package when it's been battle-tested.
 /// This always requests the permission to a directory. If you give it file URL, it will ask for permission to the parent directory.
-final class SecurityScopedBookmarkManager {
+enum SecurityScopedBookmarkManager {
 	private static let lock = NSLock()
 
 	// TODO: Abstract this to a generic class to have a Dictionary like thing that is synced to UserDefaults and the subclass it here.
@@ -2543,11 +2543,13 @@ final class SecurityScopedBookmarkManager {
 
 		var isBookmarkDataStale = false
 
-		guard let newUrl = try? URL(
-			resolvingBookmarkData: bookmarkData,
-			options: .withSecurityScope,
-			bookmarkDataIsStale: &isBookmarkDataStale
-		) else {
+		guard
+			let newUrl = try? URL(
+				resolvingBookmarkData: bookmarkData,
+				options: .withSecurityScope,
+				bookmarkDataIsStale: &isBookmarkDataStale
+			)
+		else {
 			return nil
 		}
 
@@ -2766,7 +2768,7 @@ extension URL {
 }
 
 
-struct Reachability {
+enum Reachability {
 	/// Checks whether we're currently online.
 	static func isOnline(host: String = "apple.com") -> Bool {
 		guard let ref = SCNetworkReachabilityCreateWithName(nil, host) else {
@@ -2926,12 +2928,12 @@ extension Error {
 /**
 Creates a window controller that can only ever have one window.
 
-This can be useful when you need there to be only one window of a type, for example, a preferences window. If the window already exists, and you call `.showWindow()`, it will instead just focus the existing window.
+This can be useful when you need there to be only one window of a type, for example, a settings window. If the window already exists, and you call `.showWindow()`, it will instead just focus the existing window.
 
 - Important: Don't create an instance of this. Instead, call the static `.showWindow()` method. Also mark your `convenience init` as `private` so you don't accidentally call it.
 
 ```
-final class PreferencesWindowController: SingletonWindowController {
+final class SettingsWindowController: SingletonWindowController {
 	private convenience init() {
 		let window = NSWindow()
 		self.init(window: window)
@@ -2942,7 +2944,7 @@ final class PreferencesWindowController: SingletonWindowController {
 
 // …
 
-PreferencesWindowController.showWindow()
+SettingsWindowController.showWindow()
 ```
 */
 class SingletonWindowController: NSWindowController, NSWindowDelegate {

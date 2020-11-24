@@ -3,7 +3,7 @@ import LaunchAtLogin
 import Defaults
 import KeyboardShortcuts
 
-private struct OpacityPreference: View {
+private struct OpacitySetting: View {
 	@Default(.opacity) private var opacity
 
 	var body: some View {
@@ -14,7 +14,7 @@ private struct OpacityPreference: View {
 	}
 }
 
-private struct ReloadIntervalPreference: View {
+private struct ReloadIntervalSetting: View {
 	private static let defaultReloadInterval = 60.0
 	private static let minimumReloadInterval = 0.1
 
@@ -64,7 +64,7 @@ private struct ReloadIntervalPreference: View {
 	}
 }
 
-private struct DeactivateOnBatteryPreference: View {
+private struct DeactivateOnBatterySetting: View {
 	@Default(.deactivateOnBattery) private var deactivateOnBattery
 
 	var body: some View {
@@ -75,7 +75,7 @@ private struct DeactivateOnBatteryPreference: View {
 	}
 }
 
-private struct ShowOnAllSpacesPreference: View {
+private struct ShowOnAllSpacesSetting: View {
 	@Default(.showOnAllSpaces) private var showOnAllSpaces
 
 	var body: some View {
@@ -87,7 +87,7 @@ private struct ShowOnAllSpacesPreference: View {
 	}
 }
 
-private struct InvertColorsPreference: View {
+private struct InvertColorsSetting: View {
 	@Default(.invertColors) private var invertColors
 
 	var body: some View {
@@ -101,7 +101,7 @@ private struct InvertColorsPreference: View {
 	}
 }
 
-private struct DisplayPreference: View {
+private struct DisplaySetting: View {
 	@ObservedObject private var displayWrapper = Display.observable
 	@Default(.display) private var chosenDisplay
 
@@ -137,7 +137,7 @@ private struct KeyboardShortcutsSection: View {
 	}
 }
 
-private struct CustomCSSPreference: View {
+private struct CustomCSSSetting: View {
 	@Default(.customCSS) private var customCSS
 
 	var body: some View {
@@ -152,7 +152,7 @@ private struct CustomCSSPreference: View {
 	}
 }
 
-private struct ClearWebsiteDataPreference: View {
+private struct ClearWebsiteDataSetting: View {
 	@State private var hasCleared = false
 
 	var body: some View {
@@ -162,48 +162,57 @@ private struct ClearWebsiteDataPreference: View {
 		}
 			.disabled(hasCleared)
 			.help2("Clears all cookies, local storage, caches, etc.")
+			// TODO: Mark it as destructive when SwiftUI supports that.
 	}
 }
 
-struct PreferencesView: View {
+struct SettingsView: View {
 	var body: some View {
-		VStack {
-			VStack(alignment: .leading) {
-				LaunchAtLogin.Toggle()
-				DeactivateOnBatteryPreference()
-				ShowOnAllSpacesPreference()
-				InvertColorsPreference()
+		Form {
+			VStack {
+				Section {
+					VStack(alignment: .leading) {
+						LaunchAtLogin.Toggle()
+						DeactivateOnBatterySetting()
+						ShowOnAllSpacesSetting()
+						InvertColorsSetting()
+					}
+				}
+				Divider()
+					.padding(.vertical)
+				Section {
+					OpacitySetting()
+				}
+				Divider()
+					.padding(.vertical)
+				Section {
+					ReloadIntervalSetting()
+				}
+				Divider()
+					.padding(.vertical)
+				// Work around 10 view limit.
+				Section {
+					DisplaySetting()
+					Divider()
+						.padding(.vertical)
+					KeyboardShortcutsSection()
+					Divider()
+						.padding(.vertical)
+					CustomCSSSetting()
+					Divider()
+						.padding(.vertical)
+					ClearWebsiteDataSetting()
+				}
 			}
-			Divider()
-				.padding(.vertical)
-			OpacityPreference()
-			Divider()
-				.padding(.vertical)
-			ReloadIntervalPreference()
-			Divider()
-				.padding(.vertical)
-			// Work around 10 view limit.
-			Group {
-				DisplayPreference()
-				Divider()
-					.padding(.vertical)
-				KeyboardShortcutsSection()
-				Divider()
-					.padding(.vertical)
-				CustomCSSPreference()
-				Divider()
-					.padding(.vertical)
-				ClearWebsiteDataPreference()
-			}
+				.frame(width: 380)
+				.padding()
+				.padding()
 		}
-			.frame(width: 380)
-			.padding()
-			.padding()
 	}
 }
 
-struct PreferencesView_Previews: PreviewProvider {
+struct SettingsView_Previews: PreviewProvider {
 	static var previews: some View {
-		PreferencesView()
+		SettingsView()
 	}
 }

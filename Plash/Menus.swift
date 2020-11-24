@@ -137,7 +137,7 @@ extension AppDelegate {
 		menu.addSeparator()
 
 		menu.addCallbackItem("Preferences…", key: ",") { _ in
-			PreferencesWindowController.showWindow()
+			SettingsWindowController.showWindow()
 		}
 
 		let moreMenuItem = menu.addItem("More")

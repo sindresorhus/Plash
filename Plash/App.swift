@@ -4,6 +4,15 @@ import AppCenter
 import AppCenterCrashes
 import Defaults
 
+/*
+TODO: When targeting macOS 11:
+- Use `App` protocol.
+- Use SwiftUI Settings window.
+- Remove `Principal class` key in Info.plist. It's not needed anymore.
+- Remove storyboard.
+- Present windows using SwiftUI.
+*/
+
 @main
 final class AppDelegate: NSObject, NSApplicationDelegate {
 	var cancellables = Set<AnyCancellable>()
@@ -77,10 +86,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	func applicationDidFinishLaunching(_ notification: Notification) {
-		MSAppCenter.start(
-			"27131b3e-4b25-4a92-b0d3-7bb6883f7343",
-			withServices: [
-				MSCrashes.self
+		AppCenter.start(
+			withAppSecret: "27131b3e-4b25-4a92-b0d3-7bb6883f7343",
+			services: [
+				Crashes.self
 			]
 		)
 

@@ -1,11 +1,11 @@
 import SwiftUI
 
-final class PreferencesWindowController: SingletonWindowController {
+final class SettingsWindowController: SingletonWindowController {
 	private convenience init() {
 		let window = SwiftUIWindowForMenuBarApp()
 		self.init(window: window)
 
-		let view = PreferencesView()
+		let view = SettingsView()
 
 		window.title = "Preferences"
 		window.styleMask = [
