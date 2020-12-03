@@ -3143,3 +3143,37 @@ extension URL {
 		self.init(string: url)
 	}
 }
+
+
+extension SSApp {
+	/**
+	This is like `SSApp.runOnce()` but let's you have an else-statement too.
+
+	```
+	if SSApp.runOnceShouldRun(identifier: "foo") {
+		// True only the first time and only once.
+	} else {
+
+	}
+	```
+	*/
+	static func runOnceShouldRun(identifier: String) -> Bool {
+		let key = "SS_App_runOnce__\(identifier)"
+
+		guard !UserDefaults.standard.bool(forKey: key) else {
+			return false
+		}
+
+		UserDefaults.standard.set(true, forKey: key)
+		return true
+	}
+
+	/// Run a closure only once ever, even between relaunches of the app.
+	static func runOnce(identifier: String, _ execute: () -> Void) {
+		guard runOnceShouldRun(identifier: identifier) else {
+			return
+		}
+
+		execute()
+	}
+}

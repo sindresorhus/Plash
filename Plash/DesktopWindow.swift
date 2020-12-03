@@ -17,7 +17,7 @@ final class DesktopWindow: NSWindow {
 	var isInteractive = false {
 		didSet {
 			if isInteractive {
-				level = .floating
+				level = .desktopIcon
 				makeKeyAndOrderFront(self)
 				ignoresMouseEvents = false
 			} else {
