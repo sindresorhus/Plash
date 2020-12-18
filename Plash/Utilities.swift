@@ -133,7 +133,6 @@ public struct FatalReason: CustomStringConvertible {
 ///     where `fatalError(because:, function:, file:, line:)` is called.
 ///   - line: The line number to print along with `message`. The default is the
 ///     line number where `fatalError(because:, function:, file:, line:)` is called.
-// swiftlint:disable:next unavailable_function
 public func fatalError(
 	because reason: FatalReason,
 	function: StaticString = #function,
@@ -2168,7 +2167,7 @@ final class PowerSourceWatcher {
 
 
 /// A view that doesn't accept any mouse events.
-class NonInteractiveView: NSView {
+class NonInteractiveView: NSView { // swiftlint:disable:this final_class
 	override var mouseDownCanMoveWindow: Bool { true }
 	override func acceptsFirstMouse(for event: NSEvent?) -> Bool { false }
 	override func hitTest(_ point: CGPoint) -> NSView? { nil }
@@ -2947,7 +2946,7 @@ final class SettingsWindowController: SingletonWindowController {
 SettingsWindowController.showWindow()
 ```
 */
-class SingletonWindowController: NSWindowController, NSWindowDelegate {
+class SingletonWindowController: NSWindowController, NSWindowDelegate { // swiftlint:disable:this final_class
 	private static var instances = [HashableType<SingletonWindowController>: SingletonWindowController]()
 
 	private static var currentInstance: SingletonWindowController {
