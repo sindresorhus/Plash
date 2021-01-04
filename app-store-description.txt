@@ -32,6 +32,8 @@ Note: Support for multiple displays is currently limited to the ability to choos
 	https://randomstreetview.com/#slideshow
 - Calendar
 - Personal stats
+- Random color
+	https://www.color.pizza
 
 
 ■ Tips
