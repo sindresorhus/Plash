@@ -51,9 +51,13 @@ extension AppDelegate {
 		}
 			.tieToLifetime(of: self)
 
+		Defaults.observe(.isBrowsingMode) { [self] change in
+			isBrowsingMode = change.newValue
+		}
+			.tieToLifetime(of: self)
+
 		Defaults.observe(.opacity) { [self] change in
-			isBrowsingMode = false
-			desktopWindow.alphaValue = CGFloat(change.newValue)
+			desktopWindow.alphaValue = isBrowsingMode ? 1 : CGFloat(change.newValue)
 		}
 			.tieToLifetime(of: self)
 
@@ -87,8 +91,8 @@ extension AppDelegate {
 		}
 			.tieToLifetime(of: self)
 
-		KeyboardShortcuts.onKeyUp(for: .toggleBrowsingMode) { [self] in
-			isBrowsingMode.toggle()
+		KeyboardShortcuts.onKeyUp(for: .toggleBrowsingMode) {
+			Defaults[.isBrowsingMode].toggle()
 		}
 
 		KeyboardShortcuts.onKeyUp(for: .reload) { [self] in

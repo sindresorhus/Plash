@@ -129,9 +129,9 @@ extension AppDelegate {
 			"Browsing Mode",
 			key: "b",
 			isEnabled: isEnabled && Defaults[.url] != nil,
-			isChecked: isBrowsingMode
-		) { [weak self] _ in
-			self?.isBrowsingMode.toggle()
+			isChecked: Defaults[.isBrowsingMode]
+		) { menuItem in
+			Defaults[.isBrowsingMode] = !menuItem.isChecked
 
 			SSApp.runOnce(identifier: "activatedBrowsingMode") {
 				DispatchQueue.main.async {

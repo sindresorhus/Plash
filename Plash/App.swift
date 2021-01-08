@@ -96,10 +96,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		_ = statusItemButton
 		_ = desktopWindow
 
-		// This is needed to make the window appear.
-		// TODO: Find out why.
-		desktopWindow.isInteractive = false
-
 		setUpEvents()
 		showWelcomeScreenIfNeeded()
 	}

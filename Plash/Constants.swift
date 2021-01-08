@@ -8,6 +8,7 @@ struct Constants {
 
 extension Defaults.Keys {
 	static let url = Key<URL?>("url")
+	static let isBrowsingMode = Key<Bool>("isBrowsingMode", default: false)
 	static let opacity = Key<Double>("opacity", default: 1)
 	static let reloadInterval = Key<Double?>("reloadInterval")
 	static let display = Key<Display>("display", default: .main)

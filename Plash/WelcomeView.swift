@@ -28,7 +28,7 @@ extension AppDelegate {
 			message: "Feedback Welcome 🙌🏻",
 			informativeText:
 				"""
-				If you have any feedback, bug reports, or feature requests, kindly use the “Send Feedback” button in the Plash menu. We respond to all submissions and reported issues will be dealt with swiftly. It's preferable that you report bugs this way rather than as an App Store review, since the App Store will not allow us to contact you for more information.
+				If you have any feedback, bug report, or feature request, kindly use the “Send Feedback” button in the Plash menu. We respond to all submissions.
 				""",
 			buttonTitles: [
 				"Get Started"
