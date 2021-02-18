@@ -17,7 +17,7 @@ final class DesktopWindow: NSWindow {
 	var isInteractive = false {
 		didSet {
 			if isInteractive {
-				level = .desktopIcon
+				level = .desktopIcon + 1 // The `+ 1` fixes a weird issue where the window is sometimes not interactive. (macOS 11.2.1)
 				makeKeyAndOrderFront(self)
 				ignoresMouseEvents = false
 			} else {
@@ -45,6 +45,8 @@ final class DesktopWindow: NSWindow {
 		self.isOpaque = false
 		self.backgroundColor = .clear
 		self.level = .desktop
+		self.isRestorable = false
+		self.canHide = false
 		self.collectionBehavior = [
 			.stationary,
 			.ignoresCycle,

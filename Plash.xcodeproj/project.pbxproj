@@ -489,7 +489,7 @@
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
 			requirement = {
 				kind = upToNextMinorVersion;
-				minimumVersion = 0.6.0;
+				minimumVersion = 0.7.0;
 			};
 		};
 		E3959392247B986A0064CABE /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */ = {
@@ -497,7 +497,7 @@
 			repositoryURL = "https://github.com/microsoft/appcenter-sdk-apple";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.0.0;
+				minimumVersion = 4.1.0;
 			};
 		};
 		E3C4E27F251540F7007A6078 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */ = {

@@ -9,8 +9,8 @@ extension AppDelegate {
 		NSApp.activate(ignoringOtherApps: true)
 
 		NSAlert.showModal(
-			message: "Welcome to Plash!",
-			informativeText:
+			title: "Welcome to Plash!",
+			message:
 				"""
 				Plash lives in the menu bar (droplet icon at the top-right of the screen). Click it and then select “Open URL…” to get started.
 
@@ -25,10 +25,10 @@ extension AppDelegate {
 		)
 
 		NSAlert.showModal(
-			message: "Feedback Welcome 🙌🏻",
-			informativeText:
+			title: "Feedback Welcome 🙌🏻",
+			message:
 				"""
-				If you have any feedback, bug report, or feature request, kindly use the “Send Feedback” button in the Plash menu. We respond to all submissions.
+				If you have any feedback, bug reports, or feature requests, use the feedback button in the app. We respond to all submissions.
 				""",
 			buttonTitles: [
 				"Get Started"

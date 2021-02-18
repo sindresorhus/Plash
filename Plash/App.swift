@@ -98,6 +98,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 		setUpEvents()
 		showWelcomeScreenIfNeeded()
+
+		SSApp.runOnce(identifier: "browsingModeBehaviorChangeWarning") {
+			NSAlert.showModal(
+				title: "Browsing Mode Behavior Change",
+				message: "When you activate browsing mode, it will no longer show in front of all other windows. A lot of users complained about the previous behavior. Instead, it will show like in non-browsing mode, but hide desktop icons and be interactive. So when you enable browsing mode now, you might have to hide/minimize some windows to see it.\n\nPlease let me know through the feedback button in the app if you depended on the previous behavior."
+			)
+		}
 	}
 
 	func setEnabledStatus() {
@@ -200,7 +207,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			}
 
 			guard url.appendingPathComponent("index.html", isDirectory: false).exists else {
-				NSAlert.showModal(message: "Please choose a directory that contains a “index.html” file.")
+				NSAlert.showModal(title: "Please choose a directory that contains a “index.html” file.")
 				self.openLocalWebsite()
 				return
 			}

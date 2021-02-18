@@ -56,6 +56,7 @@ final class WebViewController: NSViewController {
 		view = webView
 	}
 
+	// TODO: When Swift 6 is out, make this async and throw instead of using `onLoaded` handler.
 	func loadURL(_ url: URL) {
 		guard !url.isFileURL else {
 			_ = url.accessSandboxedURLByPromptingIfNeeded()
@@ -155,8 +156,8 @@ extension WebViewController: WKUIDelegate {
 		window.makeKeyAndOrderFront(self)
 		popupWindow = window
 
-		webView.bind(\.title, to: window, at: \.title)
-			.tiedToLifetimeOf(webView)
+		webView.bind(\.title, to: window, at: \.title, default: "")
+			.store(forTheLifetimeOf: webView)
 
 		return webView
 	}

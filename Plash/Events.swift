@@ -15,6 +15,7 @@ extension AppDelegate {
 				return
 			}
 
+			// TODO: When targeting macOS 11, I might be able to set `.pageLevel` before loading the page.
 			// Set the persisted zoom level.
 			let zoomLevel = webViewController.webView.zoomLevelWrapper
 			if zoomLevel != 1 {
@@ -30,17 +31,18 @@ extension AppDelegate {
 			}
 		}
 
-		powerSourceWatcher?.onChange = { [self] _ in
-			guard Defaults[.deactivateOnBattery] else {
-				return
-			}
-
-			setEnabledStatus()
-		}
-
-		NSWorkspace.shared.notificationCenter
-			.publisher(for: NSWorkspace.didWakeNotification)
+		powerSourceWatcher?.didChangePublisher
 			.sink { [self] _ in
+				guard Defaults[.deactivateOnBattery] else {
+					return
+				}
+
+				setEnabledStatus()
+			}
+			.store(in: &cancellables)
+
+		NSWorkspace.Publishers.didWake
+			.sink { [self] in
 				loadUserURL()
 			}
 			.store(in: &cancellables)

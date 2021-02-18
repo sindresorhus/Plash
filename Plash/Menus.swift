@@ -72,13 +72,6 @@ extension AppDelegate {
 
 		menu.addMoreAppsItem()
 
-		menu.addSeparator()
-
-		menu.addUrlItem(
-			"Donate",
-			url: URL("https://sindresorhus.com/donate")
-		)
-
 		return menu
 	}
 
@@ -136,8 +129,8 @@ extension AppDelegate {
 			SSApp.runOnce(identifier: "activatedBrowsingMode") {
 				DispatchQueue.main.async {
 					NSAlert.showModal(
-						message: "Browsing Mode lets you temporarily interact with the website. For example, to log into an account or scroll to a specific position on the website.",
-						informativeText: "If you don't currently see the website, you might need to hide some windows to reveal the desktop."
+						title: "Browsing Mode lets you temporarily interact with the website. For example, to log into an account or scroll to a specific position on the website.",
+						message: "If you don't currently see the website, you might need to hide some windows to reveal the desktop."
 					)
 				}
 			}

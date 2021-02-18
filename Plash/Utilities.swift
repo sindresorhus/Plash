@@ -248,35 +248,6 @@ extension NSMenuItem {
 
 
 extension NSMenu {
-	/// Get the `NSMenuItem` that has this menu as a submenu.
-	var parentMenuItem: NSMenuItem? {
-		guard let supermenu = supermenu else {
-			return nil
-		}
-
-		let index = supermenu.indexOfItem(withSubmenu: self)
-		return supermenu.item(at: index)
-	}
-
-	/// Get the item with the given identifier.
-	func item(withIdentifier identifier: NSUserInterfaceItemIdentifier) -> NSMenuItem? {
-		for item in items where item.identifier == identifier {
-			return item
-		}
-
-		return nil
-	}
-
-	/// Remove the first item in the menu.
-	func removeFirstItem() {
-		removeItem(at: 0)
-	}
-
-	/// Remove the last item in the menu.
-	func removeLastItem() {
-		removeItem(at: numberOfItems - 1)
-	}
-
 	func addSeparator() {
 		addItem(.separator())
 	}
@@ -672,34 +643,6 @@ extension NSEdgeInsets {
 }
 
 
-
-extension NSView {
-	func constrainEdges(to view: NSView, with insets: NSEdgeInsets = .zero) {
-		translatesAutoresizingMaskIntoConstraints = false
-
-		NSLayoutConstraint.activate([
-			leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: insets.left),
-			trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -insets.right),
-			topAnchor.constraint(equalTo: view.topAnchor, constant: insets.top),
-			bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -insets.bottom)
-		])
-	}
-
-	func constrainEdges(to view: NSView, margin: Double = 0) {
-		constrainEdges(to: view, with: .init(all: margin))
-	}
-
-	func constrainEdgesToSuperview(with insets: NSEdgeInsets = .zero) {
-		guard let superview = superview else {
-			assertionFailure("There is no superview for this view")
-			return
-		}
-
-		constrainEdges(to: superview, with: insets)
-	}
-}
-
-
 extension String {
 	/// NSString has some useful properties that String does not.
 	var nsString: NSString { self as NSString }
@@ -884,57 +827,6 @@ extension URL {
 		return hostComponents.count >= 2 &&
 			!hostComponents[0].isEmpty &&
 			hostComponents.last!.count > 1
-	}
-}
-
-
-extension Binding where Value: Equatable {
-	/**
-	Get notified when the binding value changes to a different one.
-
-	Can be useful to manually update non-reactive properties.
-
-	```
-	Toggle(
-		"Foo",
-		isOn: $foo.onChange {
-			bar.isEnabled = $0
-		}
-	)
-	```
-	*/
-	func onChange(_ action: @escaping (Value) -> Void) -> Self {
-		.init(
-			get: { wrappedValue },
-			set: {
-				let oldValue = wrappedValue
-				wrappedValue = $0
-				let newValue = wrappedValue
-				if newValue != oldValue {
-					action(newValue)
-				}
-			}
-		)
-	}
-
-	/**
-	Update the given property when the binding value changes to a different one.
-
-	Can be useful to manually update non-reactive properties.
-
-	- Note: Static key paths are not yet supported in Swift: https://forums.swift.org/t/key-path-cannot-refer-to-static-member/28055/2
-
-	```
-	Toggle("Foo", isOn: $foo.onChange(for: bar, keyPath: \.isEnabled))
-	```
-	*/
-	func onChange<Object: AnyObject>(
-		for object: Object,
-		keyPath: ReferenceWritableKeyPath<Object, Value>
-	) -> Self {
-		onChange { [weak object] newValue in
-			object?[keyPath: keyPath] = newValue
-		}
 	}
 }
 
@@ -1231,19 +1123,20 @@ extension NSAlert {
 	@discardableResult
 	static func showModal(
 		for window: NSWindow? = nil,
-		message: String,
-		informativeText: String? = nil,
+		title: String,
+		message: String? = nil,
 		style: Style = .warning,
 		buttonTitles: [String] = [],
 		defaultButtonIndex: Int? = nil
 	) -> NSApplication.ModalResponse {
 		NSAlert(
+			title: title,
 			message: message,
-			informativeText: informativeText,
 			style: style,
 			buttonTitles: buttonTitles,
 			defaultButtonIndex: defaultButtonIndex
-		).runModal(for: window)
+		)
+			.runModal(for: window)
 	}
 
 	/// The index in the `buttonTitles` array for the button to use as default.
@@ -1265,18 +1158,18 @@ extension NSAlert {
 	}
 
 	convenience init(
-		message: String,
-		informativeText: String? = nil,
+		title: String,
+		message: String? = nil,
 		style: Style = .warning,
 		buttonTitles: [String] = [],
 		defaultButtonIndex: Int? = nil
 	) {
 		self.init()
-		self.messageText = message
+		self.messageText = title
 		self.alertStyle = style
 
-		if let informativeText = informativeText {
-			self.informativeText = informativeText
+		if let message = message {
+			self.informativeText = message
 		}
 
 		addButtons(withTitles: buttonTitles)
@@ -1345,7 +1238,8 @@ final class SwiftUIWindowForMenuBarApp: NSWindow {
 
 	convenience init() {
 		self.init(
-			contentRect: .zero,
+			// It's important that this is not zero as that causes some SwiftUI rendering problems.
+			contentRect: CGRect(x: 0, y: 0, width: 100, height: 100),
 			styleMask: [
 				.titled,
 				.fullSizeContentView,
@@ -1385,7 +1279,7 @@ final class SwiftUIWindowForMenuBarApp: NSWindow {
 
 
 extension WKWebView {
-	static let safariUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_2) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.4 Safari/605.1.15"
+	static let safariUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Safari/605.1.15"
 
 	/**
 	Evaluate JavaScript synchronously.
@@ -1398,10 +1292,23 @@ extension WKWebView {
 		var returnResult: Any?
 		var returnError: Error?
 
-		evaluateJavaScript(script) { result, error in
-			returnResult = result
-			returnError = error
-			isFinished = true
+		if #available(macOS 11, *) {
+			evaluateJavaScript(script, in: nil, in: .defaultClient) { result in
+				switch result {
+				case .success(let data):
+					returnResult = data
+				case .failure(let error):
+					returnError = error
+				}
+
+				isFinished = true
+			}
+		} else {
+			evaluateJavaScript(script) { result, error in
+				returnResult = result
+				returnError = error
+				isFinished = true
+			}
 		}
 
 		while !isFinished {
@@ -1420,6 +1327,7 @@ extension WKWebView {
 
 	- Important: This is very slow. Don't call it in a hot path.
 	*/
+	@available(macOS, deprecated: 11, renamed: "pageZoom")
 	var zoomLevel: Double {
 		get {
 			guard let zoomString = (try? evaluateSync(script: "document.body.style.zoom")) as? String else {
@@ -1603,11 +1511,21 @@ extension WKUserContentController {
 	func addCSS(_ css: String) {
 		let source = WKWebView.createCSSInjectScript(css)
 
-		let userScript = WKUserScript(
-			source: source,
-			injectionTime: .atDocumentStart,
-			forMainFrameOnly: false
-		)
+		let userScript: WKUserScript
+		if #available(macOS 11, *) {
+			userScript = WKUserScript(
+				source: source,
+				injectionTime: .atDocumentStart,
+				forMainFrameOnly: false,
+				in: .defaultClient
+			)
+		} else {
+			userScript = WKUserScript(
+				source: source,
+				injectionTime: .atDocumentStart,
+				forMainFrameOnly: false
+			)
+		}
 
 		addUserScript(userScript)
 	}
@@ -1681,11 +1599,21 @@ extension WKUserContentController {
 	// https://github.com/feedback-assistant/reports/issues/79
 	/// Mute all existing and future audio on websites, including audio in videos.
 	func muteAudio() {
-		let userScript = WKUserScript(
-			source: Self.muteAudioCode,
-			injectionTime: .atDocumentStart,
-			forMainFrameOnly: false
-		)
+		let userScript: WKUserScript
+		if #available(macOS 11, *) {
+			userScript = WKUserScript(
+				source: Self.muteAudioCode,
+				injectionTime: .atDocumentStart,
+				forMainFrameOnly: false,
+				in: .defaultClient
+			)
+		} else {
+			userScript = WKUserScript(
+				source: Self.muteAudioCode,
+				injectionTime: .atDocumentStart,
+				forMainFrameOnly: false
+			)
+		}
 
 		addUserScript(userScript)
 	}
@@ -1693,9 +1621,6 @@ extension WKUserContentController {
 
 
 extension WKWebView {
-	// TODO: Use https://developer.apple.com/documentation/webkit/wkwebview/3516410-mediatype when macOS 10.15.4 is out.
-	// TODO: Move this to `SSWebView` instead and also expose a `response` property so we don't need the `mimeType` parameter.
-	// https://github.com/feedback-assistant/reports/issues/82
 	/**
 	Centers a standalone image as WKWebView doesn't center it like Chrome and Firefox do.
 
@@ -1724,7 +1649,11 @@ extension WKWebView {
 			"""
 		)
 
-		evaluateJavaScript(js, completionHandler: nil)
+		if #available(macOS 11, *) {
+			evaluateJavaScript(js, in: nil, in: .defaultClient)
+		} else {
+			evaluateJavaScript(js)
+		}
 	}
 }
 
@@ -1851,11 +1780,10 @@ extension NSScreen {
 	/// This includes screens being added/removed, resolution change, and the screen frame changing (dock and menu bar being toggled).
 	static var publisher: AnyPublisher<Void, Never> {
 		Publishers.Merge(
-			NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification),
+			NSApplication.Publishers.didChangeScreenParameters,
 			// We use a wake up notification as the screen setup might have changed during sleep. For example, a screen could have been unplugged.
-			NotificationCenter.default.publisher(for: NSWorkspace.didWakeNotification)
+			NSWorkspace.Publishers.didWake
 		)
-			.map { _ in }
 			.eraseToAnyPublisher()
 	}
 
@@ -1883,7 +1811,14 @@ extension NSScreen {
 
 		// Account for the status bar if the window is on the main screen and the status bar is permanently visible, or if on a secondary screen and secondary screens are set to show the status bar.
 		if hasStatusBar {
-			screenFrame.size.height -= NSStatusBar.system.thickness
+			var statusBarBottomPadding = 0.0
+
+			if #available(macOS 11, *) {
+				// Without this, the website would show through the 1 point padding between the menu bar and the window.
+				statusBarBottomPadding = 1.0
+			}
+
+			screenFrame.size.height -= CGFloat(NSStatusBar.actualThickness + statusBarBottomPadding)
 		}
 
 		return screenFrame
@@ -1996,19 +1931,29 @@ extension NSWorkspace {
 
 
 extension NSStatusBar {
+	/// The actual thickness of the status bar. `.thickness` confusingly returns the thickness of the content area.
+	/// Keep in mind for screen calculations that the status bar has an additional 1 point padding below it (between it and windows).
+	static var actualThickness: Double {
+		if #available(macOS 11, *) {
+			return 24
+		} else {
+			return 22
+		}
+	}
+
 	/// Whether the user has "Automatically hide and show the menu bar" enabled in system preferences.
 	static var isAutomaticallyToggled: Bool {
 		guard let screen = NSScreen.primary else {
 			return false
 		}
 
-		// Seems like `NSStatusBar.system.thickness` doesn't include this.
-		let menuBarBottomBorder: CGFloat = 1
+		// There's a 1 point gap between the status bar and any maximized window.
+		let statusBarBottomPadding = 1.0
 
-		let menuBarHeight = system.thickness - menuBarBottomBorder
+		let menuBarHeight = CGFloat(actualThickness + statusBarBottomPadding)
 		let dockHeight = CGFloat(NSWorkspace.shared.dockHeight ?? 0)
 
-		return (screen.frame.height - screen.visibleFrame.height - dockHeight) <= menuBarHeight
+		return (screen.frame.height - screen.visibleFrame.height - dockHeight) < menuBarHeight
 	}
 }
 
@@ -2135,7 +2080,10 @@ final class PowerSourceWatcher {
 		}
 	}
 
-	var onChange: ((PowerSource) -> Void)?
+	private lazy var _didChangePublisher = CurrentValueSubject<PowerSource, Never>(powerSource)
+
+	/// Publishes the power source when it changes. It also publishes an initial event.
+	lazy var didChangePublisher = _didChangePublisher.eraseToAnyPublisher()
 
 	var powerSource: PowerSource {
 		let identifier = IOPSGetProvidingPowerSourceType(nil)!.takeRetainedValue() as String
@@ -2156,12 +2104,10 @@ final class PowerSourceWatcher {
 		}
 
 		CFRunLoopAddSource(CFRunLoopGetCurrent(), runLoopSource, .defaultMode)
-
-		onChange?(powerSource)
 	}
 
 	private func internalOnChange() {
-		onChange?(powerSource)
+		_didChangePublisher.send(powerSource)
 	}
 }
 
@@ -2352,7 +2298,6 @@ extension RangeReplaceableCollection where Element: Equatable {
 	}
 }
 
-// TODO: Find a way to remove the `Index == Int` constraint.
 extension Collection where Index == Int, Element: Equatable {
 	/// Returns an array where the given element has moved to the `to` index.
 	func moving(_ element: Element, to toIndex: Index) -> [Element] {
@@ -3045,77 +2990,45 @@ extension ObjectAssociation {
 }
 
 
-private let bindLifetimeAssociatedObjectKey = ObjectAssociation<[AnyObject]>(defaultValue: [])
-
-/// Binds the lifetime of object A to object B, so when B deallocates, so does A, but not before.
-func bindLifetime(of object: AnyObject, to target: AnyObject) {
-	var retainedObjects = bindLifetimeAssociatedObjectKey[target]
-	retainedObjects.append(object)
-	bindLifetimeAssociatedObjectKey[target] = retainedObjects
-}
-
-
 // MARK: - KVO utilities
-extension NSKeyValueObservation {
-	/// Keeps the observation alive as long as the given object.
-	@discardableResult
-	func tiedToLifetimeOf(_ object: AnyObject) -> Self {
-		bindLifetime(of: self, to: object)
-		return self
-	}
-}
-
 extension NSObjectProtocol where Self: NSObject {
-	/// Convenience `observe` function that triggers initially and on new values and only provides the new value.
-	func observe<Value>(
-		_ keyPath: KeyPath<Self, Value>,
-		onChange: @escaping (Value) -> Void
-	) -> NSKeyValueObservation {
-		observe(keyPath, options: [.initial, .new]) { _, change in
-			guard let newValue = change.newValue else {
-				return
-			}
-
-			onChange(newValue)
-		}
-	}
-
 	/**
-	Bind the property of one object to the property of another object.
+	Bind the property of an object to the property of another object.
 
 	```
 	window.bind(\.title, to: toolbarItem, at: \.title)
-		.tiedToLifetimeOf(self)
+		.store(forTheLifetimeOf: window)
 	```
 	*/
 	func bind<Value, Target>(
 		_ sourceKeyPath: KeyPath<Self, Value>,
 		to target: Target,
 		at targetKeyPath: ReferenceWritableKeyPath<Target, Value>
-	) -> NSKeyValueObservation {
-		observe(sourceKeyPath) {
-			target[keyPath: targetKeyPath] = $0
-		}
+	) -> AnyCancellable {
+		publisher(for: sourceKeyPath)
+			.sink {
+				target[keyPath: targetKeyPath] = $0
+			}
 	}
 
 	/**
-	Bind the `String?` property of one object to the `String` property of another object.
-
-	If the source property is `nil` and the target is not optional, the target will be set to an empty string.
+	Bind the optional property of an object to the property of another object. If the optional property is `nil`, the given `default` value will be used.
 
 	```
 	webView.bind(\.title, to: window, at: \.title)
-		.tiedToLifetimeOf(self)
+		.store(forTheLifetimeOf: webView)
 	```
 	*/
-	func bind<Target>(
-		_ sourceKeyPath: KeyPath<Self, String?>,
+	func bind<Value, Target>(
+		_ sourceKeyPath: KeyPath<Self, Value?>,
 		to target: Target,
-		at targetKeyPath: ReferenceWritableKeyPath<Target, String>
-	) -> NSKeyValueObservation {
-		observe(sourceKeyPath) {
-			target[keyPath: targetKeyPath] = $0 ?? ""
-		}
+		at targetKeyPath: ReferenceWritableKeyPath<Target, Value>,
+		default: Value
+	) -> AnyCancellable {
+		publisher(for: sourceKeyPath)
+			.sink {
+				target[keyPath: targetKeyPath] = $0 ?? `default`
+			}
 	}
 }
 // MARK: -
@@ -3174,5 +3087,39 @@ extension SSApp {
 		}
 
 		execute()
+	}
+}
+
+
+extension NSWorkspace {
+	enum Publishers {
+		/// Publishes when the machine wakes from sleep.
+		static let didWake = NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)
+				.map { _ in }
+				.eraseToAnyPublisher()
+	}
+}
+
+
+extension NSApplication {
+	enum Publishers {
+		/// Publishes when the configuration of the displays attached to the computer is changed.
+		/// The configuration change can be made either programmatically or when the user changes settings in the Displays control panel.
+		static let didChangeScreenParameters = NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
+				.map { _ in }
+				.eraseToAnyPublisher()
+	}
+}
+
+
+
+extension AnyCancellable {
+	private enum AssociatedKeys {
+		static let cancellables = ObjectAssociation<Set<AnyCancellable>>(defaultValue: [])
+	}
+
+	/// Stores this AnyCancellable for the lifetime of the given `object`.
+	func store(forTheLifetimeOf object: AnyObject) {
+		store(in: &AssociatedKeys.cancellables[object])
 	}
 }
