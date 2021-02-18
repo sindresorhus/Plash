@@ -47,7 +47,8 @@ final class DesktopWindow: NSWindow {
 		self.level = .desktop
 		self.collectionBehavior = [
 			.stationary,
-			.ignoresCycle
+			.ignoresCycle,
+			.fullScreenNone // This ensures that if Plash is launched while an app is fullscreen (fullscreen is a separate space), it will not show behind that app and instead show in the primary space.
 		]
 
 		setFrame()
