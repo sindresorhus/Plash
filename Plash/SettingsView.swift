@@ -3,13 +3,51 @@ import LaunchAtLogin
 import Defaults
 import KeyboardShortcuts
 
+private struct DeactivateOnBatterySetting: View {
+	@Default(.deactivateOnBattery) private var deactivateOnBattery
+
+	var body: some View {
+		Toggle(
+			"Deactivate while on battery",
+			isOn: $deactivateOnBattery
+		)
+	}
+}
+
+private struct ShowOnAllSpacesSetting: View {
+	@Default(.showOnAllSpaces) private var showOnAllSpaces
+
+	var body: some View {
+		Toggle(
+			"Show on all spaces",
+			isOn: $showOnAllSpaces
+		)
+			.help2("When disabled, the website will be shown on the space that was active when Plash launched.")
+	}
+}
+
+private struct InvertColorsSetting: View {
+	@Default(.invertColors) private var invertColors
+
+	var body: some View {
+		Toggle(
+			"Invert website colors",
+			isOn: $invertColors
+		)
+			.help2("This creates a fake dark mode.")
+	}
+}
+
 private struct OpacitySetting: View {
 	@Default(.opacity) private var opacity
 
 	var body: some View {
-		HStack {
+		Slider(
+			value: $opacity,
+			in: 0.1...1,
+			step: 0.1
+		) {
 			Text("Opacity:")
-			Slider(value: $opacity, in: 0.1...1, step: 0.1)
 		}
 	}
 }
@@ -41,7 +79,7 @@ private struct ReloadIntervalSetting: View {
 	}
 
 	var body: some View {
-		HStack {
+		HStack(alignment: .firstTextBaseline) {
 			Text("Reload Interval:")
 			Toggle(isOn: hasInterval) {
 				Stepper(
@@ -55,48 +93,12 @@ private struct ReloadIntervalSetting: View {
 						formatter: Self.reloadIntervalFormatter
 					)
 						.frame(width: 70)
+						.labelsHidden()
 				}
 					.disabled(!hasInterval.wrappedValue)
 				Text("minutes")
+					.padding(.leading, 4)
 			}
-				.fixedSize()
-		}
-	}
-}
-
-private struct DeactivateOnBatterySetting: View {
-	@Default(.deactivateOnBattery) private var deactivateOnBattery
-
-	var body: some View {
-		Toggle(
-			"Deactivate While on Battery",
-			isOn: $deactivateOnBattery
-		)
-	}
-}
-
-private struct ShowOnAllSpacesSetting: View {
-	@Default(.showOnAllSpaces) private var showOnAllSpaces
-
-	var body: some View {
-		Toggle(
-			"Show on All Spaces",
-			isOn: $showOnAllSpaces
-		)
-			.help2("When disabled, the website will be shown on the space that was active when Plash launched.")
-	}
-}
-
-private struct InvertColorsSetting: View {
-	@Default(.invertColors) private var invertColors
-
-	var body: some View {
-		VStack {
-			Toggle(
-				"Invert Website Colors",
-				isOn: $invertColors
-			)
-				.help2("This creates a fake dark mode.")
 		}
 	}
 }
@@ -123,12 +125,12 @@ private struct KeyboardShortcutsSection: View {
 
 	var body: some View {
 		VStack {
-			HStack {
+			HStack(alignment: .firstTextBaseline) {
 				Text("Toggle “Browsing Mode”:")
 					.frame(width: maxWidth, alignment: .trailing)
 				KeyboardShortcuts.Recorder(for: .toggleBrowsingMode)
 			}
-			HStack {
+			HStack(alignment: .firstTextBaseline) {
 				Text("Reload:")
 					.frame(width: maxWidth, alignment: .trailing)
 				KeyboardShortcuts.Recorder(for: .reload)
@@ -190,7 +192,6 @@ struct SettingsView: View {
 				}
 				Divider()
 					.padding(.vertical)
-				// Work around 10 view limit.
 				Section {
 					DisplaySetting()
 					Divider()
