@@ -38,6 +38,19 @@ private struct InvertColorsSetting: View {
 	}
 }
 
+private struct BringBrowsingModeToFrontSetting: View {
+	@Default(.bringBrowsingModeToFront) private var bringBrowsingModeToFront
+
+	var body: some View {
+		// TODO: Find a better title for this.
+		Toggle(
+			"Bring “Browsing Mode” to the front",
+			isOn: $bringBrowsingModeToFront
+		)
+			.help2("Keep the website above all other windows while “Browsing Mode” is active.")
+	}
+}
+
 private struct OpacitySetting: View {
 	@Default(.opacity) private var opacity
 
@@ -178,6 +191,7 @@ struct SettingsView: View {
 						DeactivateOnBatterySetting()
 						ShowOnAllSpacesSetting()
 						InvertColorsSetting()
+						BringBrowsingModeToFrontSetting()
 					}
 				}
 				Divider()

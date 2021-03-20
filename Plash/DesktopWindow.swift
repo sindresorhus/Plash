@@ -1,5 +1,6 @@
 import Cocoa
 import Combine
+import Defaults
 
 final class DesktopWindow: NSWindow {
 	override var canBecomeMain: Bool { isInteractive }
@@ -17,7 +18,7 @@ final class DesktopWindow: NSWindow {
 	var isInteractive = false {
 		didSet {
 			if isInteractive {
-				level = .desktopIcon + 1 // The `+ 1` fixes a weird issue where the window is sometimes not interactive. (macOS 11.2.1)
+				level = Defaults[.bringBrowsingModeToFront] ? .floating : (.desktopIcon + 1) // The `+ 1` fixes a weird issue where the window is sometimes not interactive. (macOS 11.2.1)
 				makeKeyAndOrderFront(self)
 				ignoresMouseEvents = false
 			} else {

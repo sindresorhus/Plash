@@ -93,6 +93,11 @@ extension AppDelegate {
 		}
 			.tieToLifetime(of: self)
 
+		Defaults.observe(.bringBrowsingModeToFront, options: []) { [self] _ in
+			desktopWindow.isInteractive = desktopWindow.isInteractive
+		}
+			.tieToLifetime(of: self)
+
 		KeyboardShortcuts.onKeyUp(for: .toggleBrowsingMode) {
 			Defaults[.isBrowsingMode].toggle()
 		}
