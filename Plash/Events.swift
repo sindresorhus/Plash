@@ -22,7 +22,7 @@ extension AppDelegate {
 				webViewController.webView.zoomLevelWrapper = zoomLevel
 			}
 
-			if let url = Defaults[.url] {
+			if let url = WebsitesController.shared.current?.url {
 				let title = webViewController.webView.title.map { "\($0)\n" } ?? ""
 				let urlString = url.isFileURL ? url.lastPathComponent : url.absoluteString
 				statusItemButton.toolTip = "\(title)\(urlString)"
@@ -47,9 +47,11 @@ extension AppDelegate {
 			}
 			.store(in: &cancellables)
 
-		Defaults.observe(.url, options: []) { [self] change in
+		// TODO: Use `.publisher` for all of these.
+
+		Defaults.observe(.websites, options: []) { [self] _ in
 			resetTimer()
-			loadURL(change.newValue)
+			recreateWebViewAndReload()
 		}
 			.tieToLifetime(of: self)
 
@@ -70,16 +72,6 @@ extension AppDelegate {
 
 		Defaults.observe(.display, options: []) { [self] change in
 			desktopWindow.targetScreen = change.newValue.screen
-		}
-			.tieToLifetime(of: self)
-
-		Defaults.observe(.invertColors, options: []) { [self] _ in
-			recreateWebViewAndReload()
-		}
-			.tieToLifetime(of: self)
-
-		Defaults.observe(.customCSS, options: []) { [self] _ in
-			recreateWebViewAndReload()
 		}
 			.tieToLifetime(of: self)
 
@@ -104,6 +96,14 @@ extension AppDelegate {
 
 		KeyboardShortcuts.onKeyUp(for: .reload) { [self] in
 			loadUserURL()
+		}
+
+		KeyboardShortcuts.onKeyUp(for: .nextWebsite) {
+			WebsitesController.shared.makeNextCurrent()
+		}
+
+		KeyboardShortcuts.onKeyUp(for: .reload) {
+			WebsitesController.shared.makePreviousCurrent()
 		}
 	}
 }

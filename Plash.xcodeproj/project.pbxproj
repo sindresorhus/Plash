@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		E30FD88923C4515200C716E9 /* SSWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30FD88823C4515200C716E9 /* SSWebView.swift */; };
 		E32421342384E9D700D28A91 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421332384E9D700D28A91 /* App.swift */; };
-		E32421362384E9D700D28A91 /* OpenURLView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421352384E9D700D28A91 /* OpenURLView.swift */; };
+		E32421362384E9D700D28A91 /* AddWebsiteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421352384E9D700D28A91 /* AddWebsiteView.swift */; };
 		E32421382384E9D900D28A91 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E32421372384E9D900D28A91 /* Assets.xcassets */; };
 		E324213B2384E9D900D28A91 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E324213A2384E9D900D28A91 /* Preview Assets.xcassets */; };
 		E324213E2384E9D900D28A91 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = E324213C2384E9D900D28A91 /* Main.storyboard */; };
@@ -19,13 +19,18 @@
 		E324215A2384FBE500D28A91 /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421592384FBE500D28A91 /* WebViewController.swift */; };
 		E3294F7E255783A800D4172F /* Defaults in Frameworks */ = {isa = PBXBuildFile; productRef = E3294F7D255783A800D4172F /* Defaults */; };
 		E333EB1B2385244E005FCE44 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E333EB1A2385244E005FCE44 /* SettingsView.swift */; };
+		E354442626061C9100CA060F /* Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = E354442526061C9100CA060F /* Migration.swift */; };
+		E354442C26062D2A00CA060F /* WebsitesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E354442B26062D2A00CA060F /* WebsitesWindowController.swift */; };
+		E354442F26062D6300CA060F /* WebsitesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E354442E26062D6300CA060F /* WebsitesView.swift */; };
+		E354443426064D8300CA060F /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E354443326064D8300CA060F /* AppState.swift */; };
+		E354443C2607505100CA060F /* WebsitesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E354443B2607505100CA060F /* WebsitesController.swift */; };
 		E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = E3805F5A2466ED5600489E6C /* KeyboardShortcuts */; };
 		E384F28024C3B37E002FD21B /* Events.swift in Sources */ = {isa = PBXBuildFile; fileRef = E384F27F24C3B37E002FD21B /* Events.swift */; };
 		E384F28224C3B3CD002FD21B /* Menus.swift in Sources */ = {isa = PBXBuildFile; fileRef = E384F28124C3B3CD002FD21B /* Menus.swift */; };
 		E3959394247B986A0064CABE /* AppCenterCrashes in Frameworks */ = {isa = PBXBuildFile; productRef = E3959393247B986A0064CABE /* AppCenterCrashes */; };
 		E3C4E281251540F7007A6078 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = E3C4E280251540F7007A6078 /* LaunchAtLogin */; };
 		E3EC5A86250D7A0C00ABE1A1 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3EC5A85250D7A0C00ABE1A1 /* WelcomeView.swift */; };
-		E3F11BEC2386824D005EFD26 /* OpenURLWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F11BEB2386824D005EFD26 /* OpenURLWindowController.swift */; };
+		E3F11BEC2386824D005EFD26 /* AddWebsiteWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F11BEB2386824D005EFD26 /* AddWebsiteWindowController.swift */; };
 		E3F11BEE2386828C005EFD26 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F11BED2386828C005EFD26 /* SettingsWindowController.swift */; };
 		E3FA21AD23C74E6B00059E43 /* InternetAccessPolicy.json in Resources */ = {isa = PBXBuildFile; fileRef = E3FA21AC23C74E6B00059E43 /* InternetAccessPolicy.json */; };
 /* End PBXBuildFile section */
@@ -34,7 +39,7 @@
 		E30FD88823C4515200C716E9 /* SSWebView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = SSWebView.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E32421302384E9D700D28A91 /* Plash.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Plash.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		E32421332384E9D700D28A91 /* App.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = App.swift; sourceTree = "<group>"; usesTabs = 1; };
-		E32421352384E9D700D28A91 /* OpenURLView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = OpenURLView.swift; sourceTree = "<group>"; usesTabs = 1; };
+		E32421352384E9D700D28A91 /* AddWebsiteView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = AddWebsiteView.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E32421372384E9D900D28A91 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E324213A2384E9D900D28A91 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		E324213D2384E9D900D28A91 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
@@ -45,10 +50,15 @@
 		E32421572384F0E600D28A91 /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = Utilities.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E32421592384FBE500D28A91 /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = WebViewController.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E333EB1A2385244E005FCE44 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = SettingsView.swift; sourceTree = "<group>"; usesTabs = 1; };
+		E354442526061C9100CA060F /* Migration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Migration.swift; sourceTree = "<group>"; };
+		E354442B26062D2A00CA060F /* WebsitesWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsitesWindowController.swift; sourceTree = "<group>"; };
+		E354442E26062D6300CA060F /* WebsitesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsitesView.swift; sourceTree = "<group>"; };
+		E354443326064D8300CA060F /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		E354443B2607505100CA060F /* WebsitesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsitesController.swift; sourceTree = "<group>"; };
 		E384F27F24C3B37E002FD21B /* Events.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Events.swift; sourceTree = "<group>"; };
 		E384F28124C3B3CD002FD21B /* Menus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menus.swift; sourceTree = "<group>"; };
 		E3EC5A85250D7A0C00ABE1A1 /* WelcomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = WelcomeView.swift; sourceTree = "<group>"; usesTabs = 1; };
-		E3F11BEB2386824D005EFD26 /* OpenURLWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = OpenURLWindowController.swift; sourceTree = "<group>"; usesTabs = 1; };
+		E3F11BEB2386824D005EFD26 /* AddWebsiteWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = AddWebsiteWindowController.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E3F11BED2386828C005EFD26 /* SettingsWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = SettingsWindowController.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E3FA21AC23C74E6B00059E43 /* InternetAccessPolicy.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; lineEnding = 0; path = InternetAccessPolicy.json; sourceTree = "<group>"; usesTabs = 1; };
 /* End PBXFileReference section */
@@ -90,17 +100,22 @@
 			isa = PBXGroup;
 			children = (
 				E32421332384E9D700D28A91 /* App.swift */,
+				E354443326064D8300CA060F /* AppState.swift */,
 				E32421552384F09D00D28A91 /* Constants.swift */,
 				E384F27F24C3B37E002FD21B /* Events.swift */,
 				E384F28124C3B3CD002FD21B /* Menus.swift */,
+				E354443B2607505100CA060F /* WebsitesController.swift */,
 				E32421462384EB4E00D28A91 /* DesktopWindow.swift */,
 				E30FD88823C4515200C716E9 /* SSWebView.swift */,
 				E32421592384FBE500D28A91 /* WebViewController.swift */,
-				E3F11BEB2386824D005EFD26 /* OpenURLWindowController.swift */,
-				E32421352384E9D700D28A91 /* OpenURLView.swift */,
+				E3F11BEB2386824D005EFD26 /* AddWebsiteWindowController.swift */,
+				E32421352384E9D700D28A91 /* AddWebsiteView.swift */,
+				E354442B26062D2A00CA060F /* WebsitesWindowController.swift */,
+				E354442E26062D6300CA060F /* WebsitesView.swift */,
 				E3F11BED2386828C005EFD26 /* SettingsWindowController.swift */,
 				E333EB1A2385244E005FCE44 /* SettingsView.swift */,
 				E3EC5A85250D7A0C00ABE1A1 /* WelcomeView.swift */,
+				E354442526061C9100CA060F /* Migration.swift */,
 				E32421572384F0E600D28A91 /* Utilities.swift */,
 				E32421372384E9D900D28A91 /* Assets.xcassets */,
 				E3EF205F24C0D1A100A5F802 /* Other */,
@@ -255,18 +270,23 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E32421362384E9D700D28A91 /* OpenURLView.swift in Sources */,
+				E32421362384E9D700D28A91 /* AddWebsiteView.swift in Sources */,
 				E384F28024C3B37E002FD21B /* Events.swift in Sources */,
 				E384F28224C3B3CD002FD21B /* Menus.swift in Sources */,
-				E3F11BEC2386824D005EFD26 /* OpenURLWindowController.swift in Sources */,
+				E3F11BEC2386824D005EFD26 /* AddWebsiteWindowController.swift in Sources */,
 				E324215A2384FBE500D28A91 /* WebViewController.swift in Sources */,
 				E32421342384E9D700D28A91 /* App.swift in Sources */,
+				E354443426064D8300CA060F /* AppState.swift in Sources */,
 				E32421472384EB4E00D28A91 /* DesktopWindow.swift in Sources */,
 				E32421582384F0E600D28A91 /* Utilities.swift in Sources */,
 				E3F11BEE2386828C005EFD26 /* SettingsWindowController.swift in Sources */,
 				E30FD88923C4515200C716E9 /* SSWebView.swift in Sources */,
 				E32421562384F09D00D28A91 /* Constants.swift in Sources */,
+				E354442C26062D2A00CA060F /* WebsitesWindowController.swift in Sources */,
 				E333EB1B2385244E005FCE44 /* SettingsView.swift in Sources */,
+				E354442F26062D6300CA060F /* WebsitesView.swift in Sources */,
+				E354443C2607505100CA060F /* WebsitesController.swift in Sources */,
+				E354442626061C9100CA060F /* Migration.swift in Sources */,
 				E3EC5A86250D7A0C00ABE1A1 /* WelcomeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

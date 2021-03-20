@@ -26,18 +26,6 @@ private struct ShowOnAllSpacesSetting: View {
 	}
 }
 
-private struct InvertColorsSetting: View {
-	@Default(.invertColors) private var invertColors
-
-	var body: some View {
-		Toggle(
-			"Invert website colors",
-			isOn: $invertColors
-		)
-			.help2("This creates a fake dark mode.")
-	}
-}
-
 private struct BringBrowsingModeToFrontSetting: View {
 	@Default(.bringBrowsingModeToFront) private var bringBrowsingModeToFront
 
@@ -91,6 +79,7 @@ private struct ReloadIntervalSetting: View {
 		$reloadInterval.isNotNil(trueSetValue: Self.defaultReloadInterval)
 	}
 
+	// TODO: Improve VoiceOver accessibility for this control.
 	var body: some View {
 		HStack(alignment: .firstTextBaseline) {
 			Text("Reload Interval:")
@@ -112,6 +101,8 @@ private struct ReloadIntervalSetting: View {
 				Text("minutes")
 					.padding(.leading, 4)
 			}
+				// TODO: Use `.accessibilityLabel` when targeting macOS 11.
+				.accessibility(label: Text("Reload interval in minutes"))
 		}
 	}
 }
@@ -143,26 +134,22 @@ private struct KeyboardShortcutsSection: View {
 					.frame(width: maxWidth, alignment: .trailing)
 				KeyboardShortcuts.Recorder(for: .toggleBrowsingMode)
 			}
+				.accessibilityElement()
 			HStack(alignment: .firstTextBaseline) {
 				Text("Reload:")
 					.frame(width: maxWidth, alignment: .trailing)
 				KeyboardShortcuts.Recorder(for: .reload)
 			}
-		}
-	}
-}
-
-private struct CustomCSSSetting: View {
-	@Default(.customCSS) private var customCSS
-
-	var body: some View {
-		VStack {
-			Text("Custom CSS:")
-			ScrollableTextView(
-				text: $customCSS,
-				font: .monospacedSystemFont(ofSize: 11, weight: .regular)
-			)
-				.frame(height: 100)
+			HStack(alignment: .firstTextBaseline) {
+				Text("Next Website:")
+					.frame(width: maxWidth, alignment: .trailing)
+				KeyboardShortcuts.Recorder(for: .nextWebsite)
+			}
+			HStack(alignment: .firstTextBaseline) {
+				Text("Previous Website:")
+					.frame(width: maxWidth, alignment: .trailing)
+				KeyboardShortcuts.Recorder(for: .previousWebsite)
+			}
 		}
 	}
 }
@@ -171,9 +158,10 @@ private struct ClearWebsiteDataSetting: View {
 	@State private var hasCleared = false
 
 	var body: some View {
-		Button("Clear Website Data") {
+		Button("Clear All Website Data") {
 			hasCleared = true
 			AppDelegate.shared.webViewController.webView.clearWebsiteData(completion: nil)
+			WebsitesController.shared.thumbnailCache.removeAllImages()
 		}
 			.disabled(hasCleared)
 			.help2("Clears all cookies, local storage, caches, etc.")
@@ -190,7 +178,6 @@ struct SettingsView: View {
 						LaunchAtLogin.Toggle()
 						DeactivateOnBatterySetting()
 						ShowOnAllSpacesSetting()
-						InvertColorsSetting()
 						BringBrowsingModeToFrontSetting()
 					}
 				}
@@ -211,9 +198,6 @@ struct SettingsView: View {
 					Divider()
 						.padding(.vertical)
 					KeyboardShortcutsSection()
-					Divider()
-						.padding(.vertical)
-					CustomCSSSetting()
 					Divider()
 						.padding(.vertical)
 					ClearWebsiteDataSetting()

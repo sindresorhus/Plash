@@ -11,7 +11,7 @@
 	<br>
 </div>
 
-Plash enables you to have a highly dynamic desktop wallpaper. You could display your favorite news site, Facebook feed, or a random beautiful scenery photo. The use-cases are limitless. You could even set an animated GIF as wallpaper.
+Plash enables you to have a highly dynamic desktop wallpaper. You could display your favorite news site, Facebook feed, or a random beautiful scenery photo. The use-cases are limitless. You could even set an animated GIF as wallpaper. You can even add multiple websites and easily switch between them.
 
 ## Use-cases
 
@@ -38,6 +38,7 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 - Show a remote or local website
 - Interact with the website (“Browse Mode”)
 - Automatically reload the website at a custom interval
+- Add multiple websites
 - Show the website on a different display
 - Invert website colors (fake dark mode)
 - Add custom CSS to the website
