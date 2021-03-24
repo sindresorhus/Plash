@@ -102,7 +102,7 @@ extension AppDelegate {
 			WebsitesController.shared.makeNextCurrent()
 		}
 
-		KeyboardShortcuts.onKeyUp(for: .reload) {
+		KeyboardShortcuts.onKeyUp(for: .previousWebsite) {
 			WebsitesController.shared.makePreviousCurrent()
 		}
 	}
