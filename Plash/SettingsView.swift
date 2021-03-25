@@ -81,7 +81,7 @@ private struct ReloadIntervalSetting: View {
 
 	// TODO: Improve VoiceOver accessibility for this control.
 	var body: some View {
-		HStack(alignment: .firstTextBaseline) {
+		HStack(alignment: OS.isMacOSBigSurOrLater ? .firstTextBaseline : .center) {
 			Text("Reload Interval:")
 			Toggle(isOn: hasInterval) {
 				Stepper(

@@ -130,10 +130,12 @@ struct WebsitesView: View {
 					.onMove(perform: move)
 					.onDelete(perform: delete)
 					.listRowBackground(
-						Color.primary
-							.opacity(0.03)
-							.clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
-							.padding(.vertical, 4)
+						OS.isMacOSBigSurOrLater
+							? Color.primary
+								.opacity(0.03)
+								.clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+								.padding(.vertical, 4)
+							: nil
 					)
 			}
 				.clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))

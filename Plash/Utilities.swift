@@ -4105,3 +4105,40 @@ extension NSMenuItem {
 		withSubmenu(menuBuilder(SSMenu()))
 	}
 }
+
+
+enum OperatingSystem {
+	case macOS
+	case iOS
+	case tvOS
+	case watchOS
+
+	#if os(macOS)
+	static let current = macOS
+	#elseif os(iOS)
+	static let current = iOS
+	#elseif os(tvOS)
+	static let current = tvOS
+	#elseif os(watchOS)
+	static let current = watchOS
+	#else
+	#error("Unsupported platform")
+	#endif
+}
+
+extension OperatingSystem {
+	/// - Note: Only use this when you cannot use an `if #available` check. For example, inline in function calls.
+	static let isMacOSBigSurOrLater: Bool = {
+		#if os(macOS)
+		if #available(macOS 11, *) {
+			return true
+		} else {
+			return false
+		}
+		#else
+		return false
+		#endif
+	}()
+}
+
+typealias OS = OperatingSystem
