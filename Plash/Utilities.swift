@@ -698,7 +698,7 @@ extension NSToolbarItem: ControlActionClosureProtocol {}
 extension NSGestureRecognizer: ControlActionClosureProtocol {}
 
 
-struct NativeButton: NSViewRepresentable {
+struct CocoaButton: NSViewRepresentable {
 	typealias NSViewType = NSButton
 
 	enum KeyEquivalent: String {
@@ -711,25 +711,30 @@ struct NativeButton: NSViewRepresentable {
 	var title: String?
 	var attributedTitle: NSAttributedString?
 	let keyEquivalent: KeyEquivalent?
+	let bezelStyle: NSButton.BezelStyle
 	let action: () -> Void
 
 	init(
 		_ title: String,
 		keyEquivalent: KeyEquivalent? = nil,
+		bezelStyle: NSButton.BezelStyle = .rounded,
 		action: @escaping () -> Void
 	) {
 		self.title = title
 		self.keyEquivalent = keyEquivalent
+		self.bezelStyle = bezelStyle
 		self.action = action
 	}
 
 	init(
 		_ attributedTitle: NSAttributedString,
 		keyEquivalent: KeyEquivalent? = nil,
+		bezelStyle: NSButton.BezelStyle = .rounded,
 		action: @escaping () -> Void
 	) {
 		self.attributedTitle = attributedTitle
 		self.keyEquivalent = keyEquivalent
+		self.bezelStyle = bezelStyle
 		self.action = action
 	}
 
@@ -752,6 +757,7 @@ struct NativeButton: NSViewRepresentable {
 		}
 
 		nsView.keyEquivalent = keyEquivalent?.rawValue ?? ""
+		nsView.bezelStyle = bezelStyle
 
 		nsView.onAction { _ in
 			action()
@@ -1530,6 +1536,40 @@ extension WKUserContentController {
 
 		addUserScript(userScript)
 	}
+
+	/**
+	Add JavaScript to the page.
+
+	You can use `await` at the top-level.
+
+	The code runs in a separate realm from the website itself.
+	*/
+	func addJavaScript(_ javaScript: String) {
+		let source =
+			"""
+			(async () => {
+				\(javaScript)
+			})();
+			"""
+
+		let userScript: WKUserScript
+		if #available(macOS 11, *) {
+			userScript = WKUserScript(
+				source: source,
+				injectionTime: .atDocumentEnd,
+				forMainFrameOnly: false,
+				in: .world(name: UUID().uuidString)
+			)
+		} else {
+			userScript = WKUserScript(
+				source: source,
+				injectionTime: .atDocumentEnd,
+				forMainFrameOnly: false
+			)
+		}
+
+		addUserScript(userScript)
+	}
 }
 
 extension WKUserContentController {
@@ -2001,6 +2041,10 @@ struct ScrollableTextView: NSViewRepresentable {
 
 	@Binding var text: String
 	var font = NSFont.controlContentFont(ofSize: 0)
+	var isAutomaticQuoteSubstitutionEnabled = true
+	var isAutomaticDashSubstitutionEnabled = true
+	var isAutomaticTextReplacementEnabled = true
+	var isAutomaticSpellingCorrectionEnabled = true
 
 	func makeCoordinator() -> Coordinator {
 		Coordinator(self)
@@ -2035,6 +2079,11 @@ struct ScrollableTextView: NSViewRepresentable {
 		if let lineLimit = context.environment.lineLimit {
 			textView.textContainer?.maximumNumberOfLines = lineLimit
 		}
+
+		textView.isAutomaticQuoteSubstitutionEnabled = isAutomaticQuoteSubstitutionEnabled
+		textView.isAutomaticDashSubstitutionEnabled = isAutomaticDashSubstitutionEnabled
+		textView.isAutomaticTextReplacementEnabled = isAutomaticTextReplacementEnabled
+		textView.isAutomaticSpellingCorrectionEnabled = isAutomaticSpellingCorrectionEnabled
 	}
 }
 
@@ -2052,6 +2101,14 @@ extension View {
 	/// Wrap the content in a box.
 	func box() -> some View {
 		modifier(BoxModifier())
+	}
+}
+
+
+extension View {
+	func multilineText() -> some View {
+		lineLimit(nil)
+			.fixedSize(horizontal: false, vertical: true)
 	}
 }
 
@@ -4142,3 +4199,60 @@ extension OperatingSystem {
 }
 
 typealias OS = OperatingSystem
+
+
+extension View {
+	@ViewBuilder
+	func ifLet<Value, TrueContent: View>(
+		_ value: Value?,
+		modifier: (Self, Value) -> TrueContent
+	) -> some View {
+		if let value = value {
+			modifier(self, value)
+		} else {
+			self
+		}
+	}
+}
+
+
+/**
+Circular button with question mark that shows a popover with the given content when tapped.
+
+The content has automatic padding.
+*/
+struct InfoPopoverButton<Content: View>: View {
+	@State private var isPopoverPresented = false
+
+	private let maxWidth: Double?
+	private let content: Content
+
+	// Remove initializer when Swift 5.4 is out as `@ViewBuilder` can be moved to the property.
+	init(@ViewBuilder content: () -> Content) {
+		self.content = content()
+		self.maxWidth = nil
+	}
+
+	var body: some View {
+		CocoaButton("", bezelStyle: .helpButton) {
+			isPopoverPresented = true
+		}
+			.popover(isPresented: $isPopoverPresented) {
+				content
+					.controlSize(.regular) // Setting control size on the button should not affect the content.
+					.padding()
+					.multilineText()
+					.ifLet(maxWidth) {
+						// TODO: `maxWidth` doesn't work. Causes the popover to me infinite height. (macOS 11.2.3)
+						$0.frame(width: CGFloat($1))
+					}
+			}
+	}
+}
+
+extension InfoPopoverButton where Content == Text {
+	init<S>(_ text: S, maxWidth: Double = 240) where S: StringProtocol {
+		self.content = Text(text)
+		self.maxWidth = maxWidth
+	}
+}

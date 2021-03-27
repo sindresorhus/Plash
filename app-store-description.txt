@@ -11,7 +11,7 @@ This enables you to have a highly dynamic desktop wallpaper. You could display y
 - Add multiple websites
 - Show the website on a different display
 - Invert website colors (fake dark mode)
-- Add custom CSS to the website
+- Add custom CSS and JavaScript to the website
 - Lower the opacity
 - Transparent background
 	If the website doesn't have a background color, your system wallpaper will show through.

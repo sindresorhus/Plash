@@ -112,7 +112,7 @@ struct WebsitesView: View {
 		VStack {
 			HStack {
 				Spacer()
-				NativeButton("Add…", keyEquivalent: .return) {
+				CocoaButton("Add…", keyEquivalent: .return) {
 					isShowingAddSheet = true
 				}
 			}

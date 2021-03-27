@@ -41,12 +41,25 @@ final class WebViewController: NSViewController {
 				userContentController.invertColors()
 			}
 
+			if #available(macOS 11, *), website.usePrintStyles {
+				webView.mediaType = "print"
+			}
+
 			if !website.css.trimmed.isEmpty {
 				userContentController.addCSS(website.css)
 			}
 
-			if #available(macOS 11, *), website.usePrintStyles {
-				webView.mediaType = "print"
+			if !website.javaScript.trimmed.isEmpty {
+				userContentController.addJavaScript(
+					"""
+					try {
+						\(website.javaScript)
+					} catch (error) {
+						alert(`Custom JavaScript threw an error:\n\n${error}`);
+						throw error;
+					}
+					"""
+				)
 			}
 		}
 

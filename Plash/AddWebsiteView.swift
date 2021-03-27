@@ -9,6 +9,7 @@ struct AddWebsiteView: View {
 	@State private var invertColors = false
 	@State private var usePrintStyles = false
 	@State private var css = ""
+	@State private var javaScript = ""
 
 	private var normalizedUrlString: String {
 		URL(humanString: urlString)?.absoluteString ?? urlString
@@ -56,6 +57,7 @@ struct AddWebsiteView: View {
 			self._invertColors = .init(wrappedValue: website.invertColors)
 			self._usePrintStyles = .init(wrappedValue: website.usePrintStyles)
 			self._css = .init(wrappedValue: website.css)
+			self._javaScript = .init(wrappedValue: website.javaScript)
 		}
 	}
 
@@ -100,12 +102,39 @@ struct AddWebsiteView: View {
 						.help2("Forces the website to use its print styles (“@media print”) if any. Some websites have a simpler presentation for printing, for example, Google Calendar.")
 				}
 				VStack(alignment: .leading) {
-					Text("Custom CSS:")
+					HStack {
+						Text("CSS:")
+						Spacer()
+						InfoPopoverButton("This lets you modify the website with CSS. You could, for example, change some colors or hide some unnecessary elements.")
+							.controlSize(.small)
+					}
 					ScrollableTextView(
 						text: $css,
-						font: .monospacedSystemFont(ofSize: 11, weight: .regular)
+						font: .monospacedSystemFont(ofSize: 11, weight: .regular),
+						isAutomaticQuoteSubstitutionEnabled: false,
+						isAutomaticDashSubstitutionEnabled: false,
+						isAutomaticTextReplacementEnabled: false,
+						isAutomaticSpellingCorrectionEnabled: false
 					)
-						.frame(height: 50)
+						.frame(height: 70)
+				}
+					.padding(.top, 10)
+				VStack(alignment: .leading) {
+					HStack {
+						Text("JavaScript:")
+						Spacer()
+						InfoPopoverButton("This lets you modify the website with JavaScript. Prefer using CSS instead whenever possible. You can use “await” at the top-level.")
+							.controlSize(.small)
+					}
+					ScrollableTextView(
+						text: $javaScript,
+						font: .monospacedSystemFont(ofSize: 11, weight: .regular),
+						isAutomaticQuoteSubstitutionEnabled: false,
+						isAutomaticDashSubstitutionEnabled: false,
+						isAutomaticTextReplacementEnabled: false,
+						isAutomaticSpellingCorrectionEnabled: false
+					)
+						.frame(height: 70)
 				}
 					.padding(.top, 10)
 			}
@@ -116,12 +145,12 @@ struct AddWebsiteView: View {
 				Divider()
 				HStack {
 					if showsCancelButtons {
-						NativeButton("Cancel", keyEquivalent: .escape) {
+						CocoaButton("Cancel", keyEquivalent: .escape) {
 							presentationMode.wrappedValue.dismiss()
 						}
 					}
 					Spacer()
-					NativeButton(isEditing ? "Save" : "Add", keyEquivalent: .return) {
+					CocoaButton(isEditing ? "Save" : "Add", keyEquivalent: .return) {
 						defaultAction()
 					}
 						.disabled(!URL.isValid(string: normalizedUrlString))
@@ -147,7 +176,8 @@ struct AddWebsiteView: View {
 					url: url,
 					invertColors: invertColors,
 					usePrintStyles: usePrintStyles,
-					css: css
+					css: css,
+					javaScript: javaScript
 				)
 
 				WebsitesController.shared.all = WebsitesController.shared.all.replacingAll(website, with: newWebsite)
@@ -161,7 +191,8 @@ struct AddWebsiteView: View {
 				url: url,
 				invertColors: invertColors,
 				usePrintStyles: usePrintStyles,
-				css: css
+				css: css,
+				javaScript: javaScript
 			)
 
 			WebsitesController.shared.add(newWebsite)

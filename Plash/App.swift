@@ -12,7 +12,7 @@ TODO: When targeting macOS 11:
 - Remove storyboard.
 - Present windows using SwiftUI.
 - Refactor the whole website handling into a controller.
-- Switch out `NativeButton` with `Button`.
+- Switch out `CocoaButton` with `Button`.
 */
 
 @main
