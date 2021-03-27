@@ -50,7 +50,7 @@ private struct RowView: View {
 			}
 		}
 			.padding(.horizontal)
-			.frame(height: 65)
+			.frame(height: OS.isMacOSBigSurOrLater ? 62 : 44)
 			// TODO: This makes `onMove` not work when clicking the text.
 			// https://github.com/feedback-assistant/reports/issues/46
 			// Still an issue on macOS 11.2.3.
