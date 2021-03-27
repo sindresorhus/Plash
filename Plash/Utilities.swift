@@ -4256,3 +4256,282 @@ extension InfoPopoverButton where Content == Text {
 		self.maxWidth = maxWidth
 	}
 }
+
+
+extension CGSize {
+	/// Create a CGSize from string dimensions in the format `100x100`.
+	static func from(dimensions: String) -> Self? {
+		let parts = dimensions.split(separator: "x").compactMap { Int($0) }
+
+		guard parts.count == 2 else {
+			return nil
+		}
+
+		return self.init(width: parts[0], height: parts[1])
+	}
+}
+
+
+/*
+TODO when Swift 5.5 is out:
+- Refactor to use async/await.
+- Do proper error handling.
+- Support more ways to get the icon: https://stackoverflow.com/a/22007642/64949
+- Get all icons concurrently.
+- Recreate the webview for each request.
+- Use only a single `evaluateJavaScript` call.
+- Run on DOM-ready instad of when the whole page has loaded.
+	- If not possible, block all subresources: https://stackoverflow.com/questions/32119975/how-to-block-external-resources-to-load-on-a-wkwebview
+- Make the thumbnail in WebsitesView not upscale when using 32x32 favicon.
+- Support specifying target size and have it return the one closest above the target size, if any.
+- Use the icons in the "Switch" menu.
+*/
+@available(macOS 11, iOS 14, tvOS 14, watchOS 7, *)
+final class WebsiteIconFetcher: NSObject {
+	private lazy var webView: WKWebView = {
+		let configuration = WKWebViewConfiguration()
+
+		let userContentController = WKUserContentController()
+		configuration.userContentController = userContentController
+
+		let preferences = WKPreferences()
+		preferences.javaScriptCanOpenWindowsAutomatically = false
+		configuration.preferences = preferences
+
+		let webView = WKWebView(frame: .zero, configuration: configuration)
+		webView.navigationDelegate = self
+		webView.customUserAgent = SSWebView.safariUserAgent
+
+		return webView
+	}()
+
+	private var url: URL?
+	private var completionHandler: ((NSImage?) -> Void)?
+
+	private func getImage(_ url: URL, completionHandler: @escaping (NSImage?) -> Void) {
+		URLSession.shared.dataTask(with: url) { data, _, _ in
+			DispatchQueue.main.async {
+				guard
+					let data = data,
+					let image = NSImage(data: data)
+				else {
+					completionHandler(nil)
+					return
+				}
+
+				completionHandler(image)
+			}
+		}
+			.resume()
+	}
+
+	private func getFavicon(completionHandler: @escaping (NSImage?) -> Void) {
+		DispatchQueue.global().async { [weak self] in
+			guard
+				let self = self,
+				let baseURL = self.url,
+				let faviconURL = URL(string: "favicon.ico", relativeTo: baseURL)
+			else {
+				completionHandler(nil)
+				return
+			}
+
+			self.getImage(faviconURL, completionHandler: completionHandler)
+		}
+	}
+
+	private struct WebAppManifestIcon {
+		let url: URL
+		let size: CGSize?
+
+		init?(_ dictionary: [String: String]) {
+			guard
+				// TODO: Handle relative URLs: https://developer.mozilla.org/en-US/docs/Web/Manifest/icons
+				let urlString = dictionary["src"],
+				let url = URL(string: urlString)
+			else {
+				return nil
+			}
+
+			self.url = url
+
+			// TODO: Handle there being multiple space-separated sizes.
+			if
+				let sizeString = dictionary["sizes"]?.split(separator: " ").first,
+				let size = CGSize.from(dimensions: String(sizeString))
+			{
+				self.size = size
+			} else {
+				self.size = nil
+			}
+		}
+	}
+
+	private func getFromManifest(completionHandler: @escaping (NSImage?) -> Void) {
+		let code =
+			"""
+			document.querySelector('link[rel="manifest"]').href
+			"""
+
+		// TODO: Use `evaluateJavaScript(_ javaScript: String, in frame: WKFrameInfo? = nil, in contentWorld: WKContentWorld...)`.
+		webView.evaluateJavaScript(code) { value, _ in
+			guard
+				let urlString = value as? String,
+				let url = URL(string: urlString)
+			else {
+				completionHandler(nil)
+				return
+			}
+
+			URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+				guard
+					let self = self,
+					let data = data
+				else {
+					completionHandler(nil)
+					return
+				}
+
+				DispatchQueue.main.async {
+					do {
+						guard
+							let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+							let icons = json["icons"] as? [[String: String]]
+						else {
+							completionHandler(nil)
+							return
+						}
+
+						let iconStructs = icons.compactMap { WebAppManifestIcon($0) }
+
+						// TODO: Instead of picking the largest one, we should download all and add them as representations to a single `NSImage`.
+						guard
+							let largestIcon = (iconStructs.max { ($0.size?.width ?? 0) < ($1.size?.width ?? 0) })
+						else {
+							completionHandler(nil)
+							return
+						}
+
+						self.getImage(largestIcon.url, completionHandler: completionHandler)
+					} catch {
+						completionHandler(nil)
+					}
+				}
+			}
+				.resume()
+		}
+	}
+
+	private func getFromLinkIcon(completionHandler: @escaping (NSImage?) -> Void) {
+		// TODO: There can be multiple of this one, some with larger sizes specified in a `sizes` prop.
+		let code =
+			"""
+			document.querySelector('link[rel="icon"]').href
+			"""
+
+		webView.evaluateJavaScript(code) { [weak self] value, _ in
+			guard
+				let self = self,
+				let urlString = value as? String,
+				let url = URL(string: urlString)
+			else {
+				completionHandler(nil)
+				return
+			}
+
+			self.getImage(url, completionHandler: completionHandler)
+		}
+	}
+
+	private func getFromMetaItemPropImage(completionHandler: @escaping (NSImage?) -> Void) {
+		let code =
+			"""
+			new URL(document.querySelector('meta[itemprop="image"]').content, document.baseURI).toString()
+			"""
+
+		webView.evaluateJavaScript(code) { [weak self] value, _ in
+			guard
+				let self = self,
+				let urlString = value as? String,
+				let url = URL(string: urlString)
+			else {
+				completionHandler(nil)
+				return
+			}
+
+			self.getImage(url, completionHandler: completionHandler)
+		}
+	}
+
+	private func internalOnLoaded(_ error: Error?) {
+		getFromManifest { [weak self] image in
+			guard let self = self else {
+				return
+			}
+
+			if let image = image {
+				self.completionHandler?(image)
+				return
+			}
+
+			self.getFromMetaItemPropImage { image in
+				if let image = image {
+					self.completionHandler?(image)
+					return
+				}
+
+				self.getFromLinkIcon { image in
+					if let image = image {
+						self.completionHandler?(image)
+						return
+					}
+
+					self.getFavicon { image in
+						if let image = image {
+							self.completionHandler?(image)
+							return
+						}
+
+						self.completionHandler?(nil)
+					}
+				}
+			}
+		}
+	}
+
+	func fetch(for url: URL, completionHandler: @escaping (NSImage?) -> Void) {
+		self.url = url
+		self.completionHandler = completionHandler
+
+		var request = URLRequest(url: url)
+		request.cachePolicy = .reloadIgnoringLocalCacheData
+		webView.load(request)
+	}
+}
+
+@available(macOS 11, iOS 14, tvOS 14, watchOS 7, *)
+extension WebsiteIconFetcher: WKNavigationDelegate {
+	func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+		decisionHandler(navigationResponse.isForMainFrame ? .allow : .cancel)
+	}
+
+	func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+		internalOnLoaded(nil)
+	}
+
+	func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+		let nsError = error as NSError
+
+		// Ignore the request being cancelled which can happen if the user clicks on a link while a website is loading.
+		if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
+			internalOnLoaded(nil)
+			return
+		}
+
+		internalOnLoaded(error)
+	}
+
+	func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
+		internalOnLoaded(error)
+	}
+}

@@ -3,7 +3,7 @@ import Defaults
 
 extension AppDelegate {
 	private func migrateToWebsiteStruct() {
-		guard let url = Defaults[.url] else {
+		guard let url = Defaults[.url]?.normalized() else {
 			return
 		}
 

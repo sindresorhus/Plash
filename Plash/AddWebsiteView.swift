@@ -163,7 +163,7 @@ struct AddWebsiteView: View {
 	}
 
 	private func defaultAction() {
-		guard let url = URL(string: normalizedUrlString) else {
+		guard let url = URL(string: normalizedUrlString)?.normalized() else {
 			return
 		}
 

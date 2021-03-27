@@ -1,38 +1,87 @@
 import SwiftUI
-import Defaults
 import LinkPresentation
+import Defaults
 
-private struct RowView: View {
+@available(macOS 11, *)
+private struct IconView: View {
+	@State private var iconFetcher: WebsiteIconFetcher?
 	@State private var icon: Image?
 
-	@available(macOS 11, *)
-	private var iconView: some View {
+	let website: Website
+
+	var body: some View {
 		Group {
 			if let icon = icon {
 				icon
 					.resizable()
 					.aspectRatio(contentMode: .fit)
 			} else {
-				Color.primary.opacity(0.2)
+				Color.primary.opacity(0.1)
 			}
 		}
-			.frame(width: 30, height: 30)
+			.frame(width: 32, height: 32)
 			.clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
 			.onAppear {
 				fetchIcons()
 			}
 	}
 
+	private func fetchIcons() {
+		let cache = WebsitesController.shared.thumbnailCache
+
+		if let image = cache[website.thumbnailCacheKey] {
+			icon = Image(nsImage: image)
+			return
+		}
+
+		LPMetadataProvider().startFetchingMetadata(for: website.url) { metadata, error in
+			if error != nil {
+				return
+			}
+
+			guard
+				let iconProvider = metadata?.iconProvider,
+				iconProvider.hasItemConformingToTypeIdentifier("public.image")
+			else {
+				DispatchQueue.main.async {
+					iconFetcher = WebsiteIconFetcher()
+					iconFetcher?.fetch(for: website.url) {
+						guard let image = $0 else {
+							return
+						}
+
+						cache[website.thumbnailCacheKey] = image
+						icon = Image(nsImage: image)
+					}
+				}
+
+				return
+			}
+
+			iconProvider.getImage {
+				guard let image = $0 else {
+					return
+				}
+
+				cache[website.thumbnailCacheKey] = image
+				icon = Image(nsImage: image)
+			}
+		}
+	}
+}
+
+private struct RowView: View {
 	@Binding var website: Website
 	@Binding var editSheetItem: Website?
 
 	var body: some View {
 		HStack {
 			if #available(macOS 11, *) {
-				iconView
+				IconView(website: website)
 					.padding(.trailing, 10)
 					.id(website.url)
 			}
+			// TODO: This should use something like `.lineBreakMode = .byCharWrapping` if SwiftUI ever supports that.
 			Text(website.title)
 				.font(.headline)
 				.lineLimit(2)
@@ -50,7 +99,7 @@ private struct RowView: View {
 			}
 		}
 			.padding(.horizontal)
-			.frame(height: OS.isMacOSBigSurOrLater ? 62 : 44)
+			.frame(height: OS.isMacOSBigSurOrLater ? 64 : 44)
 			// TODO: This makes `onMove` not work when clicking the text.
 			// https://github.com/feedback-assistant/reports/issues/46
 			// Still an issue on macOS 11.2.3.
@@ -76,30 +125,6 @@ private struct RowView: View {
 
 	private func edit() {
 		editSheetItem = website
-	}
-
-	private func fetchIcons() {
-		let cache = WebsitesController.shared.thumbnailCache
-
-		if let image = cache[website.thumbnailCacheKey] {
-			icon = Image(nsImage: image)
-			return
-		}
-
-		LPMetadataProvider().startFetchingMetadata(for: website.url) { metadata, error in
-			if error != nil {
-				return
-			}
-
-			metadata?.iconProvider?.getImage {
-				guard let image = $0 else {
-					return
-				}
-
-				cache[website.thumbnailCacheKey] = image
-				icon = Image(nsImage: image)
-			}
-		}
 	}
 }
 
