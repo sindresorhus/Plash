@@ -7,6 +7,7 @@ struct Website: Hashable, Codable, Identifiable {
 	var isCurrent: Bool
 	var url: URL
 	var invertColors: Bool
+	var usePrintStyles: Bool
 	var css = ""
 	var javaScript = ""
 

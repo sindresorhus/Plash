@@ -23,16 +23,6 @@ final class WebViewController: NSViewController {
 
 		userContentController.muteAudio()
 
-		if let website = WebsitesController.shared.current {
-			if website.invertColors {
-				userContentController.invertColors()
-			}
-
-			if !website.css.trimmed.isEmpty {
-				userContentController.addCSS(website.css)
-			}
-		}
-
 		let preferences = WKPreferences()
 		preferences.javaScriptCanOpenWindowsAutomatically = false
 		preferences.isDeveloperExtrasEnabled = true
@@ -45,6 +35,20 @@ final class WebViewController: NSViewController {
 		webView.allowsMagnification = true
 		webView.customUserAgent = SSWebView.safariUserAgent
 		webView.drawsBackground = false
+
+		if let website = WebsitesController.shared.current {
+			if website.invertColors {
+				userContentController.invertColors()
+			}
+
+			if !website.css.trimmed.isEmpty {
+				userContentController.addCSS(website.css)
+			}
+
+			if #available(macOS 11, *), website.usePrintStyles {
+				webView.mediaType = "print"
+			}
+		}
 
 		return webView
 	}

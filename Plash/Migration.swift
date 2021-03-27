@@ -15,6 +15,7 @@ extension AppDelegate {
 				isCurrent: true,
 				url: url,
 				invertColors: Defaults[.invertColors],
+				usePrintStyles: false,
 				css: Defaults[.customCSS]
 			)
 		)

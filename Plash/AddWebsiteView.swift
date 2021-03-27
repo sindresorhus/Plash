@@ -7,6 +7,7 @@ struct AddWebsiteView: View {
 	@Environment(\.presentationMode) private var presentationMode
 	@State private var urlString = ""
 	@State private var invertColors = false
+	@State private var usePrintStyles = false
 	@State private var css = ""
 
 	private var normalizedUrlString: String {
@@ -53,6 +54,7 @@ struct AddWebsiteView: View {
 		{
 			self._urlString = .init(wrappedValue: website.url.absoluteString.removingPercentEncoding ?? website.url.absoluteString)
 			self._invertColors = .init(wrappedValue: website.invertColors)
+			self._usePrintStyles = .init(wrappedValue: website.usePrintStyles)
 			self._css = .init(wrappedValue: website.css)
 		}
 	}
@@ -86,10 +88,17 @@ struct AddWebsiteView: View {
 					.padding(.vertical)
 				// TODO: When targeting macOS 11, put all of this in a unexpanded `DisclosureGroup`.
 				Toggle(
-					"Invert website colors",
+					"Invert colors",
 					isOn: $invertColors
 				)
-					.help2("This creates a fake dark mode.")
+					.help2("Creates a fake dark mode for websites without a native dark mode by inverting all the colors on the website.")
+				if #available(macOS 11, *) {
+					Toggle(
+						"Use print styles",
+						isOn: $usePrintStyles
+					)
+						.help2("Forces the website to use its print styles (“@media print”) if any. Some websites have a simpler presentation for printing, for example, Google Calendar.")
+				}
 				VStack(alignment: .leading) {
 					Text("Custom CSS:")
 					ScrollableTextView(
@@ -137,6 +146,7 @@ struct AddWebsiteView: View {
 					isCurrent: website.isCurrent,
 					url: url,
 					invertColors: invertColors,
+					usePrintStyles: usePrintStyles,
 					css: css
 				)
 
@@ -150,6 +160,7 @@ struct AddWebsiteView: View {
 				isCurrent: true,
 				url: url,
 				invertColors: invertColors,
+				usePrintStyles: usePrintStyles,
 				css: css
 			)
 
