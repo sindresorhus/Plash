@@ -1,17 +1,16 @@
 import SwiftUI
 import Defaults
 
-final class OpenURLWindowController: SingletonWindowController {
+final class AddWebsiteWindowController: SingletonWindowController {
 	private convenience init() {
 		let window = SwiftUIWindowForMenuBarApp()
 		self.init(window: window)
 
-		let view = OpenURLView { url in
+		let view = AddWebsiteView(isEditing: false, showsCancelButtons: false, website: nil) {
 			window.close()
-			Defaults[.url] = url
 		}
 
-		window.title = "Open URL"
+		window.title = "Add Website"
 		window.shouldCloseOnEscapePress = true
 		window.styleMask = [
 			.titled,

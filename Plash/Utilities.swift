@@ -5,6 +5,7 @@ import SwiftUI
 import Combine
 import Network
 import SystemConfiguration
+import CryptoKit
 import Defaults
 
 
@@ -3040,7 +3041,7 @@ extension URL {
 
 	```
 	URL(humanString: "sindresorhus.com")?.absoluteString
-	//=> "http://sindresorhus.com"
+	//=> "https://sindresorhus.com"
 	```
 	*/
 	init?(humanString: String) {
@@ -3050,7 +3051,7 @@ extension URL {
 			return nil
 		}
 
-		let url = string.replacingOccurrences(of: #"^(?!(?:\w+:)?\/\/)"#, with: "http://", options: .regularExpression)
+		let url = string.replacingOccurrences(of: #"^(?!(?:\w+:)?\/\/)"#, with: "https://", options: .regularExpression)
 
 		self.init(string: url)
 	}
@@ -3123,3 +3124,1021 @@ extension AnyCancellable {
 		store(in: &AssociatedKeys.cancellables[object])
 	}
 }
+
+
+extension View {
+	/**
+	Conditionally modify the view. For example, apply modifiers, wrap the view, etc.
+
+	```
+	Text("Foo")
+		.padding()
+		.if(someCondition) {
+			$0.foregroundColor(.pink)
+		}
+	```
+
+	```
+	VStack() {
+		Text("Line 1")
+		Text("Line 2")
+	}
+		.if(someCondition) { content in
+			ScrollView(.vertical) { content }
+		}
+	```
+	*/
+	@ViewBuilder
+	func `if`<Content: View>(
+		_ condition: @autoclosure () -> Bool,
+		modify: (Self) -> Content
+	) -> some View {
+		if condition() {
+			modify(self)
+		} else {
+			self
+		}
+	}
+
+	/**
+	This overload makes it possible to preserve the type. For example, doing an `if` in a chain of `Text`-only modifiers.
+
+	```
+	Text("🦄")
+		.if(isOn) {
+			$0.fontWeight(.bold)
+		}
+		.kerning(10)
+	```
+	*/
+	func `if`(
+		_ condition: @autoclosure () -> Bool,
+		modify: (Self) -> Self
+	) -> Self {
+		condition() ? modify(self) : self
+	}
+}
+
+
+extension View {
+	/**
+	Conditionally modify the view. For example, apply modifiers, wrap the view, etc.
+	*/
+	@ViewBuilder
+	func `if`<IfContent: View, ElseContent: View>(
+		_ condition: @autoclosure () -> Bool,
+		if modifyIf: (Self) -> IfContent,
+		else modifyElse: (Self) -> ElseContent
+	) -> some View {
+		if condition() {
+			modifyIf(self)
+		} else {
+			modifyElse(self)
+		}
+	}
+
+	/**
+	Conditionally modify the view. For example, apply modifiers, wrap the view, etc.
+
+	This overload makes it possible to preserve the type. For example, doing an `if` in a chain of `Text`-only modifiers.
+	*/
+	func `if`(
+		_ condition: @autoclosure () -> Bool,
+		if modifyIf: (Self) -> Self,
+		else modifyElse: (Self) -> Self
+	) -> Self {
+		condition() ? modifyIf(self) : modifyElse(self)
+	}
+}
+
+extension Font {
+	/**
+	Conditionally modify the font. For example, apply modifiers.
+
+	```
+	Text("Foo")
+		.font(
+			Font.system(size: 10, weight: .regular)
+				.if(someBool) {
+					$0.monospacedDigit()
+				}
+		)
+	```
+	*/
+	func `if`(
+		_ condition: @autoclosure () -> Bool,
+		modify: (Self) -> Self
+	) -> Self {
+		condition() ? modify(self) : self
+	}
+}
+
+
+extension Sequence where Element: Equatable {
+	/**
+	Returns a new sequence without the elements in the sequence that equals the given element.
+
+	```
+	[1, 2, 1, 2].removing(2)
+	//=> [1, 1]
+	```
+	*/
+	func removingAll(_ element: Element) -> [Element] {
+		filter { $0 != element }
+	}
+}
+
+
+extension Color {
+	static let label = Color(NSColor.labelColor)
+	static let secondaryLabel = Color(NSColor.secondaryLabelColor)
+	static let tertiaryLabel = Color(NSColor.tertiaryLabelColor)
+	static let quaternaryLabel = Color(NSColor.quaternaryLabelColor)
+}
+
+
+extension View {
+	/// Returns a type-erased version of `self`.
+	///
+	/// - Important: Use `@ViewBuilder` or `Group` instead whenever possible!
+	func eraseToAnyView() -> AnyView {
+		AnyView(self)
+	}
+}
+
+
+extension View {
+	// The closure unfortunately has to return `AnyView` as `some` cannot yet be used in return values in closures.
+	/**
+	Modify the view in a closure. This can be useful when you need to conditionally apply a modifier that is unavailable on certain platforms.
+
+	For example, imagine this code needing to run on macOS too where `View#actionSheet()` is not available:
+
+	```
+	struct ContentView: View {
+		var body: some View {
+			Text("Unicorn")
+				.modify {
+					#if os(iOS)
+					return $0.actionSheet(…).eraseToAnyView()
+					#endif
+
+					return nil
+				}
+		}
+	}
+	```
+
+	```
+	.modify {
+		guard #available(macOS 11, iOS 14, *) else {
+			return nil
+		}
+
+		return $0.keyboardShortcut("q")
+			.eraseToAnyView()
+	}
+	```
+	*/
+	@ViewBuilder
+	func modify(_ modifier: (Self) -> AnyView?) -> some View {
+		if let view = modifier(self) {
+			view
+		} else {
+			self
+		}
+	}
+
+	/**
+	- Important; You must always return `$0` in the else clause.
+
+	```
+	struct ContentView: View {
+		var body: some View {
+			Text("Unicorn")
+				.modifyWithViewBuilder {
+					#if os(iOS)
+					$0.actionSheet(…)
+					#else
+					$0
+					#endif
+				}
+		}
+	}
+	```
+
+	```
+	struct ContentView: View {
+		var body: some View {
+			Text("Unicorn")
+				.modifyWithViewBuilder {
+					if #available(macOS 11, *) {
+						$0.toolbar {
+							ToolbarItem(placement: .confirmationAction) {
+								Button("Done") {
+									presentationMode.wrappedValue.dismiss()
+								}
+							}
+						}
+					} else {
+						$0
+					}
+				}
+		}
+	}
+	```
+	*/
+	@inlinable
+	func modifyWithViewBuilder<T: View>(@ViewBuilder modifier: (Self) -> T) -> T {
+		modifier(self)
+	}
+}
+
+
+private struct EmptyStateTextModifier: ViewModifier {
+	func body(content: Content) -> some View {
+		content
+			.modify {
+				guard #available(macOS 11, iOS 14, *) else {
+					return $0.font(.system(size: 15)).eraseToAnyView()
+				}
+
+				return $0.font(.title2).eraseToAnyView()
+			}
+			.foregroundColor(.tertiaryLabel)
+	}
+}
+
+extension View {
+	/// For empty states in the UI. For example, no items in a list, no search results, etc.
+	func emptyStateTextStyle() -> some View {
+		modifier(EmptyStateTextModifier())
+	}
+}
+
+
+extension View {
+	// Note: iOS 14.5 fixed support for multiple `.sheet` and `.fullscreenCover`. Unclear, when it will be fixed for macOS and other methods though.
+	/// This allows multiple sheets on a single view, which `.sheet()` doesn't.
+	func sheet2<Content: View>(
+		isPresented: Binding<Bool>,
+		onDismiss: (() -> Void)? = nil,
+		@ViewBuilder content: @escaping () -> Content
+	) -> some View {
+		background(
+			EmptyView().sheet(
+				isPresented: isPresented,
+				onDismiss: onDismiss,
+				content: content
+			)
+		)
+	}
+
+	/// This allows multiple alerts on a single view, which `.alert()` doesn't.
+	func alert2(
+		isPresented: Binding<Bool>,
+		content: @escaping () -> Alert
+	) -> some View {
+		background(
+			EmptyView().alert(
+				isPresented: isPresented,
+				content: content
+			)
+		)
+	}
+
+	/// This allows multiple popovers on a single view, which `.popover()` doesn't.
+	func popover2<Content: View>(
+		isPresented: Binding<Bool>,
+		attachmentAnchor: PopoverAttachmentAnchor = .rect(.bounds),
+		arrowEdge: Edge = .top,
+		@ViewBuilder content: @escaping () -> Content
+	) -> some View {
+		background(
+			EmptyView().popover(
+				isPresented: isPresented,
+				attachmentAnchor: attachmentAnchor,
+				arrowEdge: arrowEdge,
+				content: content
+			)
+		)
+	}
+}
+
+
+struct IdentifiableIndices<Base: RandomAccessCollection> where Base.Element: Identifiable {
+	typealias Index = Base.Index
+
+	struct Element: Identifiable {
+		let id: Base.Element.ID
+		let rawValue: Index
+	}
+
+	fileprivate var base: Base
+}
+
+extension IdentifiableIndices: RandomAccessCollection {
+	var startIndex: Index { base.startIndex }
+	var endIndex: Index { base.endIndex }
+
+	subscript(position: Index) -> Element {
+	Element(id: base[position].id, rawValue: position)
+}
+
+	func index(before index: Index) -> Index {
+		base.index(before: index)
+	}
+
+	func index(after index: Index) -> Index {
+		base.index(after: index)
+	}
+}
+
+extension RandomAccessCollection where Element: Identifiable {
+	var identifiableIndices: IdentifiableIndices<Self> {
+		IdentifiableIndices(base: self)
+	}
+}
+
+extension ForEach where ID == Data.Element.ID, Data.Element: Identifiable, Content: View {
+	init<T>(
+		_ data: Binding<T>,
+		@ViewBuilder content: @escaping (T.Index, Binding<T.Element>) -> Content
+	) where Data == IdentifiableIndices<T>, T: MutableCollection {
+		self.init(data.wrappedValue.identifiableIndices) { index in
+			content(
+				index.rawValue,
+				Binding(
+					get: { data.wrappedValue[index.rawValue] },
+					set: {
+						data.wrappedValue[index.rawValue] = $0
+					}
+				)
+			)
+		}
+	}
+}
+
+
+extension Sequence where Element: Equatable {
+	/**
+	Returns a new sequence with the elements in the sequence that equals the given element replaced by the element in the `with` parameter.
+
+	```
+	[1, 2, 1, 2].replacingAll(2, with: 3)
+	//=> [1, 3, 1, 3]
+	```
+	*/
+	func replacingAll(_ element: Element, with newElement: Element) -> [Element] {
+		map { $0 == element ? newElement : $0 }
+	}
+}
+
+
+extension Collection {
+	/// Copies the collection and moves all the elements at the specified offsets to the specified destination offset, preserving ordering.
+	func moving(fromOffsets source: IndexSet, toOffset destination: Int) -> [Element] {
+		var copy = Array(self)
+		copy.move(fromOffsets: source, toOffset: destination)
+		return copy
+	}
+}
+
+extension RangeReplaceableCollection {
+	/// Copies the collection and removes all the elements at the specified offsets from the collection.
+	func removing(atOffsets offsets: IndexSet) -> [Element] {
+		var copy = Array(self)
+		copy.remove(atOffsets: offsets)
+		return copy
+	}
+}
+
+
+extension NSImage: NSItemProviderReading {
+	public static var readableTypeIdentifiersForItemProvider: [String] {
+		NSImage.imageTypes
+	}
+
+	public static func object(withItemProviderData data: Data, typeIdentifier: String) throws -> Self {
+		guard let image = self.init(data: data) else {
+			throw NSError.appError("Unsupported or invalid image")
+		}
+
+		return image
+	}
+}
+
+extension NSImage: NSItemProviderWriting {
+	public static var writableTypeIdentifiersForItemProvider: [String] {
+		// TODO: Use `UTType` when targeting macOS 11.
+		["public.tiff"]
+	}
+
+	public func loadData(withTypeIdentifier typeIdentifier: String, forItemProviderCompletionHandler completionHandler: @escaping (Data?, Error?) -> Void) -> Progress? {
+		guard let data = tiffRepresentation else {
+			completionHandler(nil, NSError.appError("Could not convert image to data"))
+			return nil
+		}
+
+		completionHandler(data, nil)
+		return nil
+	}
+}
+
+extension NSItemProvider {
+	/// Get an image from the provider if any.
+	func getImage(_ completionHandler: @escaping (NSImage?) -> Void) {
+		loadObject(ofClass: NSImage.self) { image, _ in
+			guard let image = image as? NSImage else {
+				completionHandler(nil)
+				return
+			}
+
+			completionHandler(image)
+			return
+		}
+	}
+}
+
+
+/**
+```
+let x = ["a", "", "b"].filter(!\.isEmpty)
+
+print(x)
+//=> ["a", "b"]
+```
+*/
+prefix func ! <Root>(rhs: KeyPath<Root, Bool>) -> (Root) -> Bool { // swiftlint:disable:this static_operator
+	{ !$0[keyPath: rhs] }
+}
+
+
+extension String {
+	/// Get the string as UTF-8 data.
+	var data: Data { Data(utf8) }
+}
+
+extension Data {
+	var string: String? { String(data: self, encoding: .utf8) }
+}
+
+
+extension Data {
+	struct HexEncodingOptions: OptionSet {
+		let rawValue: Int
+		static let upperCase = Self(rawValue: 1 << 0)
+	}
+
+	func hexEncodedString(options: HexEncodingOptions = []) -> String {
+		let hexDigits = options.contains(.upperCase) ? "0123456789ABCDEF" : "0123456789abcdef"
+
+		if #available(macOS 11, iOS 14, tvOS 14, watchOS 7, *) {
+			let utf8Digits = Array(hexDigits.utf8)
+
+			return String(unsafeUninitializedCapacity: count * 2) { pointer -> Int in
+				var string = pointer.baseAddress!
+
+				for byte in self {
+					string[0] = utf8Digits[Int(byte / 16)]
+					string[1] = utf8Digits[Int(byte % 16)]
+					string += 2
+				}
+
+				return count * 2
+			}
+		} else {
+			let utf16Digits = Array(hexDigits.utf16)
+			var characters = [unichar]()
+			characters.reserveCapacity(2 * count)
+
+			for byte in self {
+				characters.append(utf16Digits[Int(byte / 16)])
+				characters.append(utf16Digits[Int(byte % 16)])
+			}
+
+			return String(utf16CodeUnits: characters, count: characters.count)
+		}
+	}
+}
+
+
+extension Data {
+	func sha256() -> Self {
+		Data(SHA256.hash(data: self))
+	}
+
+	func sha512() -> Self {
+		Data(SHA512.hash(data: self))
+	}
+}
+
+extension String {
+	/**
+	```
+	"foo".sha256()
+	//=> "2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae"
+	```
+	*/
+	func sha256() -> Self {
+		data.sha256().hexEncodedString()
+	}
+
+	func sha512() -> Self {
+		data.sha512().hexEncodedString()
+	}
+}
+
+
+/// Wrapper around `NSCache` that enables using any hashable key and any value.
+final class Cache<Key: Hashable, Value> {
+	private final class WrappedKey: NSObject {
+		let key: Key
+
+		init(key: Key) {
+			self.key = key
+		}
+
+		override var hash: Int { key.hashValue }
+
+		override func isEqual(_ object: Any?) -> Bool {
+			guard let value = object as? WrappedKey else {
+				return false
+			}
+
+			return value.key == key
+		}
+	}
+
+	private final class WrappedValue {
+		let value: Value
+
+		init(value: Value) {
+			self.value = value
+		}
+	}
+
+	private let cache = NSCache<WrappedKey, WrappedValue>()
+
+	/**
+	Get, set, or remove an entry from the cache.
+	*/
+	subscript(key: Key) -> Value? {
+		get { cache.object(forKey: .init(key: key))?.value }
+		set {
+			guard let value = newValue else {
+				// If the value is `nil`, remove the entry from the cache.
+				cache.removeObject(forKey: .init(key: key))
+
+				return
+			}
+
+			cache.setObject(.init(value: value), forKey: .init(key: key))
+		}
+	}
+
+	/// Removes all entries.
+	func removeAll() {
+		cache.removeAllObjects()
+	}
+}
+
+
+protocol SimpleImageCacheKeyable: Hashable {
+	var cacheKey: String { get }
+}
+
+extension String: SimpleImageCacheKeyable {
+	var cacheKey: String { self }
+}
+
+extension URL: SimpleImageCacheKeyable {
+	var cacheKey: String { absoluteString }
+}
+
+/**
+Extremely simple and naive image cache.
+
+The cache is thread-safe.
+
+You can optionally persist the cache to disk. Reading from the cache is synchronous. Saving to the cache happens asynchronously in a background thread.
+*/
+final class SimpleImageCache<Key: SimpleImageCacheKeyable> {
+	private let lock = NSLock()
+	private let diskQueue = DispatchQueue(label: "SimpleImageCache")
+	private let cache = Cache<Key, NSImage>()
+	private var cacheDirectory: URL?
+
+	private var shouldUseDisk: Bool { cacheDirectory != nil }
+
+	/**
+	- Parameter diskCacheName: If you want to cache to disk, pass a name. The name should be a valid directory name.
+	*/
+	init(diskCacheName: String? = nil) {
+		if let diskCacheName = diskCacheName {
+			do {
+				cacheDirectory = try createCacheDirectory(name: diskCacheName)
+			} catch {
+				assertionFailure("Failed to create cache directory: \(error)")
+			}
+		}
+	}
+
+	private func createCacheDirectory(name: String) throws -> URL {
+		let rootCacheDirectory = try FileManager.default.url(for: .cachesDirectory, in: .userDomainMask, appropriateFor: nil, create: false)
+
+		let cacheDirectory = rootCacheDirectory
+			.appendingPathComponent(SSApp.name, isDirectory: true)
+			.appendingPathComponent(name, isDirectory: true)
+
+		try FileManager.default.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
+
+		return cacheDirectory
+	}
+
+	private func createCacheDirectoryIfNeeded() {
+		guard let cacheDirectory = cacheDirectory else {
+			return
+		}
+
+		try? FileManager.default.createDirectory(at: cacheDirectory, withIntermediateDirectories: true)
+	}
+
+	private func cacheFileFromKey(_ key: Key) -> URL? {
+		cacheDirectory?.appendingPathComponent(key.cacheKey.sha256(), isDirectory: false)
+	}
+
+	private func loadImageFromDiskIfNeeded(for key: Key) -> NSImage? {
+		guard
+			shouldUseDisk,
+			let cacheFile = cacheFileFromKey(key)
+		else {
+			return nil
+		}
+
+		return NSImage(contentsOf: cacheFile)
+	}
+
+	private func saveImageToDiskIfNeeded(_ image: NSImage, for key: Key) {
+		guard
+			shouldUseDisk,
+			let cacheFile = cacheFileFromKey(key)
+		else {
+			return
+		}
+
+		diskQueue.async { [weak self] in
+			guard let self = self else {
+				return
+			}
+
+			guard let tiffData = image.tiffRepresentation else {
+				assertionFailure("Could not get TIFF representation from image.")
+				return
+			}
+
+			// Ensure the cache directory exists in case it was removed by `.removeAllImages()` or the user.
+			self.createCacheDirectoryIfNeeded()
+
+			do {
+				try tiffData.write(to: cacheFile)
+			} catch {
+				assertionFailure("Failed to write image to disk: \(error.localizedDescription)")
+			}
+		}
+	}
+
+	private func removeImageFromDiskIfNeeded(for key: Key) {
+		guard
+			shouldUseDisk,
+			let cacheFile = cacheFileFromKey(key)
+		else {
+			return
+		}
+
+		diskQueue.async {
+			try? FileManager.default.removeItem(at: cacheFile)
+		}
+	}
+
+	private func removeAllImagesFromDiskIfNeeded() {
+		guard
+			shouldUseDisk,
+			let cacheDirectory = cacheDirectory
+		else {
+			return
+		}
+
+		diskQueue.async {
+			try? FileManager.default.removeItem(at: cacheDirectory)
+		}
+	}
+
+	/**
+	Get the image for the given key.
+	*/
+	private func image(for key: Key) -> NSImage? {
+		lock.lock()
+		defer {
+			lock.unlock()
+		}
+
+		guard let image = cache[key] else {
+			guard let image = loadImageFromDiskIfNeeded(for: key) else {
+				return nil
+			}
+
+			cache[key] = image
+
+			return image
+		}
+
+		return image
+	}
+
+	/**
+	Insert an image into the cache for the given key.
+	*/
+	private func insertImage(_ image: NSImage?, for key: Key) {
+		guard let image = image else {
+			removeImage(for: key)
+			return
+		}
+
+		lock.lock()
+		defer {
+			lock.unlock()
+		}
+
+		cache[key] = image
+		saveImageToDiskIfNeeded(image, for: key)
+	}
+
+	/**
+	Remove an image from the cache for the given key.
+	*/
+	private func removeImage(for key: Key) {
+		lock.lock()
+		defer {
+			lock.unlock()
+		}
+
+		cache[key] = nil
+		removeImageFromDiskIfNeeded(for: key)
+	}
+
+	/**
+	If the cache items exists on disk but not in the memory cache, this adds it them the memory cache too.
+
+	This is run in a background thread.
+	*/
+	func prewarmCacheFromDisk(for keys: [Key]) {
+		DispatchQueue.global().async { [self] in
+			for key in keys {
+				_ = image(for: key)
+			}
+		}
+	}
+
+	/**
+	Remove all images from the cache.
+	*/
+	func removeAllImages() {
+		lock.lock()
+		defer {
+			lock.unlock()
+		}
+
+		cache.removeAll()
+		removeAllImagesFromDiskIfNeeded()
+	}
+
+	/**
+	Get, set, or remove an image from the cache.
+	*/
+	subscript(_ key: Key) -> NSImage? {
+		get { image(for: key) }
+		set {
+			guard let value = newValue else {
+				removeImage(for: key)
+				return
+			}
+
+			insertImage(value, for: key)
+		}
+	}
+}
+
+
+extension Collection where Element: Equatable {
+	/**
+	Returns an array where each element in the collection equal to the given `target` element is modified.
+
+	```
+	struct Person: Equatable {
+		var name: String
+	}
+
+	var people = [
+		Person(name: "John"),
+		Person(name: "Daniel"),
+		Person(name: "John")
+	]
+
+	// …
+
+	let personToRename = Person(name: "John")
+
+	people = people.modifying(personToRename) {
+		$0.name = "Johnny"
+	}
+
+	print(people)
+	//=> [{name "Johnny"}, {name "Daniel"}, {name "Johnny"}]
+	```
+	*/
+	func modifying(
+		_ target: Element,
+		update: (inout Element) throws -> Void
+	) rethrows -> [Element] {
+		try map { element -> Element in
+			guard element == target else {
+				return element
+			}
+
+			var copy = element
+			try update(&copy)
+			return copy
+		}
+	}
+}
+
+extension Collection {
+	/**
+	Returns an array where each element in the collection are modified.
+
+	```
+	people = people.modifying {
+		$0.isCurrent = false
+	}
+	```
+	*/
+	func modifying(
+		modify: (inout Element) throws -> Void
+	) rethrows -> [Element] {
+		try map {
+			var copy = $0
+			try modify(&copy)
+			return copy
+		}
+	}
+}
+
+
+extension Collection where Element: Equatable {
+	/**
+	Get the element before the first element equaling the given element.
+
+	```
+	let x = [1, 2, 3]
+	x.element(before: 2)
+	//=> 1
+	```
+	*/
+	func element(before element: Element) -> Element? {
+		guard
+			let elementIndex = firstIndex(of: element),
+			let targetIndex = index(elementIndex, offsetBy: -1, limitedBy: startIndex)
+		else {
+			return nil
+		}
+
+		return self[targetIndex]
+	}
+
+	/**
+	Get the element after the first element equaling the given element.
+
+	```
+	let x = [1, 2, 3]
+	x.element(after: 2)
+	//=> 3
+	```
+	*/
+	func element(after element: Element) -> Element? {
+		guard
+			let elementIndex = firstIndex(of: element),
+			let targetIndex = index(elementIndex, offsetBy: 1, limitedBy: index(endIndex, offsetBy: -1))
+		else {
+			return nil
+		}
+
+		return self[targetIndex]
+	}
+}
+
+extension BidirectionalCollection where Element: Equatable {
+	/**
+	Get the element before the first element equaling the given element, or the last element if there's no element before or if the given element is `nil`
+
+	This can be useful when imitating a circular array.
+	*/
+	func elementBeforeOrLast(_ element: Element?) -> Element? {
+		guard
+			let element = element,
+			let previousElement = self.element(before: element)
+		else {
+			return last
+		}
+
+		return previousElement
+	}
+}
+
+extension Collection where Element: Equatable {
+	/**
+	Get the element after the first element equaling the given element, or the first element if there's no element after or if the given element is `nil`
+
+	This can be useful when imitating a circular array.
+	*/
+	func elementAfterOrFirst(_ element: Element?) -> Element? {
+		guard
+			let element = element,
+			let nextElement = self.element(after: element)
+		else {
+			return first
+		}
+
+		return nextElement
+	}
+}
+
+
+extension NSMenuItem {
+	/**
+	The menu is only created when it's enabled.
+
+	```
+	menu.addItem("Foo")
+		.withSubmenu(createCalendarEventMenu(with: event))
+	```
+	*/
+	@discardableResult
+	func withSubmenu(_ menu: @autoclosure () -> NSMenu) -> Self {
+		submenu = isEnabled ? menu() : NSMenu()
+		return self
+	}
+
+	/**
+	The menu is only created when it's enabled.
+
+	```
+	menu
+		.addItem("Foo")
+		.withSubmenu { menu in
+
+		}
+	```
+	*/
+	@discardableResult
+	func withSubmenu(_ menuBuilder: (SSMenu) -> NSMenu) -> Self {
+		withSubmenu(menuBuilder(SSMenu()))
+	}
+}
+
+
+enum OperatingSystem {
+	case macOS
+	case iOS
+	case tvOS
+	case watchOS
+
+	#if os(macOS)
+	static let current = macOS
+	#elseif os(iOS)
+	static let current = iOS
+	#elseif os(tvOS)
+	static let current = tvOS
+	#elseif os(watchOS)
+	static let current = watchOS
+	#else
+	#error("Unsupported platform")
+	#endif
+}
+
+extension OperatingSystem {
+	/// - Note: Only use this when you cannot use an `if #available` check. For example, inline in function calls.
+	static let isMacOSBigSurOrLater: Bool = {
+		#if os(macOS)
+		if #available(macOS 11, *) {
+			return true
+		} else {
+			return false
+		}
+		#else
+		return false
+		#endif
+	}()
+}
+
+typealias OS = OperatingSystem

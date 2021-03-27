@@ -14,19 +14,23 @@ final class WebViewController: NSViewController {
 		let configuration = WKWebViewConfiguration()
 		configuration.mediaTypesRequiringUserActionForPlayback = .audio
 		configuration.allowsAirPlayForMediaPlayback = false
-		configuration.suppressesIncrementalRendering = true
+
+		// TODO: Enable this again when https://github.com/sindresorhus/Plash/issues/9 is fixed.
+//		configuration.suppressesIncrementalRendering = true
 
 		let userContentController = WKUserContentController()
 		configuration.userContentController = userContentController
 
 		userContentController.muteAudio()
 
-		if Defaults[.invertColors] {
-			userContentController.invertColors()
-		}
+		if let website = WebsitesController.shared.current {
+			if website.invertColors {
+				userContentController.invertColors()
+			}
 
-		if !Defaults[.customCSS].trimmed.isEmpty {
-			userContentController.addCSS(Defaults[.customCSS])
+			if !website.css.trimmed.isEmpty {
+				userContentController.addCSS(website.css)
+			}
 		}
 
 		let preferences = WKPreferences()

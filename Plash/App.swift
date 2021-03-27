@@ -11,6 +11,8 @@ TODO: When targeting macOS 11:
 - Remove `Principal class` key in Info.plist. It's not needed anymore.
 - Remove storyboard.
 - Present windows using SwiftUI.
+- Refactor the whole website handling into a controller.
+- Switch out `NativeButton` with `Button`.
 */
 
 @main
@@ -93,6 +95,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			]
 		)
 
+		migrate()
+
 		_ = statusItemButton
 		_ = desktopWindow
 
@@ -102,7 +106,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		SSApp.runOnce(identifier: "browsingModeBehaviorChangeWarning") {
 			NSAlert.showModal(
 				title: "Browsing Mode Behavior Change",
-				message: "When you activate browsing mode, it will no longer show in front of all other windows. A lot of users complained about the previous behavior. Instead, it will show like in non-browsing mode, but hide desktop icons and be interactive. So when you enable browsing mode now, you might have to hide/minimize some windows to see it.\n\nPlease let me know through the feedback button in the app if you depended on the previous behavior."
+				message: "When you activate browsing mode, it will no longer show in front of all other windows. A lot of users complained about the previous behavior. Instead, it will show like in non-browsing mode, but hide desktop icons and be interactive. So when you enable browsing mode now, you might have to hide/minimize some windows to see it.\n\nThere's a preference to bring back the old behavior."
 			)
 		}
 	}
@@ -139,7 +143,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	}
 
 	func loadUserURL() {
-		loadURL(Defaults[.url])
+		loadURL(WebsitesController.shared.current?.url)
 	}
 
 	func loadURL(_ url: URL?) {
@@ -174,52 +178,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		// TODO: Fade in the web view.
 		delay(seconds: 1) { [self] in
 			desktopWindow.contentView?.isHidden = false
-		}
-	}
-
-	func openLocalWebsite() {
-		NSApp.activate(ignoringOtherApps: true)
-
-		let panel = NSOpenPanel()
-		panel.canChooseFiles = false
-		panel.canChooseDirectories = true
-		panel.canCreateDirectories = false
-		panel.title = "Open Local Website"
-		panel.message = "Choose a directory with a “index.html” file."
-
-		// Ensure it's above the window when in "Browsing Mode".
-		panel.level = .floating
-
-		if
-			let url = Defaults[.url],
-			url.isFileURL
-		{
-			panel.directoryURL = url
-		}
-
-		panel.begin { [weak self] in
-			guard
-				let self = self,
-				$0 == .OK,
-				let url = panel.url
-			else {
-				return
-			}
-
-			guard url.appendingPathComponent("index.html", isDirectory: false).exists else {
-				NSAlert.showModal(title: "Please choose a directory that contains a “index.html” file.")
-				self.openLocalWebsite()
-				return
-			}
-
-			do {
-				try SecurityScopedBookmarkManager.saveBookmark(for: url)
-			} catch {
-				NSApp.presentError(error)
-				return
-			}
-
-			Defaults[.url] = url
 		}
 	}
 
