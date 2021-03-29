@@ -100,6 +100,27 @@ final class WebViewController: NSViewController {
 }
 
 extension WebViewController: WKNavigationDelegate {
+	func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+		if
+			Defaults[.openExternalLinksInBrowser],
+			navigationAction.navigationType == .linkActivated,
+			let originalURL = webView.url,
+			let newURL = navigationAction.request.url,
+			originalURL.host != newURL.host
+		{
+			// Hide Plash if it's in front of everything.
+			if Defaults[.isBrowsingMode] && Defaults[.bringBrowsingModeToFront] {
+				Defaults[.isBrowsingMode] = false
+			}
+
+			newURL.open()
+			decisionHandler(.cancel)
+			return
+		}
+
+		decisionHandler(.allow)
+	}
+
 	func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
 		if
 			navigationResponse.isForMainFrame,

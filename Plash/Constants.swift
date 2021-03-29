@@ -15,6 +15,7 @@ extension Defaults.Keys {
 	static let deactivateOnBattery = Key<Bool>("deactivateOnBattery", default: false)
 	static let showOnAllSpaces = Key<Bool>("showOnAllSpaces", default: false)
 	static let bringBrowsingModeToFront = Key<Bool>("bringBrowsingModeToFront", default: false)
+	static let openExternalLinksInBrowser = Key<Bool>("openExternalLinksInBrowser", default: false)
 
 	// TODO: Remove at some point in the future.
 	// Deprecated

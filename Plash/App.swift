@@ -13,6 +13,8 @@ TODO: When targeting macOS 11:
 - Present windows using SwiftUI.
 - Refactor the whole website handling into a controller.
 - Switch out `CocoaButton` with `Button`.
+- Switch all `evaluatejavascript` to the version with the `in:` parameter.
+- Get rid of `.help2()`.
 */
 
 @main

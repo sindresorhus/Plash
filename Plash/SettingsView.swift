@@ -39,6 +39,18 @@ private struct BringBrowsingModeToFrontSetting: View {
 	}
 }
 
+private struct OpenExternalLinksInBrowserSetting: View {
+	@Default(.openExternalLinksInBrowser) private var openExternalLinksInBrowser
+
+	var body: some View {
+		Toggle(
+			"Open external links in default browser",
+			isOn: $openExternalLinksInBrowser
+		)
+			.help2("If a website requires login, you should disable this setting while logging in as the website might require you to navigate to a different page, and you don't want that to open in a browser instead of Plash.")
+	}
+}
+
 private struct OpacitySetting: View {
 	@Default(.opacity) private var opacity
 
@@ -179,6 +191,7 @@ struct SettingsView: View {
 						DeactivateOnBatterySetting()
 						ShowOnAllSpacesSetting()
 						BringBrowsingModeToFrontSetting()
+						OpenExternalLinksInBrowserSetting()
 					}
 				}
 				Divider()
