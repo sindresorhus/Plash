@@ -36,7 +36,7 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 ## Features
 
 - Show a remote or local website
-- Interact with the website (“Browse Mode”)
+- Interact with the website (“Browsing Mode”)
 - Automatically reload the website at a custom interval
 - Add multiple websites
 - Show the website on a different display
@@ -61,6 +61,8 @@ You can try out the bleeding edge [here](https://install.appcenter.ms/users/sind
 ### Browsing mode
 
 You can interact with the website by enabling “Browsing Mode”. When in this mode, you can right-click to be able to go back/forward, reload, and zoom in the page contents (the zoom level is saved). You can also pinch to magnify. This is different from zooming the page contents in that it will zoom in to a specific part of the page instead of just enlarging everything.
+
+Plash injects a CSS class named `plash-is-browsing-mode` on the `<html>` element while browsing mode is active. You could use this class to customize the website for browsing mode.
 
 ### URL placeholders for screen width and height
 
@@ -98,6 +100,7 @@ No, I’m a Mac developer.
 ## Built with
 
 - [Defaults](https://github.com/sindresorhus/Defaults) - Swifty and modern UserDefaults
+- [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) - Add user-customizable global keyboard shortcuts to your macOS app
 
 ## Related
 

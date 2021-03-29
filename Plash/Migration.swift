@@ -3,7 +3,7 @@ import Defaults
 
 extension AppDelegate {
 	private func migrateToWebsiteStruct() {
-		guard let url = Defaults[.url]?.normalized() else {
+		guard let url = Defaults[.url] else {
 			return
 		}
 
@@ -13,7 +13,7 @@ extension AppDelegate {
 			Website(
 				id: UUID(),
 				isCurrent: true,
-				url: url,
+				url: url.normalized(),
 				invertColors: Defaults[.invertColors],
 				usePrintStyles: false,
 				css: Defaults[.customCSS]

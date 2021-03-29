@@ -92,6 +92,9 @@ final class WebViewController: NSViewController {
 	}
 
 	private func internalOnLoaded(_ error: Error?) {
+		// TODO: A minor improvement would be to inject this on `DOMContentLoaded` using `WKScriptMessageHandler`.
+		webView.toggleBrowsingModeClass()
+
 		onLoaded?(error)
 	}
 }

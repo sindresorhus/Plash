@@ -1,7 +1,10 @@
+import Combine
 import WebKit
 import Defaults
 
 final class SSWebView: WKWebView {
+	private var cancellables = Set<AnyCancellable>()
+
 	private var excludedMenuItems: Set<MenuItemIdentifier> = [
 		.downloadImage,
 		.downloadLinkedFile,
@@ -11,6 +14,21 @@ final class SSWebView: WKWebView {
 		.toggleEnhancedFullScreen,
 		.toggleFullScreen
 	]
+
+	override init(frame: CGRect, configuration: WKWebViewConfiguration) {
+		super.init(frame: frame, configuration: configuration)
+
+		Defaults.publisher(.isBrowsingMode)
+			.sink { [weak self] _ in
+				self?.toggleBrowsingModeClass()
+			}
+			.store(in: &cancellables)
+	}
+
+	@available(*, unavailable)
+	required init?(coder: NSCoder) {
+		fatalError("init(coder:) has not been implemented")
+	}
 
 	override func willOpenMenu(_ menu: NSMenu, with event: NSEvent) {
 		for menuItem in menu.items {
@@ -85,6 +103,12 @@ final class SSWebView: WKWebView {
 
 		// For the implicit “Services” menu.
 		menu.addSeparator()
+	}
+
+	func toggleBrowsingModeClass() {
+		let method = Defaults[.isBrowsingMode] ? "add" : "remove"
+		let code = "document.documentElement.classList.\(method)('plash-is-browsing-mode')"
+		self.evaluateJavaScript(code) { _, _ in }
 	}
 }
 

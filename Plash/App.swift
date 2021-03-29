@@ -104,6 +104,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		showWelcomeScreenIfNeeded()
 
 		SSApp.runOnce(identifier: "browsingModeBehaviorChangeWarning") {
+			guard !SSApp.isFirstLaunch else {
+				return
+			}
+
 			NSAlert.showModal(
 				title: "Browsing Mode Behavior Change",
 				message: "When you activate browsing mode, it will no longer show in front of all other windows. A lot of users complained about the previous behavior. Instead, it will show like in non-browsing mode, but hide desktop icons and be interactive. So when you enable browsing mode now, you might have to hide/minimize some windows to see it.\n\nThere's a preference to bring back the old behavior."
