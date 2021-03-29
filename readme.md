@@ -64,16 +64,45 @@ You can interact with the website by enabling “Browsing Mode”. When in this 
 
 Plash injects a CSS class named `plash-is-browsing-mode` on the `<html>` element while browsing mode is active. You could use this class to customize the website for browsing mode.
 
+### Zoom in website
+
+To zoom in the website, activate “Browsing Mode”, right-click the website, and then select “Zoom In”.
+
 ### URL placeholders for screen width and height
 
 Use `[[screenWidth]]` and `[[screenHeight]]` in any URL and Plash will substitute the right values for you. For example, `https://source.unsplash.com/random/[[screenWidth]]x[[screenHeight]]?puppy`.
 
+### Scroll to position
+
+You can scroll a website to a specific position each time it is loaded by putting the following in the website‘s “JavaScript” field. Adjust the “500” to how far down it should scroll.
+
+```js
+window.scrollTo(0, 500);
+```
+
+You can also [scroll to a specific element](https://developer.mozilla.org/en-US/docs/Web/API/Element/scrollIntoView) matching a [CSS selector](https://developer.mozilla.org/en-US/docs/Learn/CSS/Building_blocks/Selectors):
+
+```js
+document.querySelector('.title')?.scrollIntoView();
+```
+
+### Make the website occupy only half the screen
+
+You can use the “CSS” field in the website settings to adjust the padding of the website:
+
+```css
+:root {
+    margin-left: 50% !important;
+}
+```
+
 ## Screenshots
 
-<img src="Stuff/screenshot1.jpg" width="720" height="450">
-<img src="Stuff/screenshot2.jpg" width="720" height="450">
-<img src="Stuff/screenshot3.jpg" width="720" height="450">
-<img src="Stuff/screenshot4.jpg" width="720" height="450">
+![](Stuff/screenshot1.jpg)
+![](Stuff/screenshot2.jpg)
+![](Stuff/screenshot3.jpg)
+![](Stuff/screenshot4.jpg)
+![](Stuff/screenshot5.jpg)
 
 ## FAQ
 

@@ -105,6 +105,17 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		setUpEvents()
 		showWelcomeScreenIfNeeded()
 
+		SSApp.runOnce(identifier: "plashVersion2WelcomeScreen") {
+			guard !SSApp.isFirstLaunch else {
+				return
+			}
+
+			NSAlert.showModal(
+				title: "Welcome to Plash 2",
+				message: "The big new feature in this release is that you can now add multiple websites to Plash and easily switch between them. There are also some new preferences."
+			)
+		}
+
 		SSApp.runOnce(identifier: "browsingModeBehaviorChangeWarning") {
 			guard !SSApp.isFirstLaunch else {
 				return

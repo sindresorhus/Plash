@@ -38,6 +38,7 @@ struct AddWebsiteView: View {
 	private let website: Website?
 	private let completionHandler: () -> Void
 
+	// TODO: Use some kind of `@Transaction` type.
 	init(
 		isEditing: Bool,
 		showsCancelButtons: Bool,
@@ -150,8 +151,15 @@ struct AddWebsiteView: View {
 						}
 					}
 					Spacer()
-					CocoaButton(isEditing ? "Save" : "Add", keyEquivalent: .return) {
-						defaultAction()
+					Group {
+						if isEditing {
+							CocoaButton("Save") {
+								defaultAction(shouldClose: false)
+							}
+						}
+						CocoaButton(isEditing ? "Save & Close" : "Add", keyEquivalent: .return) {
+							defaultAction(shouldClose: true)
+						}
 					}
 						.disabled(!URL.isValid(string: normalizedUrlString))
 				}
@@ -162,7 +170,7 @@ struct AddWebsiteView: View {
 			.frame(width: 500)
 	}
 
-	private func defaultAction() {
+	private func defaultAction(shouldClose: Bool) {
 		guard let url = URL(string: normalizedUrlString)?.normalized() else {
 			return
 		}
@@ -170,17 +178,13 @@ struct AddWebsiteView: View {
 		// TODO: Find a way to DRY up this logic.
 		if isEditing {
 			if let website = website {
-				let newWebsite = Website(
-					id: website.id,
-					isCurrent: website.isCurrent,
-					url: url,
-					invertColors: invertColors,
-					usePrintStyles: usePrintStyles,
-					css: css,
-					javaScript: javaScript
-				)
-
-				WebsitesController.shared.all = WebsitesController.shared.all.replacingAll(website, with: newWebsite)
+				WebsitesController.shared.all = WebsitesController.shared.all.modifying(elementWithID: website.id) {
+					$0.url = url
+					$0.invertColors = invertColors
+					$0.usePrintStyles = usePrintStyles
+					$0.css = css
+					$0.javaScript = javaScript
+				}
 			} else {
 				assertionFailure()
 			}
@@ -198,8 +202,10 @@ struct AddWebsiteView: View {
 			WebsitesController.shared.add(newWebsite)
 		}
 
-		presentationMode.wrappedValue.dismiss()
-		completionHandler()
+		if shouldClose {
+			presentationMode.wrappedValue.dismiss()
+			completionHandler()
+		}
 	}
 
 	private func chooseLocalWebsite(_ completionHandler: @escaping (URL?) -> Void) {

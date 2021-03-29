@@ -43,7 +43,11 @@ Note: Support for multiple displays is currently limited to the ability to choos
 
 You can interact with the website by enabling “Browsing Mode”. When in this mode, you can right-click to be able to go back/forward, reload, and zoom in the page contents (the zoom level is saved). You can also pinch to magnify. This is different from zooming the page contents in that it will zoom in to a specific part of the page instead of just enlarging everything.
 
-Plash injects a CSS class named `plash-is-browsing-mode` on the `<html>` element while browsing mode is active. You could use this class to customize the website for browsing mode.
+Plash injects a CSS class named “plash-is-browsing-mode” on the “html” element while browsing mode is active. You could use this class to customize the website for browsing mode.
+
+‣ Zoom in website
+
+To zoom in the website, activate “Browsing Mode”, right-click the website, and then select “Zoom In”.
 
 ‣ URL placeholders for screen width and height
 

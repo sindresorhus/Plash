@@ -33,6 +33,17 @@ func delay(seconds: TimeInterval, closure: @escaping () -> Void) {
 }
 
 
+extension Double {
+	/// Get a CGFloat from a Double. This makes it easier to work with optionals.
+	var cgFloat: CGFloat { CGFloat(self) }
+}
+
+extension CGFloat {
+	/// Get a Double from a CGFloat. This makes it easier to work with optionals.
+	var double: Double { Double(self) }
+}
+
+
 extension NSWindow.Level {
 	private static func level(for cgLevelKey: CGWindowLevelKey) -> Self {
 		.init(rawValue: Int(CGWindowLevelForKey(cgLevelKey)))
@@ -1585,9 +1596,11 @@ extension WKUserContentController {
 		}
 
 		img:not([src*='.svg']),
-		video {
-			filter: invert(100%) hue-rotate(180deg);
-			background-color: unset;
+		body * [style*="background-image"],
+		video,
+		iframe {
+			filter: invert(100%) hue-rotate(180deg) !important;
+			background-color: unset !important;
 		}
 		"""
 
@@ -4030,6 +4043,50 @@ extension Collection where Element: Equatable {
 	}
 }
 
+extension Collection where Element: Identifiable {
+	/**
+	Returns an array where each element‘s ID in the collection equal to the given ID is modified.
+
+	```
+	struct Person: Identifiable {
+		let id = UUID()
+		var name: String
+	}
+
+	var people = [
+		Person(name: "John"),
+		Person(name: "Daniel"),
+		Person(name: "John")
+	]
+
+	// …
+
+	let personToRename = people[0]
+
+	people = people.modifying(elementWithID: personToRename.id) {
+		$0.name = "Johnny"
+	}
+
+	print(people)
+	//=> [{name "Johnny"}, {name "Daniel"}, {name "Johnny"}]
+	```
+	*/
+	func modifying(
+		elementWithID id: Element.ID,
+		update: (inout Element) throws -> Void
+	) rethrows -> [Element] {
+		try map { element -> Element in
+			guard element.id == id else {
+				return element
+			}
+
+			var copy = element
+			try update(&copy)
+			return copy
+		}
+	}
+}
+
 extension Collection {
 	/**
 	Returns an array where each element in the collection are modified.
@@ -4533,5 +4590,46 @@ extension WebsiteIconFetcher: WKNavigationDelegate {
 
 	func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
 		internalOnLoaded(error)
+	}
+}
+
+
+extension View {
+	/// Corner radius with a custom corner style.
+	func cornerRadius(_ radius: Double, style: RoundedCornerStyle) -> some View {
+		clipShape(RoundedRectangle(cornerRadius: radius.cgFloat, style: style))
+	}
+
+	/**
+	Draws a border inside the view.
+	*/
+	@_disfavoredOverload
+	func border<S: ShapeStyle>(
+		_ content: S,
+		width lineWidth: Double = 1,
+		cornerRadius: Double,
+		cornerStyle: RoundedCornerStyle = .circular
+	) -> some View {
+		self.cornerRadius(cornerRadius, style: cornerStyle)
+			.overlay(
+				RoundedRectangle(cornerRadius: cornerRadius.cgFloat, style: cornerStyle)
+					.strokeBorder(content, lineWidth: lineWidth.cgFloat)
+			)
+	}
+
+	/**
+	Draws a border inside the view.
+	*/
+	func border(
+		_ color: Color,
+		width lineWidth: Double = 1,
+		cornerRadius: Double,
+		cornerStyle: RoundedCornerStyle = .circular
+	) -> some View {
+		self.cornerRadius(cornerRadius, style: cornerStyle)
+			.overlay(
+				RoundedRectangle(cornerRadius: cornerRadius.cgFloat, style: cornerStyle)
+					.strokeBorder(color, lineWidth: lineWidth.cgFloat)
+			)
 	}
 }
