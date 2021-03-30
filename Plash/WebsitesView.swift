@@ -85,7 +85,7 @@ private struct RowView: View {
 			Text(website.title)
 				.font(.headline)
 				.lineLimit(2)
-				.help2(website.url.absoluteString)
+				.help2(website.url.absoluteString.removingPercentEncoding)
 			Spacer()
 			if website.isCurrent {
 				if #available(macOS 11, *) {

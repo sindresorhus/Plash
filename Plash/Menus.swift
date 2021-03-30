@@ -24,14 +24,9 @@ extension AppDelegate {
 			menuItem.toolTip = title
 		}
 
-		let urlString = url.isFileURL ? url.tildePath : url.absoluteString
+		let urlString = url.humanString
 
-		var newUrlString = urlString
-		if urlString.count > maxLength {
-			newUrlString = urlString.removingSchemeAndWWWFromURL
-		}
-
-		let menuItem = menu.addDisabled(newUrlString.truncating(to: maxLength))
+		let menuItem = menu.addDisabled(urlString.truncating(to: maxLength))
 		menuItem.toolTip = urlString
 	}
 

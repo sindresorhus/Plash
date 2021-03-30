@@ -11,9 +11,7 @@ struct Website: Hashable, Codable, Identifiable {
 	var css = ""
 	var javaScript = ""
 
-	var title: String {
-		url.isFileURL ? url.tildePath : url.absoluteString.removingSchemeAndWWWFromURL
-	}
+	var title: String { url.humanString }
 
 	var thumbnailCacheKey: String { url.isFileURL ? url.tildePath : (url.host ?? "") }
 

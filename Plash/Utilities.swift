@@ -1298,6 +1298,7 @@ final class SwiftUIWindowForMenuBarApp: NSWindow {
 
 extension WKWebView {
 	static let safariUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_6) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.0.3 Safari/605.1.15"
+	static let chromeUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
 
 	/**
 	Evaluate JavaScript synchronously.
@@ -1952,6 +1953,19 @@ extension String {
 	/// Make a URL more human-friendly by removing the scheme and `www.`.
 	var removingSchemeAndWWWFromURL: Self {
 		replacingOccurrences(matchingRegex: #"^https?:\/\/(?:www.)?"#, with: "")
+	}
+}
+
+
+extension URL {
+	/// Human-friendly representation of the URL: `https://sindresorhus.com/` → `sindresorhus.com`.
+	var humanString: String {
+		guard !isFileURL else {
+			return tildePath
+		}
+
+		let string = normalized().absoluteString.removingSchemeAndWWWFromURL
+		return string.removingPercentEncoding ?? string
 	}
 }
 
@@ -4430,73 +4444,78 @@ final class WebsiteIconFetcher: NSObject {
 			document.querySelector('link[rel="manifest"]').href
 			"""
 
-		// TODO: Use `evaluateJavaScript(_ javaScript: String, in frame: WKFrameInfo? = nil, in contentWorld: WKContentWorld...)`.
-		webView.evaluateJavaScript(code) { value, _ in
-			guard
-				let urlString = value as? String,
-				let url = URL(string: urlString)
-			else {
-				completionHandler(nil)
-				return
-			}
-
-			URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+		DispatchQueue.main.async { [weak self] in
+			// TODO: Use `evaluateJavaScript(_ javaScript: String, in frame: WKFrameInfo? = nil, in contentWorld: WKContentWorld...)`.
+			self?.webView.evaluateJavaScript(code) { value, _ in
 				guard
-					let self = self,
-					let data = data
+					let urlString = value as? String,
+					let url = URL(string: urlString)
 				else {
 					completionHandler(nil)
 					return
 				}
 
-				DispatchQueue.main.async {
-					do {
-						guard
-							let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-							let icons = json["icons"] as? [[String: String]]
-						else {
-							completionHandler(nil)
-							return
-						}
-
-						let iconStructs = icons.compactMap { WebAppManifestIcon($0) }
-
-						// TODO: Instead of picking the largest one, we should download all and add them as representations to a single `NSImage`.
-						guard
-							let largestIcon = (iconStructs.max { ($0.size?.width ?? 0) < ($1.size?.width ?? 0) })
-						else {
-							completionHandler(nil)
-							return
-						}
-
-						self.getImage(largestIcon.url, completionHandler: completionHandler)
-					} catch {
+				URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
+					guard
+						let self = self,
+						let data = data
+					else {
 						completionHandler(nil)
+						return
+					}
+
+					DispatchQueue.main.async {
+						do {
+							guard
+								let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+								let icons = json["icons"] as? [[String: String]]
+							else {
+								completionHandler(nil)
+								return
+							}
+
+							let iconStructs = icons.compactMap { WebAppManifestIcon($0) }
+
+							// TODO: Instead of picking the largest one, we should download all and add them as representations to a single `NSImage`.
+							guard
+								let largestIcon = (iconStructs.max { ($0.size?.width ?? 0) < ($1.size?.width ?? 0) })
+							else {
+								completionHandler(nil)
+								return
+							}
+
+							self.getImage(largestIcon.url, completionHandler: completionHandler)
+						} catch {
+							completionHandler(nil)
+						}
 					}
 				}
+					.resume()
 			}
-				.resume()
 		}
 	}
 
 	private func getFromLinkIcon(completionHandler: @escaping (NSImage?) -> Void) {
 		// TODO: There can be multiple of this one, some with larger sizes specified in a `sizes` prop.
+		// The `~` is because of the `shortcut` link type, which is often seen before icon, but this link type is non-conforming, ignored and web authors must not use it anymore: https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types
 		let code =
 			"""
-			document.querySelector('link[rel="icon"]').href
+			document.querySelector('link[rel~="icon"]').href
 			"""
 
-		webView.evaluateJavaScript(code) { [weak self] value, _ in
-			guard
-				let self = self,
-				let urlString = value as? String,
-				let url = URL(string: urlString)
-			else {
-				completionHandler(nil)
-				return
-			}
+		DispatchQueue.main.async { [weak self] in
+			self?.webView.evaluateJavaScript(code) { [weak self] value, _ in
+				guard
+					let self = self,
+					let urlString = value as? String,
+					let url = URL(string: urlString)
+				else {
+					completionHandler(nil)
+					return
+				}
 
-			self.getImage(url, completionHandler: completionHandler)
+				self.getImage(url, completionHandler: completionHandler)
+			}
 		}
 	}
 
@@ -4506,17 +4525,19 @@ final class WebsiteIconFetcher: NSObject {
 			new URL(document.querySelector('meta[itemprop="image"]').content, document.baseURI).toString()
 			"""
 
-		webView.evaluateJavaScript(code) { [weak self] value, _ in
-			guard
-				let self = self,
-				let urlString = value as? String,
-				let url = URL(string: urlString)
-			else {
-				completionHandler(nil)
-				return
-			}
+		DispatchQueue.main.async { [weak self] in
+			self?.webView.evaluateJavaScript(code) { [weak self] value, _ in
+				guard
+					let self = self,
+					let urlString = value as? String,
+					let url = URL(string: urlString)
+				else {
+					completionHandler(nil)
+					return
+				}
 
-			self.getImage(url, completionHandler: completionHandler)
+				self.getImage(url, completionHandler: completionHandler)
+			}
 		}
 	}
 

@@ -48,12 +48,14 @@ final class DesktopWindow: NSWindow {
 		self.level = .desktop
 		self.isRestorable = false
 		self.canHide = false
+		self.displaysWhenScreenProfileChanges = true
 		self.collectionBehavior = [
 			.stationary,
 			.ignoresCycle,
 			.fullScreenNone // This ensures that if Plash is launched while an app is fullscreen (fullscreen is a separate space), it will not show behind that app and instead show in the primary space.
 		]
 
+		disableSnapshotRestoration()
 		setFrame()
 
 		NSScreen.publisher
