@@ -45,6 +45,8 @@ You can interact with the website by enabling “Browsing Mode”. When in this 
 
 Plash injects a CSS class named “plash-is-browsing-mode” on the “html” element while browsing mode is active. You could use this class to customize the website for browsing mode.
 
+If clicking a link opens it in a new window, you can hold the Option key while clicking the link to open it in the main Plash window.
+
 ‣ Zoom in website
 
 To zoom in the website, activate “Browsing Mode”, right-click the website, and then select “Zoom In”.
