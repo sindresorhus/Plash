@@ -62,9 +62,9 @@ final class WebViewController: NSViewController {
 				)
 			}
 
-			// Google Sheets shows an error message when we use the Safari user agent.
+			// Google Sheets shows an error message when we use the Safari or Chrome user agent.
 			if website.url.host == "docs.google.com" {
-				webView.customUserAgent = SSWebView.chromeUserAgent
+				webView.customUserAgent = ""
 			}
 		}
 
