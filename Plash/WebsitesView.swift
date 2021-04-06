@@ -175,11 +175,13 @@ struct WebsitesView: View {
 				)
 				.padding()
 				.padding(.vertical, 4)
-			Text("Right-click to edit. Drag and drop to reorder.")
-				.font(.system(size: 10))
-				.foregroundColor(.secondary)
-				.padding(.bottom, 20)
-				.padding(.top, -8)
+			if !websites.isEmpty {
+				Text("Right-click to edit. Drag and drop to reorder.")
+					.font(.system(size: 10))
+					.foregroundColor(.secondary)
+					.padding(.bottom, 20)
+					.padding(.top, -8)
+			}
 		}
 			.frame(
 				width: 420,
