@@ -2954,6 +2954,37 @@ extension Error {
 }
 
 
+extension Error {
+	// Check if the error is a WKWebView `Plug-in handled load` error, which can happen when you open a video directly. It's more like a notification and it can be safely ignored.
+	var isWebViewPluginHandledLoad: Bool {
+		let nsError = self as NSError
+		return nsError.domain == "WebKitErrorDomain" && nsError.code == 204
+	}
+}
+
+
+extension Error {
+	var isCancelled: Bool {
+		do {
+			throw self
+		} catch URLError.cancelled, CocoaError.userCancelled {
+			return true
+		} catch {
+			return false
+		}
+	}
+}
+
+
+extension WKWebView {
+	/// Returns `true` if the error can be ignored.
+	static func canIgnoreError(_ error: Error) -> Bool {
+		// Ignore the request being cancelled which can happen if the user clicks on a link while a website is loading.
+		error.isCancelled || error.isWebViewPluginHandledLoad
+	}
+}
+
+
 /**
 Creates a window controller that can only ever have one window.
 

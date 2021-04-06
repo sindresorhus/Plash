@@ -100,6 +100,11 @@ final class WebViewController: NSViewController {
 		// TODO: A minor improvement would be to inject this on `DOMContentLoaded` using `WKScriptMessageHandler`.
 		webView.toggleBrowsingModeClass()
 
+		if let error = error, WKWebView.canIgnoreError(error) {
+			onLoaded?(nil)
+			return
+		}
+
 		onLoaded?(error)
 	}
 }
@@ -144,26 +149,10 @@ extension WebViewController: WKNavigationDelegate {
 	}
 
 	func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-		let nsError = error as NSError
-
-		// Ignore `Plug-in handled load` error which can happen when you open a video directly.
-		if nsError.domain == "WebKitErrorDomain", nsError.code == 204 {
-			internalOnLoaded(nil)
-			return
-		}
-
-		// Ignore the request being cancelled which can happen if the user clicks on a link while a website is loading.
-		if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
-			internalOnLoaded(nil)
-			return
-		}
-
-		print("Web View - Navigation error:", error)
 		internalOnLoaded(error)
 	}
 
 	func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-		print("Web View - Content load error:", error)
 		internalOnLoaded(error)
 	}
 }
