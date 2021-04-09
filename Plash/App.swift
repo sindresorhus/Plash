@@ -104,6 +104,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 		setUpEvents()
 		showWelcomeScreenIfNeeded()
+		SSApp.requestReviewAfterBeingCalledThisManyTimes([10, 100, 500])
 
 		SSApp.runOnce(identifier: "plashVersion2WelcomeScreen") {
 			guard !SSApp.isFirstLaunch else {

@@ -6,6 +6,7 @@ import Combine
 import Network
 import SystemConfiguration
 import CryptoKit
+import StoreKit
 import Defaults
 
 
@@ -4683,5 +4684,43 @@ extension View {
 				RoundedRectangle(cornerRadius: cornerRadius.cgFloat, style: cornerStyle)
 					.strokeBorder(color, lineWidth: lineWidth.cgFloat)
 			)
+	}
+}
+
+
+extension Numeric {
+	mutating func increment(by value: Self = 1) -> Self {
+		self += value
+		return self
+	}
+
+	mutating func decrement(by value: Self = 1) -> Self {
+		self -= value
+		return self
+	}
+
+	func incremented(by value: Self = 1) -> Self {
+		self + value
+	}
+
+	func decremented(by value: Self = 1) -> Self {
+		self - value
+	}
+}
+
+
+extension SSApp {
+	private static let key = Defaults.Key("SSApp_requestReview", default: 0)
+
+	/// Requests a review only after this method has been called the given amount of times.
+	static func requestReviewAfterBeingCalledThisManyTimes(_ counts: [Int]) {
+		guard
+			!SSApp.isFirstLaunch,
+			counts.contains(Defaults[key].increment())
+		else {
+			return
+		}
+
+		SKStoreReviewController.requestReview()
 	}
 }
