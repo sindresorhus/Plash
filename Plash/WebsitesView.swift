@@ -161,7 +161,7 @@ struct WebsitesView: View {
 						OS.isMacOSBigSurOrLater
 							? Color.primary
 								.opacity(0.04)
-								.border(Color.primary.opacity(0.07), width: 1, cornerRadius: 6, cornerStyle: .continuous)
+								.border(.primary.opacity(0.07), width: 1, cornerRadius: 6, cornerStyle: .continuous)
 								.padding(.vertical, 6)
 							: nil
 					)

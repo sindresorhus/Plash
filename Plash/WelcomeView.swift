@@ -28,7 +28,7 @@ extension AppDelegate {
 			title: "Feedback Welcome 🙌🏻",
 			message:
 				"""
-				If you have any feedback, bug reports, or feature requests, use the feedback button in the app. We respond to all submissions.
+				If you have any feedback, bug reports, or feature requests, use the feedback button in the app. I quickly respond to all submissions.
 				""",
 			buttonTitles: [
 				"Get Started"

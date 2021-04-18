@@ -25,9 +25,7 @@ struct AddWebsiteView: View {
 					.buttonStyle(LinkButtonStyle())
 			}
 			Spacer()
-			Button("More ideas") {
-				"https://github.com/sindresorhus/Plash/issues/1".openUrl()
-			}
+			Link2("More ideas", destination: "https://github.com/sindresorhus/Plash/issues/1")
 				.buttonStyle(LinkButtonStyle())
 		}
 			.box()
@@ -75,6 +73,9 @@ struct AddWebsiteView: View {
 						// TODO: Report to Apple. Still an issue on macOS 12.
 						text: $urlString.setMap(\.removingNewlines)
 					)
+						.textFieldStyle(RoundedBorderTextFieldStyle())
+						// TODO: When targeting macOS 11.
+//						.controlSize(.large)
 						.lineLimit(1)
 						.padding(.vertical)
 					Button("Local Website…") {

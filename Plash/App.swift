@@ -15,6 +15,7 @@ TODO: When targeting macOS 11:
 - Switch out `CocoaButton` with `Button`.
 - Switch all `evaluatejavascript` to the version with the `in:` parameter.
 - Get rid of `.help2()`.
+- Move the keyboard shortcuts settings to a separate tab.
 */
 
 @main
@@ -58,7 +59,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			} else {
 				// TODO: Properly unload the web view instead of just clearing and hiding it.
 				desktopWindow.orderOut(self)
-				loadURL(URL("about:blank"))
+				loadURL("about:blank")
 			}
 		}
 	}

@@ -542,6 +542,19 @@ extension String {
 }
 
 
+extension URL: ExpressibleByStringLiteral {
+	/**
+	Example:
+
+	```
+	let url: URL = "https://sindresorhus.com"
+	```
+	*/
+	public init(stringLiteral value: StaticString) {
+		self.init(string: "\(value)")!
+	}
+}
+
 extension URL {
 	/**
 	Example:
@@ -2120,7 +2133,7 @@ private struct BoxModifier: ViewModifier {
 	func body(content: Content) -> some View {
 		content
 			.padding()
-			.background(Color.primary.opacity(0.05))
+			.backgroundColor(.primary.opacity(0.05))
 			.cornerRadius(4)
 	}
 }
@@ -2137,6 +2150,14 @@ extension View {
 	func multilineText() -> some View {
 		lineLimit(nil)
 			.fixedSize(horizontal: false, vertical: true)
+	}
+}
+
+
+extension View {
+	@inlinable
+	func backgroundColor(_ color: Color) -> some View {
+		background(color)
 	}
 }
 
@@ -4327,14 +4348,8 @@ The content has automatic padding.
 struct InfoPopoverButton<Content: View>: View {
 	@State private var isPopoverPresented = false
 
-	private let maxWidth: Double?
-	private let content: Content
-
-	// Remove initializer when Swift 5.4 is out as `@ViewBuilder` can be moved to the property.
-	init(@ViewBuilder content: () -> Content) {
-		self.content = content()
-		self.maxWidth = nil
-	}
+	var maxWidth: Double?
+	@ViewBuilder let content: Content
 
 	var body: some View {
 		CocoaButton("", bezelStyle: .helpButton) {
@@ -4722,5 +4737,24 @@ extension SSApp {
 		}
 
 		SKStoreReviewController.requestReview()
+	}
+}
+
+
+/// Polyfill for `Link`.
+/// `Link` also doesn't work in `Menu` on macOS yet (macOS 11.0.1).
+struct Link2: View {
+	let title: String
+	let destination: URL
+
+	init(_ title: String, destination: URL) {
+		self.title = title
+		self.destination = destination
+	}
+
+	var body: some View {
+		Button(title) {
+			destination.open()
+		}
 	}
 }

@@ -62,24 +62,24 @@ extension AppDelegate {
 
 		menu.addUrlItem(
 			"Website",
-			url: URL("https://sindresorhus.com/plash")
+			url: "https://sindresorhus.com/plash"
 		)
 
 		menu.addUrlItem(
 			"Roadmap",
-			url: URL("https://github.com/sindresorhus/Plash/issues")
+			url: "https://github.com/sindresorhus/Plash/issues"
 		)
 
 		menu.addUrlItem(
 			"Examples",
-			url: URL("https://github.com/sindresorhus/Plash/issues/1")
+			url: "https://github.com/sindresorhus/Plash/issues/1"
 		)
 
 		menu.addSeparator()
 
 		menu.addUrlItem(
 			"Rate on the App Store",
-			url: URL("macappstore://apps.apple.com/app/id1494023538?action=write-review")
+			url: "macappstore://apps.apple.com/app/id1494023538?action=write-review"
 		)
 
 		menu.addMoreAppsItem()
