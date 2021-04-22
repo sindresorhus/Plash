@@ -72,33 +72,43 @@ final class WebViewController: NSViewController {
 	}
 
 	func recreateWebView() {
-		webView = createWebView()
-		view = webView
+		webView2 = createWebView()
+    webView2.isHidden = true
 	}
 
 	lazy var webView = createWebView()
+  lazy var webView2 = createWebView()
 
 	override func loadView() {
 		view = webView
 	}
 
 	// TODO: When Swift 6 is out, make this async and throw instead of using `onLoaded` handler.
-	func loadURL(_ url: URL) {
+	func loadURL(_ url: URL, _ onWebView2: Bool = false) {
 		guard !url.isFileURL else {
 			_ = url.accessSandboxedURLByPromptingIfNeeded()
-			webView.loadFileURL(url.appendingPathComponent("index.html", isDirectory: false), allowingReadAccessTo: url)
+      if onWebView2 {
+				webView2.loadFileURL(url.appendingPathComponent("index.html", isDirectory: false), allowingReadAccessTo: url)
+			} else {
+				webView.loadFileURL(url.appendingPathComponent("index.html", isDirectory: false), allowingReadAccessTo: url)
+			}
 
 			return
 		}
 
 		var request = URLRequest(url: url)
 		request.cachePolicy = .reloadIgnoringLocalCacheData
-		webView.load(request)
+    if onWebView2 {
+			webView2.load(request)
+		} else {
+			webView.load(request)
+		}
 	}
 
 	private func internalOnLoaded(_ error: Error?) {
 		// TODO: A minor improvement would be to inject this on `DOMContentLoaded` using `WKScriptMessageHandler`.
 		webView.toggleBrowsingModeClass()
+    webView2.toggleBrowsingModeClass()
 
 		if let error = error, WKWebView.canIgnoreError(error) {
 			onLoaded?(nil)

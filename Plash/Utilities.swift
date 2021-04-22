@@ -64,6 +64,33 @@ extension NSWindow.Level {
 	static let maximum = level(for: .maximumWindow)
 }
 
+extension NSView {
+	static func animate(duration: TimeInterval = 1, delay: TimeInterval = 0,
+		timingFunction: CAMediaTimingFunction, animations: @escaping (() -> Void),
+		completion: (() -> Void)? = nil) {
+			DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+				NSAnimationContext.runAnimationGroup({ context in
+					context.allowsImplicitAnimation = true
+					context.duration = duration
+					context.timingFunction = timingFunction
+					animations()
+				}, completionHandler: completion)
+			}
+		}
+
+	func fadeInOut(duration: TimeInterval = 1, delay: TimeInterval = 0, toHidden: Bool, completion: (() -> Void)? = nil) {
+		NSView.animate(
+			duration: duration,
+			delay: delay,
+			timingFunction: CAMediaTimingFunction(name: .easeIn),
+			animations: {
+				self.isHidden = toHidden
+			},
+			completion: completion
+		)
+	}
+}
+
 
 final class SSMenu: NSMenu, NSMenuDelegate {
 	var onOpen: (() -> Void)?

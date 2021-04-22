@@ -152,7 +152,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
 	func recreateWebView() {
 		webViewController.recreateWebView()
-		desktopWindow.contentView = webViewController.webView
 	}
 
 	func recreateWebViewAndReload() {
@@ -190,13 +189,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 			recreateWebView()
 		}
 
-		webViewController.loadURL(url)
-
-		// TODO: Add a callback to `loadURL` when it's done loading instead.
-		// TODO: Fade in the web view.
-		delay(seconds: 1) { [self] in
-			desktopWindow.contentView?.isHidden = false
-		}
+		webViewController.loadURL(url, true)
 	}
 
 	/**
