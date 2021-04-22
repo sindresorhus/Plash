@@ -6,7 +6,7 @@ final class WebViewController: NSViewController {
 	private var popupWindow: NSWindow?
 
 	/// Closure to call when the web view finishes loading a page.
-	var onLoaded: ((Error?) -> Void)?
+	var onLoaded: ((Error?, Bool) -> Void)?
 
 	var response: HTTPURLResponse?
 
@@ -78,6 +78,7 @@ final class WebViewController: NSViewController {
 
 	lazy var webView = createWebView()
   lazy var webView2 = createWebView()
+	var loadedOnWebView2 = false
 
 	override func loadView() {
 		view = webView
@@ -85,6 +86,7 @@ final class WebViewController: NSViewController {
 
 	// TODO: When Swift 6 is out, make this async and throw instead of using `onLoaded` handler.
 	func loadURL(_ url: URL, _ onWebView2: Bool = false) {
+		loadedOnWebView2 = onWebView2
 		guard !url.isFileURL else {
 			_ = url.accessSandboxedURLByPromptingIfNeeded()
 			if onWebView2 {
@@ -111,11 +113,13 @@ final class WebViewController: NSViewController {
 		webView2.toggleBrowsingModeClass()
 
 		if let error = error, WKWebView.canIgnoreError(error) {
-			onLoaded?(nil)
+			onLoaded?(nil, loadedOnWebView2)
+			loadedOnWebView2 = false
 			return
 		}
 
-		onLoaded?(error)
+		onLoaded?(error, loadedOnWebView2)
+		loadedOnWebView2 = false
 	}
 }
 

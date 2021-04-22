@@ -8,27 +8,29 @@ extension AppDelegate {
 			updateMenu()
 		}
 
-		webViewController.onLoaded = { [self] error in
+		webViewController.onLoaded = { [self] (error, loadedOnWebView2) in
 			webViewError = error
 
-			DispatchQueue.main.asyncAfter(deadline: .now()) {
-				desktopWindow.contentView?.alphaValue = 1
-				NSView.animate(
-					duration: 0.5,
-					delay: 0,
-					timingFunction: CAMediaTimingFunction(name: .easeOut),
-					animations: {
-						desktopWindow.contentView?.alphaValue = 0
-					},
-					completion: {
-						webViewController.view.isHidden = true
-						webViewController.webView = webViewController.webView2
-						webViewController.view = webViewController.webView
-						desktopWindow.contentView = webViewController.view
-						desktopWindow.contentView?.isHidden = true
-						desktopWindow.contentView?.fadeInOut(duration: 0.5, delay: 0, toHidden: false)
-					}
-				)
+			if loadedOnWebView2 {
+				DispatchQueue.main.asyncAfter(deadline: .now()) {
+					desktopWindow.contentView?.alphaValue = 1
+					NSView.animate(
+						duration: 0.5,
+						delay: 0,
+						timingFunction: CAMediaTimingFunction(name: .easeOut),
+						animations: {
+							desktopWindow.contentView?.alphaValue = 0
+						},
+						completion: {
+							webViewController.view.isHidden = true
+							webViewController.webView = webViewController.webView2
+							webViewController.view = webViewController.webView
+							desktopWindow.contentView = webViewController.view
+							desktopWindow.contentView?.isHidden = true
+							desktopWindow.contentView?.fadeInOut(duration: 0.5, delay: 0, toHidden: false)
+						}
+					)
+				}
 			}
 
 			guard error == nil else {
