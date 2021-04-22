@@ -73,7 +73,7 @@ final class WebViewController: NSViewController {
 
 	func recreateWebView() {
 		webView2 = createWebView()
-    webView2.isHidden = true
+		webView2.isHidden = true
 	}
 
 	lazy var webView = createWebView()
@@ -87,7 +87,7 @@ final class WebViewController: NSViewController {
 	func loadURL(_ url: URL, _ onWebView2: Bool = false) {
 		guard !url.isFileURL else {
 			_ = url.accessSandboxedURLByPromptingIfNeeded()
-      if onWebView2 {
+			if onWebView2 {
 				webView2.loadFileURL(url.appendingPathComponent("index.html", isDirectory: false), allowingReadAccessTo: url)
 			} else {
 				webView.loadFileURL(url.appendingPathComponent("index.html", isDirectory: false), allowingReadAccessTo: url)
@@ -98,7 +98,7 @@ final class WebViewController: NSViewController {
 
 		var request = URLRequest(url: url)
 		request.cachePolicy = .reloadIgnoringLocalCacheData
-    if onWebView2 {
+		if onWebView2 {
 			webView2.load(request)
 		} else {
 			webView.load(request)
@@ -108,7 +108,7 @@ final class WebViewController: NSViewController {
 	private func internalOnLoaded(_ error: Error?) {
 		// TODO: A minor improvement would be to inject this on `DOMContentLoaded` using `WKScriptMessageHandler`.
 		webView.toggleBrowsingModeClass()
-    webView2.toggleBrowsingModeClass()
+		webView2.toggleBrowsingModeClass()
 
 		if let error = error, WKWebView.canIgnoreError(error) {
 			onLoaded?(nil)
