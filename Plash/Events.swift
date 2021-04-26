@@ -8,10 +8,10 @@ extension AppDelegate {
 			updateMenu()
 		}
 
-		webViewController.onLoaded = { [self] (error, loadedOnWebView2) in
+		webViewController.onLoaded = { [self] (error, loadedInBackground) in
 			webViewError = error
 
-			if loadedOnWebView2 {
+			if loadedInBackground {
 				DispatchQueue.main.asyncAfter(deadline: .now()) {
 					desktopWindow.contentView?.alphaValue = 1
 					NSView.animate(
@@ -23,7 +23,7 @@ extension AppDelegate {
 						},
 						completion: {
 							webViewController.view.isHidden = true
-							webViewController.webView = webViewController.webView2
+							webViewController.webView = webViewController.backgroundWebView
 							webViewController.view = webViewController.webView
 							desktopWindow.contentView = webViewController.view
 							desktopWindow.contentView?.isHidden = true

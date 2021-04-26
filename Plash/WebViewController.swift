@@ -72,13 +72,13 @@ final class WebViewController: NSViewController {
 	}
 
 	func recreateWebView() {
-		webView2 = createWebView()
-		webView2.isHidden = true
+		backgroundWebView = createWebView()
+		backgroundWebView.isHidden = true
 	}
 
 	lazy var webView = createWebView()
-  lazy var webView2 = createWebView()
-	var loadedOnWebView2 = false
+	lazy var backgroundWebView = createWebView()
+	var loadInBackground = false
 
 	override func loadView() {
 		view = webView
@@ -86,40 +86,38 @@ final class WebViewController: NSViewController {
 
 	// TODO: When Swift 6 is out, make this async and throw instead of using `onLoaded` handler.
 	func loadURL(_ url: URL, _ onWebView2: Bool = false) {
-		loadedOnWebView2 = onWebView2
+		loadInBackground = inBackground
+		if loadInBackground {
+			internalLoadURL(url, backgroundWebView)
+		} else {
+			internalLoadURL(url, webView)
+		}
+	}
+
+	func internalLoadURL(_ url: URL, _ webview: SSWebView) {
 		guard !url.isFileURL else {
 			_ = url.accessSandboxedURLByPromptingIfNeeded()
-			if onWebView2 {
-				webView2.loadFileURL(url.appendingPathComponent("index.html", isDirectory: false), allowingReadAccessTo: url)
-			} else {
-				webView.loadFileURL(url.appendingPathComponent("index.html", isDirectory: false), allowingReadAccessTo: url)
-			}
-
+			webview.loadFileURL(url.appendingPathComponent("index.html", isDirectory: false), allowingReadAccessTo: url)
 			return
 		}
 
 		var request = URLRequest(url: url)
 		request.cachePolicy = .reloadIgnoringLocalCacheData
-		if onWebView2 {
-			webView2.load(request)
-		} else {
-			webView.load(request)
-		}
+		webview.load(request)
 	}
 
-	private func internalOnLoaded(_ error: Error?) {
+	private func internalOnLoaded(_ error: Error?, _ webview: SSWebView) {
 		// TODO: A minor improvement would be to inject this on `DOMContentLoaded` using `WKScriptMessageHandler`.
-		webView.toggleBrowsingModeClass()
-		webView2.toggleBrowsingModeClass()
+		webview.toggleBrowsingModeClass()
 
 		if let error = error, WKWebView.canIgnoreError(error) {
-			onLoaded?(nil, loadedOnWebView2)
-			loadedOnWebView2 = false
-			return
+			onLoaded?(nil, loadInBackground)
+		} else {
+			onLoaded?(error, loadInBackground)
 		}
 
-		onLoaded?(error, loadedOnWebView2)
-		loadedOnWebView2 = false
+		// clear flag
+		loadInBackground = false
 	}
 }
 
@@ -159,15 +157,15 @@ extension WebViewController: WKNavigationDelegate {
 	func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
 		webView.centerAndAspectFillImage(mimeType: response?.mimeType)
 
-		internalOnLoaded(nil)
+		internalOnLoaded(nil, webView as! SSWebView)
 	}
 
 	func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-		internalOnLoaded(error)
+		internalOnLoaded(error, webView as! SSWebView)
 	}
 
 	func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-		internalOnLoaded(error)
+		internalOnLoaded(error, webView as! SSWebView)
 	}
 }
 
