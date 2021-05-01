@@ -50,7 +50,7 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 
 ## Download
 
-[![](https://linkmaker.itunes.apple.com/assets/shared/badges/en-us/macappstore-lrg.svg)](https://apps.apple.com/app/id1494023538)
+[![](https://tools.applemediaservices.com/api/badges/download-on-the-mac-app-store/black/en-us?size=250x83&releaseDate=1615852800)](https://apps.apple.com/app/id1494023538)
 
 Requires macOS 10.15 or later.
 
