@@ -1,12 +1,14 @@
 import Cocoa
+import Combine
 import WebKit
 import Defaults
 
 final class WebViewController: NSViewController {
 	private var popupWindow: NSWindow?
+	private let didLoadSubject = PassthroughSubject<Void, Error>()
 
-	/// Closure to call when the web view finishes loading a page.
-	var onLoaded: ((Error?) -> Void)?
+	/// Publishes when the web view finishes loading a page.
+	lazy var didLoadPublisher = didLoadSubject.eraseToAnyPublisher()
 
 	var response: HTTPURLResponse?
 
@@ -76,7 +78,7 @@ final class WebViewController: NSViewController {
 		view = webView
 	}
 
-	lazy var webView = createWebView()
+	private(set) lazy var webView = createWebView()
 
 	override func loadView() {
 		view = webView
@@ -100,12 +102,17 @@ final class WebViewController: NSViewController {
 		// TODO: A minor improvement would be to inject this on `DOMContentLoaded` using `WKScriptMessageHandler`.
 		webView.toggleBrowsingModeClass()
 
-		if let error = error, WKWebView.canIgnoreError(error) {
-			onLoaded?(nil)
+		if let error = error {
+			guard WKWebView.canIgnoreError(error) else {
+				didLoadSubject.send()
+				return
+			}
+
+			didLoadSubject.send(completion: .failure(error))
 			return
 		}
 
-		onLoaded?(error)
+		didLoadSubject.send()
 	}
 }
 

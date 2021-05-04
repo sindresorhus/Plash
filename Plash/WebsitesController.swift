@@ -2,28 +2,6 @@ import SwiftUI
 import Combine
 import Defaults
 
-struct Website: Hashable, Codable, Identifiable {
-	let id: UUID
-	var isCurrent: Bool
-	var url: URL
-	var invertColors: Bool
-	var usePrintStyles: Bool
-	var css = ""
-	var javaScript = ""
-
-	var title: String { url.humanString }
-
-	var thumbnailCacheKey: String { url.isFileURL ? url.tildePath : (url.host ?? "") }
-
-	func makeCurrent() {
-		WebsitesController.shared.current = self
-	}
-
-	func remove() {
-		WebsitesController.shared.remove(self)
-	}
-}
-
 final class WebsitesController {
 	static let shared = WebsitesController()
 
@@ -58,6 +36,8 @@ final class WebsitesController {
 		}
 	}
 
+	let allBinding = Defaults.bindingCollection(for: .websites)
+
 	init() {
 		setUpEvents()
 		thumbnailCache.prewarmCacheFromDisk(for: all.map(\.thumbnailCacheKey))
@@ -85,10 +65,13 @@ final class WebsitesController {
 	}
 
 	/// Add a website.
-	func add(_ website: Website) {
+	@discardableResult
+	func add(_ website: Website) -> Binding<Website> {
 		// The order here is important.
 		all.append(website)
 		current = website
+
+		return allBinding[id: website.id]!
 	}
 
 	/// Remove a website.

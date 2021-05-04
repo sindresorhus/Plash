@@ -16,6 +16,7 @@ TODO: When targeting macOS 11:
 - Switch all `evaluatejavascript` to the version with the `in:` parameter.
 - Get rid of `.help2()`.
 - Move the keyboard shortcuts settings to a separate tab.
+- Scroll to bottom when adding a website.
 */
 
 @main
@@ -25,18 +26,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	let menu = SSMenu()
 	let powerSourceWatcher = PowerSourceWatcher()
 
-	lazy var statusItem = with(NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)) {
+	private(set) lazy var statusItem = with(NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)) {
 		$0.isVisible = true
 		$0.behavior = [.removalAllowed, .terminationOnRemoval]
 		$0.menu = menu
 		$0.button?.image = Constants.menuBarIcon
 	}
 
-	lazy var statusItemButton = statusItem.button!
+	private(set) lazy var statusItemButton = statusItem.button!
 
-	lazy var webViewController = WebViewController()
+	private(set) lazy var webViewController = WebViewController()
 
-	lazy var desktopWindow = with(DesktopWindow(screen: Defaults[.display].screen)) {
+	private(set) lazy var desktopWindow = with(DesktopWindow(screen: Defaults[.display].screen)) {
 		$0.contentView = webViewController.webView
 		$0.contentView?.isHidden = true
 	}

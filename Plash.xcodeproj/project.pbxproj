@@ -30,9 +30,9 @@
 		E3959394247B986A0064CABE /* AppCenterCrashes in Frameworks */ = {isa = PBXBuildFile; productRef = E3959393247B986A0064CABE /* AppCenterCrashes */; };
 		E3C4E281251540F7007A6078 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = E3C4E280251540F7007A6078 /* LaunchAtLogin */; };
 		E3EC5A86250D7A0C00ABE1A1 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3EC5A85250D7A0C00ABE1A1 /* WelcomeView.swift */; };
-		E3F11BEC2386824D005EFD26 /* AddWebsiteWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F11BEB2386824D005EFD26 /* AddWebsiteWindowController.swift */; };
 		E3F11BEE2386828C005EFD26 /* SettingsWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3F11BED2386828C005EFD26 /* SettingsWindowController.swift */; };
 		E3FA21AD23C74E6B00059E43 /* InternetAccessPolicy.json in Resources */ = {isa = PBXBuildFile; fileRef = E3FA21AC23C74E6B00059E43 /* InternetAccessPolicy.json */; };
+		E3FAF815264333D300CF7963 /* Website.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3FAF814264333D300CF7963 /* Website.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -58,9 +58,9 @@
 		E384F27F24C3B37E002FD21B /* Events.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Events.swift; sourceTree = "<group>"; };
 		E384F28124C3B3CD002FD21B /* Menus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Menus.swift; sourceTree = "<group>"; };
 		E3EC5A85250D7A0C00ABE1A1 /* WelcomeView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = WelcomeView.swift; sourceTree = "<group>"; usesTabs = 1; };
-		E3F11BEB2386824D005EFD26 /* AddWebsiteWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = AddWebsiteWindowController.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E3F11BED2386828C005EFD26 /* SettingsWindowController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = SettingsWindowController.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E3FA21AC23C74E6B00059E43 /* InternetAccessPolicy.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; lineEnding = 0; path = InternetAccessPolicy.json; sourceTree = "<group>"; usesTabs = 1; };
+		E3FAF814264333D300CF7963 /* Website.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Website.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -105,13 +105,13 @@
 				E384F27F24C3B37E002FD21B /* Events.swift */,
 				E384F28124C3B3CD002FD21B /* Menus.swift */,
 				E354443B2607505100CA060F /* WebsitesController.swift */,
+				E3FAF814264333D300CF7963 /* Website.swift */,
 				E32421462384EB4E00D28A91 /* DesktopWindow.swift */,
 				E30FD88823C4515200C716E9 /* SSWebView.swift */,
 				E32421592384FBE500D28A91 /* WebViewController.swift */,
-				E3F11BEB2386824D005EFD26 /* AddWebsiteWindowController.swift */,
-				E32421352384E9D700D28A91 /* AddWebsiteView.swift */,
 				E354442B26062D2A00CA060F /* WebsitesWindowController.swift */,
 				E354442E26062D6300CA060F /* WebsitesView.swift */,
+				E32421352384E9D700D28A91 /* AddWebsiteView.swift */,
 				E3F11BED2386828C005EFD26 /* SettingsWindowController.swift */,
 				E333EB1A2385244E005FCE44 /* SettingsView.swift */,
 				E3EC5A85250D7A0C00ABE1A1 /* WelcomeView.swift */,
@@ -273,7 +273,6 @@
 				E32421362384E9D700D28A91 /* AddWebsiteView.swift in Sources */,
 				E384F28024C3B37E002FD21B /* Events.swift in Sources */,
 				E384F28224C3B3CD002FD21B /* Menus.swift in Sources */,
-				E3F11BEC2386824D005EFD26 /* AddWebsiteWindowController.swift in Sources */,
 				E324215A2384FBE500D28A91 /* WebViewController.swift in Sources */,
 				E32421342384E9D700D28A91 /* App.swift in Sources */,
 				E354443426064D8300CA060F /* AppState.swift in Sources */,
@@ -282,6 +281,7 @@
 				E3F11BEE2386828C005EFD26 /* SettingsWindowController.swift in Sources */,
 				E30FD88923C4515200C716E9 /* SSWebView.swift in Sources */,
 				E32421562384F09D00D28A91 /* Constants.swift in Sources */,
+				E3FAF815264333D300CF7963 /* Website.swift in Sources */,
 				E354442C26062D2A00CA060F /* WebsitesWindowController.swift in Sources */,
 				E333EB1B2385244E005FCE44 /* SettingsView.swift in Sources */,
 				E354442F26062D6300CA060F /* WebsitesView.swift in Sources */,

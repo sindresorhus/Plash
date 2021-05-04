@@ -66,19 +66,16 @@ extension NSWindow.Level {
 
 
 final class SSMenu: NSMenu, NSMenuDelegate {
-	var onOpen: (() -> Void)?
-	var onClose: (() -> Void)?
-	var onUpdate: ((NSMenu) -> Void)? {
-		didSet {
-			// Need to update it here, otherwise it's
-			// positioned incorrectly on the first open.
-			onUpdate?(self)
-		}
-	}
+	private let isOpenSubject = CurrentValueSubject<Bool, Never>(false)
+	private let needsUpdateSubject = PassthroughSubject<Void, Never>()
 
 	private(set) var isOpen = false
+	let isOpenPublisher: AnyPublisher<Bool, Never>
+	let needsUpdatePublisher: AnyPublisher<Void, Never>
 
 	override init(title: String) {
+		self.isOpenPublisher = isOpenSubject.eraseToAnyPublisher()
+		self.needsUpdatePublisher = needsUpdateSubject.eraseToAnyPublisher()
 		super.init(title: title)
 		self.delegate = self
 		self.autoenablesItems = false
@@ -91,16 +88,16 @@ final class SSMenu: NSMenu, NSMenuDelegate {
 
 	func menuWillOpen(_ menu: NSMenu) {
 		isOpen = true
-		onOpen?()
+		isOpenSubject.send(true)
 	}
 
 	func menuDidClose(_ menu: NSMenu) {
 		isOpen = false
-		onClose?()
+		isOpenSubject.send(false)
 	}
 
 	func menuNeedsUpdate(_ menu: NSMenu) {
-		onUpdate?(menu)
+		needsUpdateSubject.send()
 	}
 }
 
@@ -953,6 +950,11 @@ extension Binding where Value == Double {
 			set: { $0 * 60 }
 		)
 	}
+}
+
+
+extension Binding: Identifiable where Value: Identifiable {
+	public var id: Value.ID { wrappedValue.id }
 }
 
 
@@ -2187,10 +2189,10 @@ final class PowerSourceWatcher {
 		}
 	}
 
-	private lazy var _didChangePublisher = CurrentValueSubject<PowerSource, Never>(powerSource)
+	private lazy var didChangeSubject = CurrentValueSubject<PowerSource, Never>(powerSource)
 
 	/// Publishes the power source when it changes. It also publishes an initial event.
-	lazy var didChangePublisher = _didChangePublisher.eraseToAnyPublisher()
+	private(set) lazy var didChangePublisher = didChangeSubject.eraseToAnyPublisher()
 
 	var powerSource: PowerSource {
 		let identifier = IOPSGetProvidingPowerSourceType(nil)!.takeRetainedValue() as String
@@ -2214,7 +2216,7 @@ final class PowerSourceWatcher {
 	}
 
 	private func internalOnChange() {
-		_didChangePublisher.send(powerSource)
+		didChangeSubject.send(powerSource)
 	}
 }
 
@@ -4756,5 +4758,324 @@ struct Link2: View {
 		Button(title) {
 			destination.open()
 		}
+	}
+}
+
+
+enum DecodableDefault {}
+
+protocol DecodableDefaultSource {
+	associatedtype Value: Decodable
+	static var defaultValue: Value { get }
+}
+
+extension DecodableDefault {
+	@propertyWrapper
+	struct Wrapper<Source: DecodableDefaultSource> {
+		typealias Value = Source.Value
+		var wrappedValue = Source.defaultValue
+	}
+}
+
+extension DecodableDefault.Wrapper: Decodable {
+	init(from decoder: Decoder) throws {
+		let container = try decoder.singleValueContainer()
+		wrappedValue = try container.decode(Value.self)
+	}
+}
+
+extension KeyedDecodingContainer {
+	func decode<T>(
+		_ type: DecodableDefault.Wrapper<T>.Type,
+		forKey key: Key
+	) throws -> DecodableDefault.Wrapper<T> {
+		try decodeIfPresent(type, forKey: key) ?? .init()
+	}
+}
+
+extension DecodableDefault {
+	typealias Source = DecodableDefaultSource
+	typealias List = Decodable & ExpressibleByArrayLiteral
+	typealias Map = Decodable & ExpressibleByDictionaryLiteral
+	typealias Number = Decodable & AdditiveArithmetic
+
+	enum Sources {
+		enum True: Source {
+			static let defaultValue = true
+		}
+
+		enum False: Source {
+			static let defaultValue = false
+		}
+
+		enum EmptyString: Source {
+			static var defaultValue = ""
+		}
+
+		enum EmptyList<T: List>: Source {
+			static var defaultValue: T { [] }
+		}
+
+		enum EmptyMap<T: Map>: Source {
+			static var defaultValue: T { [:] }
+		}
+
+		enum Zero<T: Number>: Source {
+			static var defaultValue: T { .zero }
+		}
+
+		enum One: Source {
+			static var defaultValue = 1
+		}
+	}
+}
+
+extension DecodableDefault {
+	typealias True = Wrapper<Sources.True>
+	typealias False = Wrapper<Sources.False>
+	typealias EmptyString = Wrapper<Sources.EmptyString>
+	typealias EmptyList<T: List> = Wrapper<Sources.EmptyList<T>>
+	typealias EmptyMap<T: Map> = Wrapper<Sources.EmptyMap<T>>
+	typealias Zero<T: Number> = Wrapper<Sources.Zero<T>>
+	typealias One = Wrapper<Sources.One>
+
+	typealias Custom = Wrapper // Just for readability.
+}
+
+extension DecodableDefault.Wrapper: Equatable where Value: Equatable {}
+extension DecodableDefault.Wrapper: Hashable where Value: Hashable {}
+
+extension DecodableDefault.Wrapper: Identifiable where Value: Identifiable {
+	var id: Value.ID { wrappedValue.id }
+}
+
+extension DecodableDefault.Wrapper: Encodable where Value: Encodable {
+	func encode(to encoder: Encoder) throws {
+		var container = encoder.singleValueContainer()
+		try container.encode(wrappedValue)
+	}
+}
+
+
+extension View {
+	func onNotification(
+		/// Make the view subscribe to the given notification.
+		_ name: Notification.Name,
+		object: AnyObject? = nil,
+		perform action: @escaping (Notification) -> Void
+	) -> some View {
+		onReceive(NotificationCenter.default.publisher(for: name, object: object)) {
+			action($0)
+		}
+	}
+}
+
+
+/// A helper that converts a binding to a collection of elements into a collection of bindings to the individual elements.
+struct BindingCollection<Base: MutableCollection & RandomAccessCollection>: RandomAccessCollection {
+	let base: Binding<Base>
+
+	typealias Element = Binding<Base.Element>
+	typealias Index = Base.Index
+
+	var startIndex: Index { base.wrappedValue.startIndex }
+	var endIndex: Index { base.wrappedValue.endIndex }
+
+	subscript(position: Base.Index) -> Binding<Base.Element> {
+		Binding(
+			get: { base.wrappedValue[position] },
+			set: {
+				var result = base.wrappedValue
+				result[position] = $0
+				base.wrappedValue = result
+			}
+		)
+	}
+
+	func index(before index: Base.Index) -> Base.Index {
+		base.wrappedValue.index(before: index)
+	}
+
+	func index(after index: Base.Index) -> Base.Index {
+		base.wrappedValue.index(after: index)
+	}
+}
+
+extension BindingCollection where Base.Element: Identifiable {
+	/**
+	Get the element with the given `ID` in a collection of `Identifible` elements.
+
+	It assumes there are no duplicates and it will just get the first matching element.
+	*/
+	subscript(id id: Base.Element.ID) -> Binding<Base.Element>? {
+		first { $0.wrappedValue.id == id }
+	}
+}
+
+
+extension Defaults {
+	/// Get a `Binding` for a `Defaults` key.
+	static func binding<Value: Codable>(for key: Key<Value>) -> Binding<Value> {
+		.init(
+			get: { self[key] },
+			set: {
+			   self[key] = $0
+			}
+		)
+	}
+}
+
+extension Defaults {
+	/// Get a `BindingCollection` for a `Defaults` key.
+	static func bindingCollection<Value: Codable>(for key: Key<Value>) -> BindingCollection<Value> where Value: MutableCollection & RandomAccessCollection {
+		.init(base: binding(for: key))
+	}
+}
+
+
+// TODO: Remove when targeting macOS 11.
+extension Binding where Value: Equatable {
+	/**
+	Get notified when the binding value changes to a different one.
+
+	Can be useful to manually update non-reactive properties.
+
+	```
+	Toggle(
+		"Foo",
+		isOn: $foo.onChange {
+			bar.isEnabled = $0
+		}
+	)
+	```
+	*/
+	func onChange(_ action: @escaping (Value) -> Void) -> Self {
+		.init(
+			get: { wrappedValue },
+			set: {
+				let oldValue = wrappedValue
+				wrappedValue = $0
+				let newValue = wrappedValue
+				if newValue != oldValue {
+					action(newValue)
+				}
+			}
+		)
+	}
+}
+
+
+// TODO: Remove when targeting macOS 11.
+@propertyWrapper
+final class MutableBox<Value> {
+	var wrappedValue: Value
+
+	init(wrappedValue: Value) {
+		self.wrappedValue = wrappedValue
+	}
+
+	convenience init(_ wrappedValue: Value) {
+		self.init(wrappedValue: wrappedValue)
+	}
+
+	convenience init<T>() where Value == T? {
+		self.init(nil)
+	}
+}
+
+
+@available(macOS 11, *)
+private struct OnChangeDebouncedViewModifier<Value: Equatable>: ViewModifier {
+	private final class Debouncer: ObservableObject {
+		@Published var debouncedValue: Value
+		private var cancellable: AnyCancellable?
+
+		init(
+			wrappedValue: Value,
+			dueTime: TimeInterval,
+			action: @escaping (Value) -> Void
+		) {
+			self.debouncedValue = wrappedValue
+
+			self.cancellable = $debouncedValue
+				.debounce(for: .seconds(dueTime), scheduler: DispatchQueue.main)
+				.sink {
+					action($0)
+				}
+		}
+	}
+
+	private let value: Value
+	private let initial: Bool
+	private let action: (Value) -> Void
+	@StateObject private var debouncer: Debouncer
+
+	init(
+		value: Value,
+		dueTime: TimeInterval,
+		initial: Bool,
+		action: @escaping (Value) -> Void
+	) {
+		self.value = value
+		self.initial = initial
+		self.action = action
+
+		self._debouncer = .init(
+			wrappedValue: Debouncer(
+				wrappedValue: value,
+				dueTime: dueTime,
+				action: action
+			)
+		)
+	}
+
+	func body(content: Content) -> some View {
+		content
+			.onChange(of: value) {
+				debouncer.debouncedValue = $0
+			}
+			.onAppear {
+				guard initial else {
+					return
+				}
+
+				action(value)
+			}
+	}
+}
+
+@available(macOS 11, *)
+extension View {
+	/**
+	`.onChange` version that debounces the value changes.
+
+	It also allows triggering initially (on appear) too, not just on change.
+	*/
+	func onChangeDebounced<Value: Equatable>(
+		of value: Value,
+		dueTime: TimeInterval,
+		initial: Bool = false,
+		perform action: @escaping (Value) -> Void
+	) -> some View {
+		modifier(
+			OnChangeDebouncedViewModifier(
+				value: value,
+				dueTime: dueTime,
+				initial: initial,
+				action: action
+			)
+		)
+	}
+}
+
+
+extension Publisher {
+	/**
+	Convert a publisher to a `Result`.
+	*/
+	func convertToResult() -> AnyPublisher<Result<Output, Failure>, Never> {
+		map(Result.success)
+			.catch { Just(.failure($0)) }
+			.eraseToAnyPublisher()
 	}
 }

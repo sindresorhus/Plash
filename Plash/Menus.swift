@@ -3,10 +3,11 @@ import Defaults
 
 extension AppDelegate {
 	private func addInfoMenuItem() {
-		guard var url = WebsitesController.shared.current?.url else {
+		guard let website = WebsitesController.shared.current else {
 			return
 		}
 
+		var url = website.url
 		do {
 			url = try replacePlaceholders(of: url) ?? url
 		} catch {
@@ -16,18 +17,10 @@ extension AppDelegate {
 
 		let maxLength = 30
 
-		if
-			let title = webViewController.webView.title,
-			!title.isEmpty
-		{
-			let menuItem = menu.addDisabled(title.truncating(to: maxLength))
-			menuItem.toolTip = title
+		if !website.menuTitle.isEmpty {
+			let menuItem = menu.addDisabled(website.menuTitle.truncating(to: maxLength))
+			menuItem.toolTip = website.tooltip
 		}
-
-		let urlString = url.humanString
-
-		let menuItem = menu.addDisabled(urlString.truncating(to: maxLength))
-		menuItem.toolTip = urlString
 	}
 
 	private func createSwitchMenu() -> SSMenu {
@@ -35,13 +28,13 @@ extension AppDelegate {
 
 		for website in WebsitesController.shared.all {
 			let menuItem = menu.addCallbackItem(
-				website.title.truncating(to: 30),
+				website.menuTitle.truncating(to: 40),
 				isChecked: website.isCurrent
 			) { _ in
 				website.makeCurrent()
 			}
 
-			menuItem.toolTip = website.title
+			menuItem.toolTip = website.tooltip
 		}
 
 		return menu
@@ -116,7 +109,10 @@ extension AppDelegate {
 		}
 
 		menu.addCallbackItem("Add Website…") { _ in
-			AddWebsiteWindowController.showWindow()
+			WebsitesWindowController.showWindow()
+
+			// TODO: Find a better way to do this.
+			NotificationCenter.default.post(name: .showAddWebsiteDialog, object: nil)
 		}
 
 		menu.addCallbackItem("Websites…") { _ in

@@ -4,32 +4,30 @@ import KeyboardShortcuts
 
 extension AppDelegate {
 	func setUpEvents() {
-		menu.onUpdate = { [self] _ in
-			updateMenu()
-		}
-
-		webViewController.onLoaded = { [self] error in
-			webViewError = error
-
-			guard error == nil else {
-				return
+		menu.needsUpdatePublisher
+			.sink { [self] _ in
+				updateMenu()
 			}
+			.store(in: &cancellables)
 
-			// TODO: When targeting macOS 11, I might be able to set `.pageLevel` before loading the page.
-			// Set the persisted zoom level.
-			let zoomLevel = webViewController.webView.zoomLevelWrapper
-			if zoomLevel != 1 {
-				webViewController.webView.zoomLevelWrapper = zoomLevel
-			}
+		webViewController.didLoadPublisher
+			.convertToResult()
+			.sink { [self] result in
+				switch result {
+				case .success:
+					// TODO: When targeting macOS 11, I might be able to set `.pageLevel` before loading the page.
+					// Set the persisted zoom level.
+					let zoomLevel = webViewController.webView.zoomLevelWrapper
+					if zoomLevel != 1 {
+						webViewController.webView.zoomLevelWrapper = zoomLevel
+					}
 
-			if let url = WebsitesController.shared.current?.url {
-				let title = webViewController.webView.title.map { "\($0)\n" } ?? ""
-				let urlString = url.isFileURL ? url.lastPathComponent : url.absoluteString
-				statusItemButton.toolTip = "\(title)\(urlString)"
-			} else {
-				statusItemButton.toolTip = ""
+					statusItemButton.toolTip = WebsitesController.shared.current?.tooltip
+				case .failure(let error):
+					webViewError = error
+				}
 			}
-		}
+			.store(in: &cancellables)
 
 		powerSourceWatcher?.didChangePublisher
 			.sink { [self] _ in
@@ -47,48 +45,54 @@ extension AppDelegate {
 			}
 			.store(in: &cancellables)
 
-		// TODO: Use `.publisher` for all of these.
+		Defaults.publisher(.websites, options: [])
+			.sink { [self] _ in
+				resetTimer()
+				recreateWebViewAndReload()
+			}
+			.store(in: &cancellables)
 
-		Defaults.observe(.websites, options: []) { [self] _ in
-			resetTimer()
-			recreateWebViewAndReload()
-		}
-			.tieToLifetime(of: self)
+		Defaults.publisher(.isBrowsingMode)
+			.sink { [self] change in
+				isBrowsingMode = change.newValue
+			}
+			.store(in: &cancellables)
 
-		Defaults.observe(.isBrowsingMode) { [self] change in
-			isBrowsingMode = change.newValue
-		}
-			.tieToLifetime(of: self)
+		Defaults.publisher(.opacity)
+			.sink { [self] change in
+				desktopWindow.alphaValue = isBrowsingMode ? 1 : CGFloat(change.newValue)
+			}
+			.store(in: &cancellables)
 
-		Defaults.observe(.opacity) { [self] change in
-			desktopWindow.alphaValue = isBrowsingMode ? 1 : CGFloat(change.newValue)
-		}
-			.tieToLifetime(of: self)
+		Defaults.publisher(.reloadInterval)
+			.sink { [self] _ in
+				resetTimer()
+			}
+			.store(in: &cancellables)
 
-		Defaults.observe(.reloadInterval) { [self] _ in
-			resetTimer()
-		}
-			.tieToLifetime(of: self)
+		Defaults.publisher(.display, options: [])
+			.sink { [self] change in
+				desktopWindow.targetScreen = change.newValue.screen
+			}
+			.store(in: &cancellables)
 
-		Defaults.observe(.display, options: []) { [self] change in
-			desktopWindow.targetScreen = change.newValue.screen
-		}
-			.tieToLifetime(of: self)
+		Defaults.publisher(.deactivateOnBattery)
+			.sink { [self] _ in
+				setEnabledStatus()
+			}
+			.store(in: &cancellables)
 
-		Defaults.observe(.deactivateOnBattery) { [self] _ in
-			setEnabledStatus()
-		}
-			.tieToLifetime(of: self)
+		Defaults.publisher(.showOnAllSpaces)
+			.sink { [self] change in
+				desktopWindow.collectionBehavior.toggleExistence(.canJoinAllSpaces, shouldExist: change.newValue)
+			}
+			.store(in: &cancellables)
 
-		Defaults.observe(.showOnAllSpaces) { [self] change in
-			desktopWindow.collectionBehavior.toggleExistence(.canJoinAllSpaces, shouldExist: change.newValue)
-		}
-			.tieToLifetime(of: self)
-
-		Defaults.observe(.bringBrowsingModeToFront, options: []) { [self] _ in
-			desktopWindow.isInteractive = desktopWindow.isInteractive
-		}
-			.tieToLifetime(of: self)
+		Defaults.publisher(.bringBrowsingModeToFront, options: [])
+			.sink { [self] _ in
+				desktopWindow.isInteractive = desktopWindow.isInteractive
+			}
+			.store(in: &cancellables)
 
 		KeyboardShortcuts.onKeyUp(for: .toggleBrowsingMode) {
 			Defaults[.isBrowsingMode].toggle()

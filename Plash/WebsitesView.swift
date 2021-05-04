@@ -71,21 +71,27 @@ private struct IconView: View {
 }
 
 private struct RowView: View {
+	@State private var isShowingEditSheet = false
+
 	@Binding var website: Website
-	@Binding var editSheetItem: Website?
 
 	var body: some View {
 		HStack {
 			if #available(macOS 11, *) {
 				IconView(website: website)
-					.padding(.trailing, 10)
+					.padding(.trailing, 7)
 					.id(website.url)
 			}
 			// TODO: This should use something like `.lineBreakMode = .byCharWrapping` if SwiftUI ever supports that.
-			Text(website.title)
-				.font(.headline)
-				.lineLimit(2)
-				.help2(website.url.absoluteString.removingPercentEncoding)
+			VStack(alignment: .leading) {
+				Text(website.title)
+					.font(.headline)
+					.lineLimit(1)
+				Text(website.subtitle)
+					.font(.subheadline)
+					.foregroundColor(.secondary)
+					.lineLimit(1)
+			}
 			Spacer()
 			if website.isCurrent {
 				if #available(macOS 11, *) {
@@ -99,6 +105,7 @@ private struct RowView: View {
 			}
 		}
 			.padding(.horizontal)
+			// TODO: Use `.listRowInsets` instead when targeting macOS 11.
 			.frame(height: OS.isMacOSBigSurOrLater ? 64 : 44)
 			// TODO: This makes `onMove` not work when clicking the text.
 			// https://github.com/feedback-assistant/reports/issues/46
@@ -106,6 +113,13 @@ private struct RowView: View {
 //			.onTapGesture(count: 2) {
 //				edit()
 //			}
+			.help2(website.tooltip)
+			.sheet(isPresented: $isShowingEditSheet) {
+				AddWebsiteView(
+					isEditing: true,
+					website: $website
+				)
+			}
 			.contextMenu {
 				// TODO: Any better label for this?
 				Button("Make Current") {
@@ -124,20 +138,17 @@ private struct RowView: View {
 	}
 
 	private func edit() {
-		// TODO: This can be removed when I have implemented proper website preview in the add/edit dialog.
 		website.makeCurrent()
-
-		editSheetItem = website
+		isShowingEditSheet = true
 	}
 }
 
 struct WebsitesView: View {
 	@Default(.websites) private var websites
 	@State private var isShowingAddSheet = false
-	@State private var editSheetItem: Website? // TODO: This is here and not on the row as SwiftUI still doesn't handle that. (macOS 11.2.3)
 
 	var body: some View {
-		VStack {
+		VStack(spacing: 0) {
 			HStack {
 				Spacer()
 				CocoaButton("Add…", keyEquivalent: .return) {
@@ -145,15 +156,20 @@ struct WebsitesView: View {
 				}
 			}
 				.padding()
-				.padding(.bottom, -28)
 			List {
-				// TODO: Check if macOS 11.3 fixes this.
-				// TODO: This currently crashes when deleting the last element. Seems to be a known SwiftUI bug. (macOS 11.2.3)
-				ForEach($websites) { _, website in
-					RowView(
-						website: website,
-						editSheetItem: $editSheetItem
-					)
+				ForEach($websites) { index, website in
+					RowView(website: website)
+
+					// Workaround for bug where new entries have almost no height. (macOS 11.3)
+					if index == websites.count - 1 {
+						Color.clear
+							.frame(height: 1)
+							.overlay(
+								Color(NSColor.alternatingContentBackgroundColors[0])
+									.frame(maxWidth: .infinity, maxHeight: .infinity)
+									.padding(-6)
+							)
+					}
 				}
 					.onMove(perform: move)
 					.onDelete(perform: delete)
@@ -166,32 +182,36 @@ struct WebsitesView: View {
 							: nil
 					)
 			}
-				.clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
 				.overlay(
 					websites.isEmpty
 						? Text("No Websites").emptyStateTextStyle()
 						: nil,
 					alignment: .center
 				)
-				.padding()
-				.padding(.vertical, 4)
+				.overlay(Divider(), alignment: .top)
 			if !websites.isEmpty {
+				// TODO: Use proper vibrancy material and list inset when supported in SwiftUI.
 				Text("Right-click to edit. Drag and drop to reorder.")
 					.font(.system(size: 10))
+					.frame(maxWidth: .infinity)
+					.frame(height: 32)
+					.background(Color.primary.opacity(0.02))
 					.foregroundColor(.secondary)
-					.padding(.bottom, 20)
-					.padding(.top, -8)
+					.overlay(Divider(), alignment: .top)
 			}
 		}
 			.frame(
 				width: 420,
 				height: 520
 			)
-			.sheet(item: $editSheetItem) {
-				AddWebsiteView(isEditing: true, showsCancelButtons: true, website: $0) {}
-			}
 			.sheet2(isPresented: $isShowingAddSheet) {
-				AddWebsiteView(isEditing: false, showsCancelButtons: true, website: nil) {}
+				AddWebsiteView(
+					isEditing: false,
+					website: nil
+				)
+			}
+			.onNotification(.showAddWebsiteDialog) { _ in
+				isShowingAddSheet = true
 			}
 			// TODO: When targeting macOS 11 and using `App` protocol.
 //			.toolbar {

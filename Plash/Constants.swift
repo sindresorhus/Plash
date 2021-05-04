@@ -30,3 +30,7 @@ extension KeyboardShortcuts.Name {
 	static let nextWebsite = Self("nextWebsite")
 	static let previousWebsite = Self("previousWebsite")
 }
+
+extension Notification.Name {
+	static let showAddWebsiteDialog = Self("showAddWebsiteDialog")
+}
