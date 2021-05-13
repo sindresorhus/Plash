@@ -9,6 +9,9 @@ struct Constants {
 extension Defaults.Keys {
 	static let websites = Key<[Website]>("websites", default: [])
 	static let isBrowsingMode = Key<Bool>("isBrowsingMode", default: false)
+
+	// Settings
+	static let hideMenuBarIcon = Key<Bool>("hideMenuBarIcon", default: false)
 	static let opacity = Key<Double>("opacity", default: 1)
 	static let reloadInterval = Key<Double?>("reloadInterval")
 	static let display = Key<Display>("display", default: .main)

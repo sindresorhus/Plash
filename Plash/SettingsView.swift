@@ -3,49 +3,48 @@ import LaunchAtLogin
 import Defaults
 import KeyboardShortcuts
 
-private struct DeactivateOnBatterySetting: View {
-	@Default(.deactivateOnBattery) private var deactivateOnBattery
+private struct HideMenuBarIconSetting: View {
+	@State private var isShowingAlert = false
 
 	var body: some View {
-		Toggle(
-			"Deactivate while on battery",
-			isOn: $deactivateOnBattery
-		)
+		Defaults.Toggle("Hide menu bar icon", key: .hideMenuBarIcon)
+			.onChange {
+				isShowingAlert = $0
+			}
+			.alert(isPresented: $isShowingAlert) {
+				Alert(
+					title: Text("If you need to access the Plash menu, launch the app again to reveal the menu bar icon for 5 seconds.")
+				)
+			}
 	}
 }
 
 private struct ShowOnAllSpacesSetting: View {
-	@Default(.showOnAllSpaces) private var showOnAllSpaces
-
 	var body: some View {
-		Toggle(
+		Defaults.Toggle(
 			"Show on all spaces",
-			isOn: $showOnAllSpaces
+			key: .showOnAllSpaces
 		)
 			.help2("When disabled, the website will be shown on the space that was active when Plash launched.")
 	}
 }
 
 private struct BringBrowsingModeToFrontSetting: View {
-	@Default(.bringBrowsingModeToFront) private var bringBrowsingModeToFront
-
 	var body: some View {
 		// TODO: Find a better title for this.
-		Toggle(
+		Defaults.Toggle(
 			"Bring “Browsing Mode” to the front",
-			isOn: $bringBrowsingModeToFront
+			key: .bringBrowsingModeToFront
 		)
 			.help2("Keep the website above all other windows while “Browsing Mode” is active.")
 	}
 }
 
 private struct OpenExternalLinksInBrowserSetting: View {
-	@Default(.openExternalLinksInBrowser) private var openExternalLinksInBrowser
-
 	var body: some View {
-		Toggle(
+		Defaults.Toggle(
 			"Open external links in default browser",
-			isOn: $openExternalLinksInBrowser
+			key: .openExternalLinksInBrowser
 		)
 			.help2("If a website requires login, you should disable this setting while logging in as the website might require you to navigate to a different page, and you don't want that to open in a browser instead of Plash.")
 	}
@@ -188,7 +187,8 @@ struct SettingsView: View {
 				Section {
 					VStack(alignment: .leading) {
 						LaunchAtLogin.Toggle()
-						DeactivateOnBatterySetting()
+						HideMenuBarIconSetting()
+						Defaults.Toggle("Deactivate while on battery", key: .deactivateOnBattery)
 						ShowOnAllSpacesSetting()
 						BringBrowsingModeToFrontSetting()
 						OpenExternalLinksInBrowserSetting()

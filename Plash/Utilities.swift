@@ -5079,3 +5079,117 @@ extension Publisher {
 			.eraseToAnyPublisher()
 	}
 }
+
+
+extension DispatchQueue {
+	/**
+	Performs the `execute` closure immediately if we're on the main thread or asynchronously puts it on the main thread otherwise.
+	*/
+	static func mainSafeAsync(execute work: @escaping () -> Void) {
+		if Thread.isMainThread {
+			work()
+		} else {
+			main.async(execute: work)
+		}
+	}
+}
+
+
+extension Defaults {
+	final class Observable<Value: Codable>: ObservableObject {
+		let objectWillChange = ObservableObjectPublisher()
+		private var observation: DefaultsObservation?
+		private let key: Defaults.Key<Value>
+
+		var value: Value {
+			get { Defaults[key] }
+			set {
+				objectWillChange.send()
+				Defaults[key] = newValue
+			}
+		}
+
+		init(_ key: Key<Value>) {
+			self.key = key
+
+			self.observation = Defaults.observe(key, options: [.prior]) { [weak self] change in
+				guard change.isPrior else {
+					return
+				}
+
+				DispatchQueue.mainSafeAsync {
+					self?.objectWillChange.send()
+				}
+			}
+		}
+
+		/// Reset the key back to its default value.
+		func reset() {
+			key.reset()
+		}
+	}
+}
+
+
+extension Defaults {
+	/**
+	Creates a SwiftUI `Toggle` view that is connected to a Bool `Defaults` key.
+
+	```
+	struct ShowAllDayEventsSetting: View {
+		var body: some View {
+			Defaults.Toggle("Show All-Day Events", key: .showAllDayEvents)
+		}
+	}
+	```
+	*/
+	struct Toggle<Label, Key>: View where Label: View, Key: Defaults.Key<Bool> {
+		// TODO: Find a way to store the handler without using an embedded class.
+		private final class OnChangeHolder {
+			var onChange: ((Bool) -> Void)?
+		}
+
+		private let label: () -> Label
+		@ObservedObject private var observable: Defaults.Observable<Bool>
+		private let onChangeHolder = OnChangeHolder()
+
+		init(key: Key, @ViewBuilder label: @escaping () -> Label) {
+			self.label = label
+			self.observable = Defaults.Observable(key)
+		}
+
+		var body: some View {
+			SwiftUI.Toggle(
+				// TODO: Use `View#onChange` when targeting macOS 11.
+				isOn: $observable.value.onChange {
+					onChangeHolder.onChange?($0)
+				}
+			) {
+				label()
+			}
+		}
+
+		// TODO: When targeting macOS 11:
+//		var body: some View {
+//			SwiftUI.Toggle(isOn: $observable.value, label: label)
+//				.onChange(of: observable.value) {
+//					onChangeHolder.onChange?($0)
+//				}
+//		}
+	}
+}
+
+extension Defaults.Toggle where Label == Text {
+	init<S>(_ title: S, key: Defaults.Key<Bool>) where S: StringProtocol {
+		self.label = { Text(title) }
+		self.observable = Defaults.Observable(key)
+	}
+}
+
+extension Defaults.Toggle {
+	/// Do something when the value changes to a different value.
+	func onChange(_ action: @escaping (Bool) -> Void) -> Self {
+		onChangeHolder.onChange = action
+		return self
+	}
+}

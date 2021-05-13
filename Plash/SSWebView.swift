@@ -101,6 +101,14 @@ final class SSWebView: WKWebView {
 			menu.items = menu.items.movingToEnd(menuItem)
 		}
 
+		if Defaults[.hideMenuBarIcon] {
+			menu.addSeparator()
+
+			menu.addCallbackItem("Show Menu Bar Icon") { _ in
+				AppDelegate.shared.handleMenuBarIcon()
+			}
+		}
+
 		// For the implicit “Services” menu.
 		menu.addSeparator()
 	}

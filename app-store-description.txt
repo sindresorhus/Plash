@@ -18,6 +18,7 @@ This enables you to have a highly dynamic desktop wallpaper. You could display y
 - Automatically deactivate while on battery
 - Audio is muted
 - Single image will be aspect-filled to your screen
+- Hide menu bar icon
 
 Note: Support for multiple displays is currently limited to the ability to choose which display to show the website on. Support for setting a separate website for each display is planned.
 

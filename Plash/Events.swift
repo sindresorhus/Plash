@@ -58,6 +58,12 @@ extension AppDelegate {
 			}
 			.store(in: &cancellables)
 
+		Defaults.publisher(.hideMenuBarIcon)
+			.sink { [self] _ in
+				handleMenuBarIcon()
+			}
+			.store(in: &cancellables)
+
 		Defaults.publisher(.opacity)
 			.sink { [self] change in
 				desktopWindow.alphaValue = isBrowsingMode ? 1 : CGFloat(change.newValue)
