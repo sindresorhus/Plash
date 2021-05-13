@@ -76,14 +76,7 @@ final class SSWebView: WKWebView {
 
 		menu.addSeparator()
 
-		let zoomLevel: Double
-		if #available(macOS 11, *) {
-			zoomLevel = Double(pageZoom)
-		} else {
-			zoomLevel = self.zoomLevel
-		}
-
-		menu.addCallbackItem("Actual Size", isEnabled: zoomLevel != 1) { [weak self] _ in
+		menu.addCallbackItem("Actual Size", isEnabled: pageZoom != 1) { [weak self] _ in
 			self?.zoomLevelWrapper = 1
 		}
 
@@ -105,7 +98,7 @@ final class SSWebView: WKWebView {
 			menu.addSeparator()
 
 			menu.addCallbackItem("Show Menu Bar Icon") { _ in
-				AppDelegate.shared.handleMenuBarIcon()
+				AppState.shared.handleMenuBarIcon()
 			}
 		}
 
@@ -116,7 +109,7 @@ final class SSWebView: WKWebView {
 	func toggleBrowsingModeClass() {
 		let method = Defaults[.isBrowsingMode] ? "add" : "remove"
 		let code = "document.documentElement.classList.\(method)('plash-is-browsing-mode')"
-		self.evaluateJavaScript(code) { _, _ in }
+		evaluateJavaScript(code, in: nil, in: .defaultClient) { _ in }
 	}
 }
 
@@ -141,19 +134,9 @@ extension SSWebView {
 	}
 
 	var zoomLevelWrapper: Double {
-		get {
-			if #available(macOS 11, *) {
-				return zoomLevelDefaultsValue ?? Double(pageZoom)
-			} else {
-				return zoomLevelDefaultsValue ?? zoomLevel
-			}
-		}
+		get { zoomLevelDefaultsValue ?? Double(pageZoom) }
 		set {
-			if #available(macOS 11, *) {
-				pageZoom = CGFloat(newValue)
-			} else {
-				zoomLevel = newValue
-			}
+			pageZoom = CGFloat(newValue)
 
 			if let zoomDefaultsKey = zoomLevelDefaultsKey {
 				Defaults[zoomDefaultsKey] = newValue

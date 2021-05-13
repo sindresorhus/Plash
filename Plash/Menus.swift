@@ -1,7 +1,7 @@
 import Cocoa
 import Defaults
 
-extension AppDelegate {
+extension AppState {
 	private func addInfoMenuItem() {
 		guard let website = WebsitesController.shared.current else {
 			return
@@ -101,7 +101,6 @@ extension AppDelegate {
 			}
 				.setShortcut(for: .previousWebsite)
 
-			// TODO: Find a better label name.
 			menu.addItem("Switch")
 				.withSubmenu(createSwitchMenu())
 
@@ -159,12 +158,10 @@ extension AppDelegate {
 
 		menu.addSeparator()
 
-		menu.addCallbackItem("Preferences…", key: ",") { _ in
-			SettingsWindowController.showWindow()
-		}
+		menu.addSettingsItem()
 
-		let moreMenuItem = menu.addItem("More")
-		moreMenuItem.submenu = createMoreMenu()
+		menu.addItem("More")
+			.withSubmenu(createMoreMenu())
 
 		menu.addSeparator()
 

@@ -53,7 +53,9 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 
 [![](https://tools.applemediaservices.com/api/badges/download-on-the-mac-app-store/black/en-us?size=250x83&releaseDate=1615852800)](https://apps.apple.com/app/id1494023538)
 
-Requires macOS 10.15 or later.
+Requires macOS 11 or later.
+
+*[Last macOS 10.15 compatible version.](https://github.com/sindresorhus/Plash/releases/tag/v2.1.0)*
 
 <!-- You can try out the bleeding edge [here](https://install.appcenter.ms/users/sindresorhus/apps/plash/distribution_groups/public) (latest commit). -->
 
@@ -117,17 +119,13 @@ We don't have any immediate plans to localize the app.
 
 [Click here.](http://letmegooglethat.com/?q=define+plash)
 
-#### Can you add support for macOS 10.14 or older?
+#### Can you add support for macOS 10.15 or older?
 
-No, this app uses SwiftUI, which only works on macOS 10.15 and later.
+No, this app depends on features only available on macOS 11.
 
 #### Is this a native app?
 
 Yes, it’s a native app written in Swift.
-
-#### Can you port it to Windows/Linux?
-
-No, I’m a Mac developer.
 
 ## Built with
 

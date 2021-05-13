@@ -2,7 +2,7 @@ import Cocoa
 import Defaults
 import KeyboardShortcuts
 
-extension AppDelegate {
+extension AppState {
 	func setUpEvents() {
 		menu.needsUpdatePublisher
 			.sink { [self] _ in
@@ -46,6 +46,7 @@ extension AppDelegate {
 			.store(in: &cancellables)
 
 		Defaults.publisher(.websites, options: [])
+			.receive(on: DispatchQueue.main)
 			.sink { [self] _ in
 				resetTimer()
 				recreateWebViewAndReload()

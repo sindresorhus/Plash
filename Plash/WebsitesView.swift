@@ -2,7 +2,6 @@ import SwiftUI
 import LinkPresentation
 import Defaults
 
-@available(macOS 11, *)
 private struct IconView: View {
 	@State private var iconFetcher: WebsiteIconFetcher?
 	@State private var icon: Image?
@@ -77,11 +76,9 @@ private struct RowView: View {
 
 	var body: some View {
 		HStack {
-			if #available(macOS 11, *) {
-				IconView(website: website)
-					.padding(.trailing, 7)
-					.id(website.url)
-			}
+			IconView(website: website)
+				.padding(.trailing, 7)
+				.id(website.url)
 			// TODO: This should use something like `.lineBreakMode = .byCharWrapping` if SwiftUI ever supports that.
 			VStack(alignment: .leading) {
 				Text(website.title)
@@ -94,26 +91,20 @@ private struct RowView: View {
 			}
 			Spacer()
 			if website.isCurrent {
-				if #available(macOS 11, *) {
-					Image(systemName: "checkmark.circle.fill")
-						.renderingMode(.original)
-						.font(.title2)
-				} else {
-					Text("Current")
-						.font(.subheadline)
-				}
+				Image(systemName: "checkmark.circle.fill")
+					.renderingMode(.original)
+					.font(.title2)
 			}
 		}
 			.padding(.horizontal)
-			// TODO: Use `.listRowInsets` instead when targeting macOS 11.
-			.frame(height: OS.isMacOSBigSurOrLater ? 64 : 44)
+			.frame(height: 64)
 			// TODO: This makes `onMove` not work when clicking the text.
 			// https://github.com/feedback-assistant/reports/issues/46
 			// Still an issue on macOS 11.2.3.
 //			.onTapGesture(count: 2) {
 //				edit()
 //			}
-			.help2(website.tooltip)
+			.help(website.tooltip)
 			.sheet(isPresented: $isShowingEditSheet) {
 				AddWebsiteView(
 					isEditing: true,
@@ -146,49 +137,67 @@ private struct RowView: View {
 struct WebsitesView: View {
 	@Default(.websites) private var websites
 	@State private var isShowingAddSheet = false
+	@Namespace private var bottomScrollID
 
 	var body: some View {
 		VStack(spacing: 0) {
 			HStack {
 				Spacer()
-				CocoaButton("Add…", keyEquivalent: .return) {
+				Button {
 					isShowingAddSheet = true
+				} label: {
+					Image(systemName: "plus")
 				}
+					.keyboardShortcut(.defaultAction)
+					.help("Add website")
 			}
 				.padding()
-			List {
-				ForEach($websites) { index, website in
-					RowView(website: website)
+			ScrollViewReader { scrollViewProxy in
+				List {
+					ForEach($websites) { index, website in
+						RowView(website: website)
 
-					// Workaround for bug where new entries have almost no height. (macOS 11.3)
-					if index == websites.count - 1 {
-						Color.clear
-							.frame(height: 1)
-							.overlay(
-								Color(NSColor.alternatingContentBackgroundColors[0])
-									.frame(maxWidth: .infinity, maxHeight: .infinity)
-									.padding(-6)
-							)
+						// Workaround for bug where new entries have almost no height. (macOS 11.3)
+						if index == websites.count - 1 {
+							Color.clear
+								.frame(height: 1)
+								.overlay(
+									Color(NSColor.alternatingContentBackgroundColors[0])
+										.frame(maxWidth: .infinity, maxHeight: .infinity)
+										.padding(-6)
+								)
+								.id(bottomScrollID)
+						}
 					}
-				}
-					.onMove(perform: move)
-					.onDelete(perform: delete)
-					.listRowBackground(
-						OS.isMacOSBigSurOrLater
-							? Color.primary
+						.onMove(perform: move)
+						.onDelete(perform: delete)
+						// TODO: Use this instead of `.frame()` on the row when the above workaround is no longer needed.
+						// .listRowInsets(.init(top: 20, leading: 0, bottom: 20, trailing: 0))
+						.listRowBackground(
+							Color.primary
 								.opacity(0.04)
 								.border(.primary.opacity(0.07), width: 1, cornerRadius: 6, cornerStyle: .continuous)
 								.padding(.vertical, 6)
-							: nil
+						)
+				}
+					.onChange(of: websites) { [oldWebsites = websites] websites in
+						// Check that a website was added.
+						guard websites.count > oldWebsites.count else {
+							return
+						}
+
+						withAnimation {
+							scrollViewProxy.scrollTo(bottomScrollID, anchor: .top)
+						}
+					}
+					.overlay(
+						websites.isEmpty
+							? Text("No Websites").emptyStateTextStyle()
+							: nil,
+						alignment: .center
 					)
+					.overlay(Divider(), alignment: .top)
 			}
-				.overlay(
-					websites.isEmpty
-						? Text("No Websites").emptyStateTextStyle()
-						: nil,
-					alignment: .center
-				)
-				.overlay(Divider(), alignment: .top)
 			if !websites.isEmpty {
 				// TODO: Use proper vibrancy material and list inset when supported in SwiftUI.
 				Text("Right-click to edit. Drag and drop to reorder.")
@@ -213,7 +222,7 @@ struct WebsitesView: View {
 			.onNotification(.showAddWebsiteDialog) { _ in
 				isShowingAddSheet = true
 			}
-			// TODO: When targeting macOS 11 and using `App` protocol.
+			// TODO: When using SwiftUI for the window.
 //			.toolbar {
 //				ToolbarItem(placement: .confirmationAction) {
 //					Button {

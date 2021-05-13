@@ -35,10 +35,6 @@
 	</dict>
 	<key>NSHumanReadableCopyright</key>
 	<string>MIT License © Sindre Sorhus</string>
-	<key>NSMainStoryboardFile</key>
-	<string>Main</string>
-	<key>NSPrincipalClass</key>
-	<string>NSApplication</string>
 	<key>NSSupportsSuddenTermination</key>
 	<true/>
 </dict>

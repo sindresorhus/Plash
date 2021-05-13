@@ -134,7 +134,6 @@ only_rules:
   - vertical_whitespace_closing_braces
   - vertical_whitespace_opening_braces
   - void_return
-  - weak_delegate
   - xct_specific_matcher
   - xctfail_message
   - yoda_condition
@@ -163,7 +162,7 @@ identifier_name:
     - 'y1'
     - 'y2'
 deployment_target:
-  macOS_deployment_target: '10.15'
+  macOS_deployment_target: '11'
 custom_rules:
   no_nsrect:
     regex: '\bNSRect\b'

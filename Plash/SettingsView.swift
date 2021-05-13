@@ -3,29 +3,13 @@ import LaunchAtLogin
 import Defaults
 import KeyboardShortcuts
 
-private struct HideMenuBarIconSetting: View {
-	@State private var isShowingAlert = false
-
-	var body: some View {
-		Defaults.Toggle("Hide menu bar icon", key: .hideMenuBarIcon)
-			.onChange {
-				isShowingAlert = $0
-			}
-			.alert(isPresented: $isShowingAlert) {
-				Alert(
-					title: Text("If you need to access the Plash menu, launch the app again to reveal the menu bar icon for 5 seconds.")
-				)
-			}
-	}
-}
-
 private struct ShowOnAllSpacesSetting: View {
 	var body: some View {
 		Defaults.Toggle(
 			"Show on all spaces",
 			key: .showOnAllSpaces
 		)
-			.help2("When disabled, the website will be shown on the space that was active when Plash launched.")
+			.help("While disabled, Plash will display the website on the space that is active at launch.")
 	}
 }
 
@@ -33,10 +17,10 @@ private struct BringBrowsingModeToFrontSetting: View {
 	var body: some View {
 		// TODO: Find a better title for this.
 		Defaults.Toggle(
-			"Bring “Browsing Mode” to the front",
+			"Bring browsing mode to the front",
 			key: .bringBrowsingModeToFront
 		)
-			.help2("Keep the website above all other windows while “Browsing Mode” is active.")
+			.help("Keep the website above all other windows while browsing mode is active.")
 	}
 }
 
@@ -46,7 +30,7 @@ private struct OpenExternalLinksInBrowserSetting: View {
 			"Open external links in default browser",
 			key: .openExternalLinksInBrowser
 		)
-			.help2("If a website requires login, you should disable this setting while logging in as the website might require you to navigate to a different page, and you don't want that to open in a browser instead of Plash.")
+			.help("If a website requires login, you should disable this setting while logging in as the website might require you to navigate to a different page, and you don't want that to open in a browser instead of Plash.")
 	}
 }
 
@@ -61,6 +45,7 @@ private struct OpacitySetting: View {
 		) {
 			Text("Opacity:")
 		}
+			.help("Browsing mode always uses full opacity.")
 	}
 }
 
@@ -92,8 +77,9 @@ private struct ReloadIntervalSetting: View {
 
 	// TODO: Improve VoiceOver accessibility for this control.
 	var body: some View {
-		HStack(alignment: OS.isMacOSBigSurOrLater ? .firstTextBaseline : .center) {
+		HStack(alignment: .firstTextBaseline) {
 			Text("Reload Interval:")
+				.fixedSize(horizontal: true, vertical: false)
 			Toggle(isOn: hasInterval) {
 				Stepper(
 					value: reloadIntervalInMinutes,
@@ -112,9 +98,24 @@ private struct ReloadIntervalSetting: View {
 				Text("minutes")
 					.padding(.leading, 4)
 			}
-				// TODO: Use `.accessibilityLabel` when targeting macOS 11.
-				.accessibility(label: Text("Reload interval in minutes"))
+				.accessibilityLabel("Reload interval in minutes")
 		}
+	}
+}
+
+private struct HideMenuBarIconSetting: View {
+	@State private var isShowingAlert = false
+
+	var body: some View {
+		Defaults.Toggle("Hide menu bar icon", key: .hideMenuBarIcon)
+			.onChange {
+				isShowingAlert = $0
+			}
+			.alert(isPresented: $isShowingAlert) {
+				Alert(
+					title: Text("If you need to access the Plash menu, launch the app again to reveal the menu bar icon for 5 seconds.")
+				)
+			}
 	}
 }
 
@@ -135,91 +136,122 @@ private struct DisplaySetting: View {
 	}
 }
 
-private struct KeyboardShortcutsSection: View {
-	private let maxWidth: CGFloat = 160
-
-	var body: some View {
-		VStack {
-			HStack(alignment: .firstTextBaseline) {
-				Text("Toggle “Browsing Mode”:")
-					.frame(width: maxWidth, alignment: .trailing)
-				KeyboardShortcuts.Recorder(for: .toggleBrowsingMode)
-			}
-				.accessibilityElement()
-			HStack(alignment: .firstTextBaseline) {
-				Text("Reload:")
-					.frame(width: maxWidth, alignment: .trailing)
-				KeyboardShortcuts.Recorder(for: .reload)
-			}
-			HStack(alignment: .firstTextBaseline) {
-				Text("Next Website:")
-					.frame(width: maxWidth, alignment: .trailing)
-				KeyboardShortcuts.Recorder(for: .nextWebsite)
-			}
-			HStack(alignment: .firstTextBaseline) {
-				Text("Previous Website:")
-					.frame(width: maxWidth, alignment: .trailing)
-				KeyboardShortcuts.Recorder(for: .previousWebsite)
-			}
-		}
-	}
-}
-
 private struct ClearWebsiteDataSetting: View {
+	@EnvironmentObject private var appState: AppState
 	@State private var hasCleared = false
 
 	var body: some View {
 		Button("Clear All Website Data") {
 			hasCleared = true
-			AppDelegate.shared.webViewController.webView.clearWebsiteData(completion: nil)
+			appState.webViewController.webView.clearWebsiteData(completion: nil)
 			WebsitesController.shared.thumbnailCache.removeAllImages()
 		}
 			.disabled(hasCleared)
-			.help2("Clears all cookies, local storage, caches, etc.")
+			.help("Clears all cookies, local storage, caches, etc.")
 			// TODO: Mark it as destructive when SwiftUI supports that.
+	}
+}
+
+private struct GeneralSettings: View {
+	var body: some View {
+		Form {
+			VStack {
+				VStack(alignment: .leading) {
+					LaunchAtLogin.Toggle()
+					ShowOnAllSpacesSetting()
+					Defaults.Toggle("Deactivate while on battery", key: .deactivateOnBattery)
+				}
+					.padding()
+					.padding(.horizontal)
+				Divider()
+				OpacitySetting()
+					.padding()
+					.padding(.horizontal)
+				Divider()
+				ReloadIntervalSetting()
+					.padding()
+					.padding(.horizontal)
+			}
+		}
+			.padding(.vertical)
+	}
+}
+
+private struct ShortcutsSettings: View {
+	private let maxWidth: CGFloat = 160
+
+	var body: some View {
+		Form {
+			VStack {
+				HStack(alignment: .firstTextBaseline) {
+					Text("Toggle Browsing Mode:")
+						.frame(width: maxWidth, alignment: .trailing)
+					KeyboardShortcuts.Recorder(for: .toggleBrowsingMode)
+				}
+					.accessibilityElement()
+				HStack(alignment: .firstTextBaseline) {
+					Text("Reload:")
+						.frame(width: maxWidth, alignment: .trailing)
+					KeyboardShortcuts.Recorder(for: .reload)
+				}
+					.accessibilityElement()
+				HStack(alignment: .firstTextBaseline) {
+					Text("Next Website:")
+						.frame(width: maxWidth, alignment: .trailing)
+					KeyboardShortcuts.Recorder(for: .nextWebsite)
+				}
+					.accessibilityElement()
+				HStack(alignment: .firstTextBaseline) {
+					Text("Previous Website:")
+						.frame(width: maxWidth, alignment: .trailing)
+					KeyboardShortcuts.Recorder(for: .previousWebsite)
+				}
+					.accessibilityElement()
+			}
+		}
+			.padding()
+			.padding()
+			.offset(x: -10)
+	}
+}
+
+private struct AdvancedSettings: View {
+	var body: some View {
+		Form {
+			VStack {
+				VStack(alignment: .leading) {
+					BringBrowsingModeToFrontSetting()
+					OpenExternalLinksInBrowserSetting()
+					HideMenuBarIconSetting()
+				}
+					.padding()
+					.padding(.horizontal)
+				Divider()
+				DisplaySetting()
+					.padding()
+					.padding(.horizontal)
+				Divider()
+				ClearWebsiteDataSetting()
+					.padding()
+					.padding(.horizontal)
+			}
+		}
+			.padding(.vertical)
 	}
 }
 
 struct SettingsView: View {
 	var body: some View {
-		Form {
-			VStack {
-				Section {
-					VStack(alignment: .leading) {
-						LaunchAtLogin.Toggle()
-						HideMenuBarIconSetting()
-						Defaults.Toggle("Deactivate while on battery", key: .deactivateOnBattery)
-						ShowOnAllSpacesSetting()
-						BringBrowsingModeToFrontSetting()
-						OpenExternalLinksInBrowserSetting()
-					}
-				}
-				Divider()
-					.padding(.vertical)
-				Section {
-					OpacitySetting()
-				}
-				Divider()
-					.padding(.vertical)
-				Section {
-					ReloadIntervalSetting()
-				}
-				Divider()
-					.padding(.vertical)
-				Section {
-					DisplaySetting()
-					Divider()
-						.padding(.vertical)
-					KeyboardShortcutsSection()
-					Divider()
-						.padding(.vertical)
-					ClearWebsiteDataSetting()
-				}
-			}
-				.frame(width: 380)
-				.padding()
-				.padding()
+		TabView {
+			GeneralSettings()
+				.settingsTabItem(.general)
+			ShortcutsSettings()
+				.settingsTabItem(.shortcuts)
+			AdvancedSettings()
+				.settingsTabItem(.advanced)
 		}
+			.frame(width: 340)
+			.windowLevel(.modalPanel)
 	}
 }
 

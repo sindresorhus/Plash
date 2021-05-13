@@ -5,20 +5,49 @@ import Defaults
 
 struct AddWebsiteView: View {
 	@Environment(\.presentationMode) private var presentationMode
-	@State private var urlString = ""
-	@State private var title = ""
-	@State private var invertColors = false
-	@State private var usePrintStyles = false
-	@State private var css = ""
-	@State private var javaScript = ""
+	@State private var nativeWindow: NSWindow?
 	@State private var isFetchingTitle = false
+	@State private var originalWebsite: Website?
+	@State private var urlString = ""
+	@State private var isShowingApplyConfirmation = false
 
-	// TODO: Remove these when targeting macOS 11.
-	@State private var urlStringPublisher = PassthroughSubject<Void, Never>()
-	@State private var publisher = MutableBox<AnyPublisher<Void, Never>?>()
+	@State private var newWebsite = Website(
+		id: UUID(),
+		isCurrent: true,
+		url: ".",
+		invertColors: false,
+		usePrintStyles: false
+	)
 
-	private var normalizedUrlString: String {
-		URL(humanString: urlString)?.absoluteString ?? urlString
+	private var isURLValid: Bool {
+		let urlString2 = website.wrappedValue.url.absoluteString
+		return
+			(urlString.contains(".") || urlString.hasPrefix("file://"))
+			&& URL.isValid(string: urlString)
+			&& (urlString2.contains(".") || urlString2.hasPrefix("file://"))
+			&& website.wrappedValue.url.isValid
+	}
+
+	private var hasChanges: Bool { website.wrappedValue != originalWebsite }
+
+	private let isEditing: Bool
+
+	// TODO: `@OptionalBinding` extension?
+	private var existingWebsite: Binding<Website>?
+
+	private var website: Binding<Website> { existingWebsite ?? $newWebsite }
+
+	init(
+		isEditing: Bool,
+		website: Binding<Website>?
+	) {
+		self.isEditing = isEditing
+		self.existingWebsite = website
+		self._originalWebsite = .init(wrappedValue: website?.wrappedValue)
+
+		if isEditing {
+			self._urlString = .init(wrappedValue: website?.wrappedValue.url.absoluteString ?? "")
+		}
 	}
 
 	private var firstLaunchView: some View {
@@ -31,95 +60,131 @@ struct AddWebsiteView: View {
 					.buttonStyle(LinkButtonStyle())
 			}
 			Spacer()
-			Link2("More ideas", destination: "https://github.com/sindresorhus/Plash/issues/1")
+			Link("More ideas", destination: "https://github.com/sindresorhus/Plash/issues/1")
 				.buttonStyle(LinkButtonStyle())
 		}
 			.box()
 	}
 
-	private let isEditing: Bool
+	private var topView: some View {
+		VStack(alignment: .leading) {
+			HStack {
+//				TextField(
+//					"twitter.com",
+//					// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines.
+//					// TODO: Report to Apple. Still an issue on macOS 12.
+//					text: $urlString.setMap(\.removingNewlines)
+//				)
+				NativeTextField(
+					text: $urlString.setMap(\.removingNewlines),
+					placeholder: "twitter.com",
+					isFirstResponder: !isEditing,
+					roundedStyle: true,
+					isSingleLine: true
+				)
+					.textFieldStyle(RoundedBorderTextFieldStyle())
+					.lineLimit(1)
+					.padding(.vertical)
+					.onChange(of: website.wrappedValue.url) {
+						guard $0.absoluteString != "-" else {
+							return
+						}
 
-	// TODO: `@OptionalBinding` extension?
-	private var website: Binding<Website>?
+						urlString = $0.absoluteString
+					}
+					.onChangeDebounced(of: urlString, dueTime: 0.5) {
+						guard let url = URL(humanString: $0)?.normalized() else {
+							// Makes the “Revert” button work if the user clears the URL field.
+							if urlString.trimmed.isEmpty {
+								website.wrappedValue.url = URL(string: "-")!
+							}
 
-	// TODO: Use some kind of `@Transaction` type.
-	init(
-		isEditing: Bool,
-		website: Binding<Website>?
-	) {
-		self.isEditing = isEditing
-		self.website = website
+							return
+						}
 
-		if
-			isEditing,
-			let website = website?.wrappedValue
-		{
-			self._urlString = .init(wrappedValue: website.url.absoluteString.removingPercentEncoding ?? website.url.absoluteString)
-			self._title = .init(wrappedValue: website.title)
-			self._invertColors = .init(wrappedValue: website.invertColors)
-			self._usePrintStyles = .init(wrappedValue: website.usePrintStyles)
-			self._css = .init(wrappedValue: website.css)
-			self._javaScript = .init(wrappedValue: website.javaScript)
+						website.wrappedValue.url = url
+
+						fetchTitle()
+					}
+				Button("Local Website…") {
+					chooseLocalWebsite {
+						guard let url = $0 else {
+							return
+						}
+
+						urlString = url.absoluteString
+					}
+				}
+			}
+			TextField(
+				"Title",
+				// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines.
+				text: website.title.setMap(\.removingNewlines)
+			)
+				.textFieldStyle(RoundedBorderTextFieldStyle())
+				.lineLimit(1)
+				.disabled(isFetchingTitle)
+				.overlay(
+					Group {
+						if isFetchingTitle {
+							ProgressView()
+								.controlSize(.small)
+								.offset(x: -4)
+						}
+					},
+					alignment: .trailing
+				)
 		}
-
-		// TODO: Remove this when targeting macOS 11.
-		publisher.wrappedValue = urlStringPublisher
-			.debounce(for: .seconds(0.5), scheduler: DispatchQueue.main)
-			.eraseToAnyPublisher()
+			.padding()
 	}
 
 	@ViewBuilder
-	private var editing: some View {
+	private var editingView: some View {
 		Divider()
-			.padding(.vertical)
-		Toggle(
-			"Invert colors",
-			isOn: $invertColors
-		)
-			.help2("Creates a fake dark mode for websites without a native dark mode by inverting all the colors on the website.")
-		if #available(macOS 11, *) {
-			Toggle(
-				"Use print styles",
-				isOn: $usePrintStyles
-			)
-				.help2("Forces the website to use its print styles (“@media print”) if any. Some websites have a simpler presentation for printing, for example, Google Calendar.")
-		}
 		VStack(alignment: .leading) {
-			HStack {
-				Text("CSS:")
-				Spacer()
-				InfoPopoverButton("This lets you modify the website with CSS. You could, for example, change some colors or hide some unnecessary elements.")
-					.controlSize(.small)
+			Toggle("Invert colors", isOn: website.invertColors)
+				.help("Creates a fake dark mode for websites without a native dark mode by inverting all the colors on the website.")
+			Toggle("Use print styles", isOn: website.usePrintStyles)
+				.help("Forces the website to use its print styles (“@media print”) if any. Some websites have a simpler presentation for printing, for example, Google Calendar.")
+			// TODO: Put these inside a `DisclosureGroup` called `Advanced` when macOS 12 is out. It's too buggy on macOS 11.
+			VStack(alignment: .leading) {
+				HStack {
+					Text("CSS:")
+					Spacer()
+					InfoPopoverButton("This lets you modify the website with CSS. You could, for example, change some colors or hide some unnecessary elements.")
+						.controlSize(.small)
+				}
+				ScrollableTextView(
+					text: website.css,
+					font: .monospacedSystemFont(ofSize: 11, weight: .regular),
+					isAutomaticQuoteSubstitutionEnabled: false,
+					isAutomaticDashSubstitutionEnabled: false,
+					isAutomaticTextReplacementEnabled: false,
+					isAutomaticSpellingCorrectionEnabled: false
+				)
+					.frame(height: 70)
 			}
-			ScrollableTextView(
-				text: $css,
-				font: .monospacedSystemFont(ofSize: 11, weight: .regular),
-				isAutomaticQuoteSubstitutionEnabled: false,
-				isAutomaticDashSubstitutionEnabled: false,
-				isAutomaticTextReplacementEnabled: false,
-				isAutomaticSpellingCorrectionEnabled: false
-			)
-				.frame(height: 70)
-		}
-			.padding(.top, 10)
-		VStack(alignment: .leading) {
-			HStack {
-				Text("JavaScript:")
-				Spacer()
-				InfoPopoverButton("This lets you modify the website with JavaScript. Prefer using CSS instead whenever possible. You can use “await” at the top-level.")
-					.controlSize(.small)
+				.padding(.top, 10)
+			VStack(alignment: .leading) {
+				HStack {
+					Text("JavaScript:")
+					Spacer()
+					InfoPopoverButton("This lets you modify the website with JavaScript. Prefer using CSS instead whenever possible. You can use “await” at the top-level.")
+						.controlSize(.small)
+				}
+				ScrollableTextView(
+					text: website.javaScript,
+					font: .monospacedSystemFont(ofSize: 11, weight: .regular),
+					isAutomaticQuoteSubstitutionEnabled: false,
+					isAutomaticDashSubstitutionEnabled: false,
+					isAutomaticTextReplacementEnabled: false,
+					isAutomaticSpellingCorrectionEnabled: false
+				)
+					.frame(height: 70)
 			}
-			ScrollableTextView(
-				text: $javaScript,
-				font: .monospacedSystemFont(ofSize: 11, weight: .regular),
-				isAutomaticQuoteSubstitutionEnabled: false,
-				isAutomaticDashSubstitutionEnabled: false,
-				isAutomaticTextReplacementEnabled: false,
-				isAutomaticSpellingCorrectionEnabled: false
-			)
-				.frame(height: 70)
+				.padding(.top, 10)
 		}
-			.padding(.top, 10)
+			.padding()
 	}
 
 	var body: some View {
@@ -128,148 +193,88 @@ struct AddWebsiteView: View {
 				firstLaunchView
 			}
 			VStack(alignment: .leading) {
-				HStack {
-					TextField(
-						"twitter.com",
-						// TODO: Remove `.onChange` when targeting macOS 11.
-						// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines.
-						// TODO: Report to Apple. Still an issue on macOS 12.
-						text: $urlString.setMap(\.removingNewlines).onChange { _ in
-							urlStringPublisher.send()
-						}
-					)
-						.textFieldStyle(RoundedBorderTextFieldStyle())
-						// TODO: When targeting macOS 11.
-						// .controlSize(.large)
-						.lineLimit(1)
-						.padding(.vertical)
-						.modify {
-							guard #available(macOS 11, *) else {
-								guard let publisher = publisher.wrappedValue else {
-									return nil
-								}
-
-								return $0.onReceive(publisher) { _ in
-									fetchTitle()
-								}
-									.eraseToAnyView()
-							}
-
-							return $0.onChangeDebounced(of: urlString, dueTime: 0.5) { _ in
-								fetchTitle()
-							}
-								.eraseToAnyView()
-						}
-					Button("Local Website…") {
-						chooseLocalWebsite {
-							guard let url = $0 else {
-								return
-							}
-
-							urlString = url.absoluteString
-						}
-					}
-				}
-				TextField(
-					"Title",
-					// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines.
-					text: $title.setMap(\.removingNewlines)
-				)
-					.textFieldStyle(RoundedBorderTextFieldStyle())
-					.lineLimit(1)
-					.disabled(isFetchingTitle)
-					.overlay(
-						Group {
-							if #available(macOS 11, *), isFetchingTitle {
-								ProgressView()
-									.controlSize(.small)
-									.offset(x: -4)
-							}
-						},
-						alignment: .trailing
-					)
+				topView
 				if isEditing {
-					editing
+					editingView
 				}
 			}
-				.padding()
-			// TODO: Use `.toolbar()` when targeting macOS 11.
-			// TODO: Use `Button` when targeting macOS 11.
-			VStack {
-				Divider()
-				HStack {
-					CocoaButton("Cancel", keyEquivalent: .escape) {
+		}
+			.frame(width: 500)
+			.bindNativeWindow($nativeWindow)
+			// Note: Current only works when a text field is focused. (macOS 11.3)
+			.onExitCommand {
+				guard isEditing, hasChanges else {
+					presentationMode.wrappedValue.dismiss()
+					return
+				}
+
+				isShowingApplyConfirmation = true
+			}
+			.alert(isPresented: $isShowingApplyConfirmation) {
+				// TODO: Add a "Cancel" button when SwiftUI supports more than 2 buttons.
+				Alert(
+					title: Text("Keep changes?"),
+					primaryButton: .default(Text("Keep")) {
+						presentationMode.wrappedValue.dismiss()
+					},
+					secondaryButton: .destructive(Text("Don‘t Keep")) {
+						revert()
 						presentationMode.wrappedValue.dismiss()
 					}
-					Spacer()
+				)
+			}
+			.toolbar {
+				// TODO: This can be simplified when `.toolbar` supports conditionals.
+				ToolbarItem {
+					if isEditing {
+						Button("Revert") {
+							revert()
+						}
+							.disabled(!hasChanges)
+					}
+				}
+				ToolbarItem(placement: .cancellationAction) {
+					if !isEditing {
+						Button("Cancel") {
+							presentationMode.wrappedValue.dismiss()
+						}
+					}
+				}
+				ToolbarItem(placement: .confirmationAction) {
 					Group {
 						if isEditing {
-							CocoaButton("Save") {
-								save(shouldClose: false)
-							}
-							CocoaButton("Save & Close", keyEquivalent: .return) {
-								save(shouldClose: true)
+							Button("Done") {
+								presentationMode.wrappedValue.dismiss()
 							}
 						} else {
-							CocoaButton("Add", keyEquivalent: .return) {
+							Button("Add") {
 								add()
 							}
 						}
 					}
-						.disabled(!URL.isValid(string: normalizedUrlString) || isFetchingTitle)
+						.disabled(!isURLValid || isFetchingTitle)
 				}
-					.padding()
-					.offset(y: -9) // TODO: No idea why this is needed.
 			}
+	}
+
+	private func revert() {
+		guard let originalWebsite = originalWebsite else {
+			return
 		}
-			.frame(width: 500)
+
+		website.wrappedValue = originalWebsite
 	}
 
 	private func add() {
-		guard let url = URL(string: normalizedUrlString)?.normalized() else {
-			return
-		}
-
-		WebsitesController.shared.add(
-			.init(
-				id: UUID(),
-				isCurrent: true,
-				url: url,
-				title: .init(wrappedValue: title),
-				invertColors: invertColors,
-				usePrintStyles: usePrintStyles,
-				css: css,
-				javaScript: javaScript
-			)
-		)
-
+		WebsitesController.shared.add(website.wrappedValue)
 		presentationMode.wrappedValue.dismiss()
 	}
 
-	private func save(shouldClose: Bool) {
-		guard
-			let url = URL(string: normalizedUrlString)?.normalized(),
-			var website = website?.wrappedValue
-		else {
-			assertionFailure()
-			return
-		}
-
-		website.url = url
-		website.title = title
-		website.invertColors = invertColors
-		website.usePrintStyles = usePrintStyles
-		website.css = css
-		website.javaScript = javaScript
-
-		self.website?.wrappedValue = website
-
-		if shouldClose {
-			presentationMode.wrappedValue.dismiss()
-		}
-	}
-
 	private func chooseLocalWebsite(_ completionHandler: @escaping (URL?) -> Void) {
+//		guard let window = nativeWindow else {
+//			return
+//		}
+
 		let panel = NSOpenPanel()
 		panel.canChooseFiles = false
 		panel.canChooseDirectories = true
@@ -281,15 +286,16 @@ struct AddWebsiteView: View {
 		// Ensure it's above the window when in "Browsing Mode".
 		panel.level = .modalPanel
 
+		let url = website.wrappedValue.url
 		if
 			isEditing,
-			let url = website?.wrappedValue.url,
 			url.isFileURL
 		{
 			panel.directoryURL = url
 		}
 
-		// TODO: Make it a sheet instead.
+		// TODO: Make it a sheet instead when targeting macOS 12. On macOS 11, it doesn't work to open a sheet inside another sheet.
+		// panel.beginSheet(window) {
 		panel.begin {
 			guard
 				$0 == .OK,
@@ -322,18 +328,15 @@ struct AddWebsiteView: View {
 		// Ensure we don't erase a user's existing title.
 		if
 			isEditing,
-			let website = website,
 			!website.title.wrappedValue.isEmpty
 		{
 			return
 		}
 
-		guard
-			urlString.contains(".") || urlString.hasPrefix("file://"),
-			URL.isValid(string: normalizedUrlString),
-			let url = URL(string: normalizedUrlString)
-		else {
-			title = ""
+		let url = website.wrappedValue.url
+
+		guard url.isValid else {
+			website.wrappedValue.title = ""
 			return
 		}
 
@@ -346,15 +349,19 @@ struct AddWebsiteView: View {
 				isFetchingTitle = false
 			}
 
-			guard
-				error == nil,
-				let title = metadata?.title
-			else {
-				return
-			}
-
 			DispatchQueue.main.async {
-				self.title = title
+				guard
+					error == nil,
+					let title = metadata?.title
+				else {
+					if !isEditing || website.wrappedValue.title.isEmpty {
+						website.wrappedValue.title = ""
+					}
+
+					return
+				}
+
+				website.wrappedValue.title = title
 			}
 		}
 	}

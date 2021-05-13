@@ -7,6 +7,7 @@ import Network
 import SystemConfiguration
 import CryptoKit
 import StoreKit
+import UniformTypeIdentifiers
 import Defaults
 
 
@@ -386,6 +387,13 @@ extension NSMenu {
 	}
 
 	@discardableResult
+	func addSettingsItem() -> NSMenuItem {
+		addCallbackItem("Preferences…", key: ",") { _ in
+			SSApp.showSettingsWindow()
+		}
+	}
+
+	@discardableResult
 	func addUrlItem(_ title: String, url: URL) -> NSMenuItem {
 		addCallbackItem(title) { _ in
 			NSWorkspace.shared.open(url)
@@ -517,6 +525,20 @@ enum SSApp {
 		]
 
 		URL("https://sindresorhus.com/feedback/").addingDictionaryAsQuery(query).open()
+	}
+}
+
+extension SSApp {
+	/// Manually show the SwiftUI settings window.
+	static func showSettingsWindow() {
+		if NSApp.activationPolicy() == .accessory {
+			NSApp.activate(ignoringOtherApps: true)
+		}
+
+		// Run in the next runloop so it doesn't conflict with SwiftUI if run at startup.
+		DispatchQueue.main.async {
+			NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+		}
 	}
 }
 
@@ -966,11 +988,6 @@ extension StringProtocol where Self: RangeReplaceableCollection {
 }
 
 
-extension AppDelegate {
-	static let shared = NSApp.delegate as! AppDelegate
-}
-
-
 extension String {
 	var trimmed: Self {
 		trimmingCharacters(in: .whitespacesAndNewlines)
@@ -1327,23 +1344,15 @@ extension WKWebView {
 		var returnResult: Any?
 		var returnError: Error?
 
-		if #available(macOS 11, *) {
-			evaluateJavaScript(script, in: nil, in: .defaultClient) { result in
-				switch result {
-				case .success(let data):
-					returnResult = data
-				case .failure(let error):
-					returnError = error
-				}
-
-				isFinished = true
-			}
-		} else {
-			evaluateJavaScript(script) { result, error in
-				returnResult = result
+		evaluateJavaScript(script, in: nil, in: .defaultClient) { result in
+			switch result {
+			case .success(let data):
+				returnResult = data
+			case .failure(let error):
 				returnError = error
-				isFinished = true
 			}
+
+			isFinished = true
 		}
 
 		while !isFinished {
@@ -1355,25 +1364,6 @@ extension WKWebView {
 		}
 
 		return returnResult
-	}
-
-	/**
-	Get/set the zoom level of the page.
-
-	- Important: This is very slow. Don't call it in a hot path.
-	*/
-	@available(macOS, deprecated: 11, renamed: "pageZoom")
-	var zoomLevel: Double {
-		get {
-			guard let zoomString = (try? evaluateSync(script: "document.body.style.zoom")) as? String else {
-				return 1
-			}
-
-			return Double(zoomString) ?? 1
-		}
-		set {
-			_ = try? evaluateSync(script: "document.body.style.zoom = '\(newValue)'")
-		}
 	}
 
 	// https://github.com/feedback-assistant/reports/issues/81
@@ -1489,16 +1479,12 @@ extension WKWebView {
 		alert.accessoryView = view
 
 		let username = AutofocusedTextField(frame: CGRect(x: 0, y: 32, width: 200, height: 22))
-		if #available(macOS 11, *) {
-			username.contentType = .username
-		}
+		username.contentType = .username
 		username.placeholderString = "Username"
 		view.addSubview(username)
 
 		let password = NSSecureTextField(frame: CGRect(x: 0, y: 0, width: 200, height: 22))
-		if #available(macOS 11, *) {
-			password.contentType = .password
-		}
+		password.contentType = .password
 		password.placeholderString = "Password"
 		view.addSubview(password)
 
@@ -1546,21 +1532,12 @@ extension WKUserContentController {
 	func addCSS(_ css: String) {
 		let source = WKWebView.createCSSInjectScript(css)
 
-		let userScript: WKUserScript
-		if #available(macOS 11, *) {
-			userScript = WKUserScript(
-				source: source,
-				injectionTime: .atDocumentStart,
-				forMainFrameOnly: false,
-				in: .defaultClient
-			)
-		} else {
-			userScript = WKUserScript(
-				source: source,
-				injectionTime: .atDocumentStart,
-				forMainFrameOnly: false
-			)
-		}
+		let userScript = WKUserScript(
+			source: source,
+			injectionTime: .atDocumentStart,
+			forMainFrameOnly: false,
+			in: .defaultClient
+		)
 
 		addUserScript(userScript)
 	}
@@ -1580,21 +1557,12 @@ extension WKUserContentController {
 			})();
 			"""
 
-		let userScript: WKUserScript
-		if #available(macOS 11, *) {
-			userScript = WKUserScript(
-				source: source,
-				injectionTime: .atDocumentEnd,
-				forMainFrameOnly: false,
-				in: .world(name: UUID().uuidString)
-			)
-		} else {
-			userScript = WKUserScript(
-				source: source,
-				injectionTime: .atDocumentEnd,
-				forMainFrameOnly: false
-			)
-		}
+		let userScript = WKUserScript(
+			source: source,
+			injectionTime: .atDocumentEnd,
+			forMainFrameOnly: false,
+			in: .world(name: UUID().uuidString)
+		)
 
 		addUserScript(userScript)
 	}
@@ -1670,21 +1638,12 @@ extension WKUserContentController {
 	// https://github.com/feedback-assistant/reports/issues/79
 	/// Mute all existing and future audio on websites, including audio in videos.
 	func muteAudio() {
-		let userScript: WKUserScript
-		if #available(macOS 11, *) {
-			userScript = WKUserScript(
-				source: Self.muteAudioCode,
-				injectionTime: .atDocumentStart,
-				forMainFrameOnly: false,
-				in: .defaultClient
-			)
-		} else {
-			userScript = WKUserScript(
-				source: Self.muteAudioCode,
-				injectionTime: .atDocumentStart,
-				forMainFrameOnly: false
-			)
-		}
+		let userScript = WKUserScript(
+			source: Self.muteAudioCode,
+			injectionTime: .atDocumentStart,
+			forMainFrameOnly: false,
+			in: .defaultClient
+		)
 
 		addUserScript(userScript)
 	}
@@ -1720,11 +1679,7 @@ extension WKWebView {
 			"""
 		)
 
-		if #available(macOS 11, *) {
-			evaluateJavaScript(js, in: nil, in: .defaultClient)
-		} else {
-			evaluateJavaScript(js)
-		}
+		evaluateJavaScript(js, in: nil, in: .defaultClient)
 	}
 }
 
@@ -1780,7 +1735,7 @@ Wrap a value in an `ObservableObject` where the given `Publisher` triggers it to
 
 ```
 struct ContentView: View {
-	@ObservedObject private var foo = ObservableValue(
+	@StateObject private var foo = ObservableValue(
 		value: someNonReactiveValue,
 		publisher: Foo.publisher
 	)
@@ -1882,12 +1837,8 @@ extension NSScreen {
 
 		// Account for the status bar if the window is on the main screen and the status bar is permanently visible, or if on a secondary screen and secondary screens are set to show the status bar.
 		if hasStatusBar {
-			var statusBarBottomPadding = 0.0
-
-			if #available(macOS 11, *) {
-				// Without this, the website would show through the 1 point padding between the menu bar and the window.
-				statusBarBottomPadding = 1.0
-			}
+			// Without this, the website would show through the 1 point padding between the menu bar and the window.
+			let statusBarBottomPadding = 1.0
 
 			screenFrame.size.height -= CGFloat(NSStatusBar.actualThickness + statusBarBottomPadding)
 		}
@@ -2017,13 +1968,7 @@ extension NSWorkspace {
 extension NSStatusBar {
 	/// The actual thickness of the status bar. `.thickness` confusingly returns the thickness of the content area.
 	/// Keep in mind for screen calculations that the status bar has an additional 1 point padding below it (between it and windows).
-	static var actualThickness: Double {
-		if #available(macOS 11, *) {
-			return 24
-		} else {
-			return 22
-		}
-	}
+	static let actualThickness = 24.0
 
 	/// Whether the user has "Automatically hide and show the menu bar" enabled in system preferences.
 	static var isAutomaticallyToggled: Bool {
@@ -2226,32 +2171,6 @@ class NonInteractiveView: NSView { // swiftlint:disable:this final_class
 	override var mouseDownCanMoveWindow: Bool { true }
 	override func acceptsFirstMouse(for event: NSEvent?) -> Bool { false }
 	override func hitTest(_ point: CGPoint) -> NSView? { nil }
-}
-
-
-private struct TooltipView: NSViewRepresentable {
-	typealias NSViewType = NSView
-
-	private let text: String?
-
-	init(_ text: String?) {
-		self.text = text
-	}
-
-	func makeNSView(context: Context) -> NSViewType {
-		NonInteractiveView()
-	}
-
-	func updateNSView(_ nsView: NSViewType, context: Context) {
-		nsView.toolTip = text
-	}
-}
-
-extension View {
-	@available(macOS, obsoleted: 11, renamed: "help")
-	func help2(_ text: String?) -> some View {
-		overlay(TooltipView(text))
-	}
 }
 
 
@@ -3389,10 +3308,8 @@ extension Sequence where Element: Equatable {
 
 
 extension Color {
-	static let label = Color(NSColor.labelColor)
-	static let secondaryLabel = Color(NSColor.secondaryLabelColor)
-	static let tertiaryLabel = Color(NSColor.tertiaryLabelColor)
-	static let quaternaryLabel = Color(NSColor.quaternaryLabelColor)
+	static let tertiary = Color(NSColor.tertiaryLabelColor)
+	static let quaternary = Color(NSColor.quaternaryLabelColor)
 }
 
 
@@ -3497,14 +3414,8 @@ extension View {
 private struct EmptyStateTextModifier: ViewModifier {
 	func body(content: Content) -> some View {
 		content
-			.modify {
-				guard #available(macOS 11, iOS 14, *) else {
-					return $0.font(.system(size: 15)).eraseToAnyView()
-				}
-
-				return $0.font(.title2).eraseToAnyView()
-			}
-			.foregroundColor(.tertiaryLabel)
+			.font(.title2)
+			.foregroundColor(.tertiary)
 	}
 }
 
@@ -3669,8 +3580,7 @@ extension NSImage: NSItemProviderReading {
 
 extension NSImage: NSItemProviderWriting {
 	public static var writableTypeIdentifiersForItemProvider: [String] {
-		// TODO: Use `UTType` when targeting macOS 11.
-		["public.tiff"]
+		[UTType.tiff.identifier]
 	}
 
 	public func loadData(withTypeIdentifier typeIdentifier: String, forItemProviderCompletionHandler completionHandler: @escaping (Data?, Error?) -> Void) -> Progress? {
@@ -3731,32 +3641,18 @@ extension Data {
 
 	func hexEncodedString(options: HexEncodingOptions = []) -> String {
 		let hexDigits = options.contains(.upperCase) ? "0123456789ABCDEF" : "0123456789abcdef"
+		let utf8Digits = Array(hexDigits.utf8)
 
-		if #available(macOS 11, iOS 14, tvOS 14, watchOS 7, *) {
-			let utf8Digits = Array(hexDigits.utf8)
-
-			return String(unsafeUninitializedCapacity: count * 2) { pointer -> Int in
-				var string = pointer.baseAddress!
-
-				for byte in self {
-					string[0] = utf8Digits[Int(byte / 16)]
-					string[1] = utf8Digits[Int(byte % 16)]
-					string += 2
-				}
-
-				return count * 2
-			}
-		} else {
-			let utf16Digits = Array(hexDigits.utf16)
-			var characters = [unichar]()
-			characters.reserveCapacity(2 * count)
+		return String(unsafeUninitializedCapacity: count * 2) { pointer -> Int in
+			var string = pointer.baseAddress!
 
 			for byte in self {
-				characters.append(utf16Digits[Int(byte / 16)])
-				characters.append(utf16Digits[Int(byte % 16)])
+				string[0] = utf8Digits[Int(byte / 16)]
+				string[1] = utf8Digits[Int(byte % 16)]
+				string += 2
 			}
 
-			return String(utf16CodeUnits: characters, count: characters.count)
+			return count * 2
 		}
 	}
 }
@@ -4311,9 +4207,9 @@ enum OperatingSystem {
 
 extension OperatingSystem {
 	/// - Note: Only use this when you cannot use an `if #available` check. For example, inline in function calls.
-	static let isMacOSBigSurOrLater: Bool = {
+	static let isMacOS12OrLater: Bool = {
 		#if os(macOS)
-		if #available(macOS 11, *) {
+		if #available(macOS 12, *) {
 			return true
 		} else {
 			return false
@@ -4406,7 +4302,6 @@ TODO when Swift 5.5 is out:
 - Support specifying target size and have it return the one closest above the target size, if any.
 - Use the icons in the "Switch" menu.
 */
-@available(macOS 11, iOS 14, tvOS 14, watchOS 7, *)
 final class WebsiteIconFetcher: NSObject {
 	private lazy var webView: WKWebView = {
 		let configuration = WKWebViewConfiguration()
@@ -4494,10 +4389,9 @@ final class WebsiteIconFetcher: NSObject {
 			"""
 
 		DispatchQueue.main.async { [weak self] in
-			// TODO: Use `evaluateJavaScript(_ javaScript: String, in frame: WKFrameInfo? = nil, in contentWorld: WKContentWorld...)`.
-			self?.webView.evaluateJavaScript(code) { value, _ in
+			self?.webView.evaluateJavaScript(code, in: nil, in: .defaultClient) { result in
 				guard
-					let urlString = value as? String,
+					let urlString = try? result.get() as? String,
 					let url = URL(string: urlString)
 				else {
 					completionHandler(nil)
@@ -4553,10 +4447,10 @@ final class WebsiteIconFetcher: NSObject {
 			"""
 
 		DispatchQueue.main.async { [weak self] in
-			self?.webView.evaluateJavaScript(code) { [weak self] value, _ in
+			self?.webView.evaluateJavaScript(code, in: nil, in: .defaultClient) { [weak self] result in
 				guard
 					let self = self,
-					let urlString = value as? String,
+					let urlString = try? result.get() as? String,
 					let url = URL(string: urlString)
 				else {
 					completionHandler(nil)
@@ -4575,10 +4469,10 @@ final class WebsiteIconFetcher: NSObject {
 			"""
 
 		DispatchQueue.main.async { [weak self] in
-			self?.webView.evaluateJavaScript(code) { [weak self] value, _ in
+			self?.webView.evaluateJavaScript(code, in: nil, in: .defaultClient) { [weak self] result in
 				guard
 					let self = self,
-					let urlString = value as? String,
+					let urlString = try? result.get() as? String,
 					let url = URL(string: urlString)
 				else {
 					completionHandler(nil)
@@ -4636,7 +4530,6 @@ final class WebsiteIconFetcher: NSObject {
 	}
 }
 
-@available(macOS 11, iOS 14, tvOS 14, watchOS 7, *)
 extension WebsiteIconFetcher: WKNavigationDelegate {
 	func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
 		decisionHandler(navigationResponse.isForMainFrame ? .allow : .cancel)
@@ -4739,25 +4632,6 @@ extension SSApp {
 		}
 
 		SKStoreReviewController.requestReview()
-	}
-}
-
-
-/// Polyfill for `Link`.
-/// `Link` also doesn't work in `Menu` on macOS yet (macOS 11.0.1).
-struct Link2: View {
-	let title: String
-	let destination: URL
-
-	init(_ title: String, destination: URL) {
-		self.title = title
-		self.destination = destination
-	}
-
-	var body: some View {
-		Button(title) {
-			destination.open()
-		}
 	}
 }
 
@@ -4933,58 +4807,6 @@ extension Defaults {
 }
 
 
-// TODO: Remove when targeting macOS 11.
-extension Binding where Value: Equatable {
-	/**
-	Get notified when the binding value changes to a different one.
-
-	Can be useful to manually update non-reactive properties.
-
-	```
-	Toggle(
-		"Foo",
-		isOn: $foo.onChange {
-			bar.isEnabled = $0
-		}
-	)
-	```
-	*/
-	func onChange(_ action: @escaping (Value) -> Void) -> Self {
-		.init(
-			get: { wrappedValue },
-			set: {
-				let oldValue = wrappedValue
-				wrappedValue = $0
-				let newValue = wrappedValue
-				if newValue != oldValue {
-					action(newValue)
-				}
-			}
-		)
-	}
-}
-
-
-// TODO: Remove when targeting macOS 11.
-@propertyWrapper
-final class MutableBox<Value> {
-	var wrappedValue: Value
-
-	init(wrappedValue: Value) {
-		self.wrappedValue = wrappedValue
-	}
-
-	convenience init(_ wrappedValue: Value) {
-		self.init(wrappedValue: wrappedValue)
-	}
-
-	convenience init<T>() where Value == T? {
-		self.init(nil)
-	}
-}
-
-
-@available(macOS 11, *)
 private struct OnChangeDebouncedViewModifier<Value: Equatable>: ViewModifier {
 	private final class Debouncer: ObservableObject {
 		@Published var debouncedValue: Value
@@ -5044,7 +4866,6 @@ private struct OnChangeDebouncedViewModifier<Value: Equatable>: ViewModifier {
 	}
 }
 
-@available(macOS 11, *)
 extension View {
 	/**
 	`.onChange` version that debounces the value changes.
@@ -5077,6 +4898,31 @@ extension Publisher {
 		map(Result.success)
 			.catch { Just(.failure($0)) }
 			.eraseToAnyPublisher()
+	}
+}
+
+
+@propertyWrapper
+struct ViewStorage<Value>: DynamicProperty {
+	private final class ValueBox {
+		var value: Value
+
+		init(_ value: Value) {
+			self.value = value
+		}
+	}
+
+	@State private var valueBox: ValueBox
+
+	var wrappedValue: Value {
+		get { valueBox.value }
+		nonmutating set {
+			valueBox.value = newValue
+		}
+	}
+
+	init(wrappedValue value: @autoclosure @escaping () -> Value) {
+		self._valueBox = .init(wrappedValue: ValueBox(value()))
 	}
 }
 
@@ -5144,14 +4990,12 @@ extension Defaults {
 	```
 	*/
 	struct Toggle<Label, Key>: View where Label: View, Key: Defaults.Key<Bool> {
-		// TODO: Find a way to store the handler without using an embedded class.
-		private final class OnChangeHolder {
-			var onChange: ((Bool) -> Void)?
-		}
+		@ViewStorage private var onChange: ((Bool) -> Void)?
 
 		private let label: () -> Label
+
+		// Intentionally using `ObservedObjected` over `StateObject` so that the key could be changed.
 		@ObservedObject private var observable: Defaults.Observable<Bool>
-		private let onChangeHolder = OnChangeHolder()
 
 		init(key: Key, @ViewBuilder label: @escaping () -> Label) {
 			self.label = label
@@ -5159,23 +5003,11 @@ extension Defaults {
 		}
 
 		var body: some View {
-			SwiftUI.Toggle(
-				// TODO: Use `View#onChange` when targeting macOS 11.
-				isOn: $observable.value.onChange {
-					onChangeHolder.onChange?($0)
+			SwiftUI.Toggle(isOn: $observable.value, label: label)
+				.onChange(of: observable.value) {
+					onChange?($0)
 				}
-			) {
-				label()
-			}
 		}
-
-		// TODO: When targeting macOS 11:
-//		var body: some View {
-//			SwiftUI.Toggle(isOn: $observable.value, label: label)
-//				.onChange(of: observable.value) {
-//					onChangeHolder.onChange?($0)
-//				}
-//		}
 	}
 }
 
@@ -5189,7 +5021,175 @@ extension Defaults.Toggle where Label == Text {
 extension Defaults.Toggle {
 	/// Do something when the value changes to a different value.
 	func onChange(_ action: @escaping (Bool) -> Void) -> Self {
-		onChangeHolder.onChange = action
+		onChange = action
 		return self
+	}
+}
+
+
+private struct WindowAccessor: NSViewRepresentable {
+	private final class WindowAccessorView: NSView {
+		@Binding var windowBinding: NSWindow?
+
+		init(binding: Binding<NSWindow?>) {
+			self._windowBinding = binding
+			super.init(frame: .zero)
+		}
+
+		override func viewDidMoveToWindow() {
+			super.viewDidMoveToWindow()
+			windowBinding = window
+		}
+
+		@available(*, unavailable)
+		required init?(coder: NSCoder) {
+			fatalError() // swiftlint:disable:this fatal_error_message
+		}
+	}
+
+	@Binding var window: NSWindow?
+
+	init(_ window: Binding<NSWindow?>) {
+		self._window = window
+	}
+
+	func makeNSView(context: Context) -> NSView {
+		WindowAccessorView(binding: $window)
+	}
+
+	func updateNSView(_ nsView: NSView, context: Context) {}
+}
+
+extension View {
+	/// Bind the native backing-window of a SwiftUI window to a property.
+	func bindNativeWindow(_ window: Binding<NSWindow?>) -> some View {
+		background(WindowAccessor(window))
+	}
+}
+
+private struct WindowViewModifier: ViewModifier {
+	@State private var window: NSWindow?
+
+	let onWindow: (NSWindow?) -> Void
+
+	func body(content: Content) -> some View {
+		onWindow(window)
+
+		return content
+			.bindNativeWindow($window)
+	}
+}
+
+extension View {
+	/// Access the native backing-window of a SwiftUI window.
+	func accessNativeWindow(_ onWindow: @escaping (NSWindow?) -> Void) -> some View {
+		modifier(WindowViewModifier(onWindow: onWindow))
+	}
+
+	/// Set the window level of a SwiftUI window.
+	func windowLevel(_ level: NSWindow.Level) -> some View {
+		accessNativeWindow {
+			$0?.level = level
+		}
+	}
+}
+
+
+enum SettingsTabType {
+	case general
+	case advanced
+	case shortcuts
+
+	fileprivate var label: some View {
+		switch self {
+		case .general:
+			return Label("General", systemImage: "gearshape")
+		case .advanced:
+			return Label("Advanced", systemImage: "gearshape.2")
+		case .shortcuts:
+			return Label("Shortcuts", systemImage: "command")
+		}
+	}
+}
+
+extension View {
+	/// Make the view a settings tab of the given type.
+	func settingsTabItem(_ type: SettingsTabType) -> some View {
+		tabItem { type.label }
+	}
+}
+
+
+/**
+- Important: The `font` option have no effect...
+
+- Note: It respects `View#controlSize` if `roundedStyle: true`. Not without. (macOS 11.3)
+*/
+struct NativeTextField: NSViewRepresentable {
+	typealias NSViewType = NSTextField
+
+	@Binding var text: String
+	var placeholder: String?
+	var font: NSFont?
+	var isFirstResponder = false
+	var roundedStyle = false
+	var isSingleLine = true
+
+	final class Coordinator: NSObject, NSTextFieldDelegate {
+		var parent: NativeTextField
+		var didBecomeFirstResponder = false
+
+		init(_ autoFocusTextField: NativeTextField) {
+			self.parent = autoFocusTextField
+		}
+
+		func controlTextDidChange(_ notification: Notification) {
+			parent.text = (notification.object as? NSTextField)?.stringValue ?? ""
+		}
+	}
+
+	func makeCoordinator() -> Coordinator {
+		Coordinator(self)
+	}
+
+	func makeNSView(context: Context) -> NSViewType {
+		let nsView = NSTextField()
+		nsView.delegate = context.coordinator
+
+		// This makes it scroll horizontally when text overflows instead of moving to a new line.
+		if isSingleLine {
+			nsView.cell?.usesSingleLineMode = true
+			nsView.cell?.wraps = false
+			nsView.cell?.isScrollable = true
+			nsView.maximumNumberOfLines = 1
+		}
+
+		return nsView
+	}
+
+	func updateNSView(_ nsView: NSViewType, context: Context) {
+		nsView.stringValue = text
+		nsView.placeholderString = placeholder
+
+		if let font = font {
+			nsView.font = font
+		}
+
+		if roundedStyle {
+			nsView.bezelStyle = .roundedBezel
+		}
+
+		// Note: Does not work without the dispatch call.
+		DispatchQueue.main.async {
+			if
+				isFirstResponder,
+				!context.coordinator.didBecomeFirstResponder,
+				let window = nsView.window,
+				window.firstResponder != nsView
+			{
+				window.makeFirstResponder(nsView)
+				context.coordinator.didBecomeFirstResponder = true
+			}
+		}
 	}
 }

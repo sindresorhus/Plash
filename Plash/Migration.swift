@@ -2,7 +2,7 @@ import SwiftUI
 import LinkPresentation
 import Defaults
 
-extension AppDelegate {
+extension AppState {
 	private func migrateToWebsiteStruct() {
 		guard let url = Defaults[.url] else {
 			return

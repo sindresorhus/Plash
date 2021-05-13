@@ -43,7 +43,7 @@ final class WebViewController: NSViewController {
 				userContentController.invertColors()
 			}
 
-			if #available(macOS 11, *), website.usePrintStyles {
+			if website.usePrintStyles {
 				webView.mediaType = "print"
 			}
 
@@ -167,7 +167,7 @@ extension WebViewController: WKNavigationDelegate {
 extension WebViewController: WKUIDelegate {
 	func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
 		guard
-			AppDelegate.shared.isBrowsingMode,
+			AppState.shared.isBrowsingMode,
 			NSApp.currentEvent?.modifiers != .option
 		else {
 			// This makes it so that requests to open something in a new window just opens in the existing web view.
@@ -212,7 +212,7 @@ extension WebViewController: WKUIDelegate {
 	}
 
 	func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
-		guard AppDelegate.shared.isBrowsingMode else {
+		guard AppState.shared.isBrowsingMode else {
 			completionHandler()
 			return
 		}
@@ -221,7 +221,7 @@ extension WebViewController: WKUIDelegate {
 	}
 
 	func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
-		guard AppDelegate.shared.isBrowsingMode else {
+		guard AppState.shared.isBrowsingMode else {
 			completionHandler(false)
 			return
 		}
@@ -230,7 +230,7 @@ extension WebViewController: WKUIDelegate {
 	}
 
 	func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
-		guard AppDelegate.shared.isBrowsingMode else {
+		guard AppState.shared.isBrowsingMode else {
 			completionHandler(nil)
 			return
 		}
@@ -240,7 +240,7 @@ extension WebViewController: WKUIDelegate {
 
 	// swiftlint:disable:next discouraged_optional_collection
 	func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void) {
-		guard AppDelegate.shared.isBrowsingMode else {
+		guard AppState.shared.isBrowsingMode else {
 			completionHandler(nil)
 			return
 		}

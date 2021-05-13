@@ -20,7 +20,7 @@ extension Defaults.Keys {
 	static let bringBrowsingModeToFront = Key<Bool>("bringBrowsingModeToFront", default: false)
 	static let openExternalLinksInBrowser = Key<Bool>("openExternalLinksInBrowser", default: false)
 
-	// TODO: Remove at some point in the future.
+	// TODO: Remove at some point in the future. Not before 2022.
 	// Deprecated
 	static let url = Key<URL?>("url")
 	static let invertColors = Key<Bool>("invertColors", default: false)
