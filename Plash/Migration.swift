@@ -1,5 +1,4 @@
 import SwiftUI
-import LinkPresentation
 import Defaults
 
 extension AppState {
@@ -22,28 +21,9 @@ extension AppState {
 		)
 	}
 
-	private func fetchTitle(_ website: Binding<Website>) {
-		guard website.wrappedValue.title.isEmpty else {
-			return
-		}
-
-		LPMetadataProvider().startFetchingMetadata(for: website.wrappedValue.url) { metadata, error in
-			guard
-				error == nil,
-				let title = metadata?.title
-			else {
-				return
-			}
-
-			DispatchQueue.main.async {
-				website.wrappedValue.title = title
-			}
-		}
-	}
-
 	private func migrateToAddTitle() {
 		for website in WebsitesController.shared.allBinding {
-			fetchTitle(website)
+			WebsitesController.shared.fetchTitleIfNeeded(for: website)
 		}
 	}
 

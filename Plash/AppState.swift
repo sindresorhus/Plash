@@ -83,6 +83,8 @@ final class AppState: ObservableObject {
 			]
 		)
 
+		setUpURLCommands()
+
 		DispatchQueue.main.async { [self] in
 			didLaunch()
 		}
@@ -142,6 +144,10 @@ final class AppState: ObservableObject {
 
 	func recreateWebViewAndReload() {
 		recreateWebView()
+		loadUserURL()
+	}
+
+	func reloadWebsite() {
 		loadUserURL()
 	}
 

@@ -78,7 +78,7 @@ private struct ReloadIntervalSetting: View {
 	// TODO: Improve VoiceOver accessibility for this control.
 	var body: some View {
 		HStack(alignment: .firstTextBaseline) {
-			Text("Reload Interval:")
+			Text("Reload interval:")
 				.fixedSize(horizontal: true, vertical: false)
 			Toggle(isOn: hasInterval) {
 				Stepper(
@@ -125,7 +125,7 @@ private struct DisplaySetting: View {
 
 	var body: some View {
 		Picker(
-			"Show On Display:",
+			"Show on display:",
 			selection: $chosenDisplay.getMap(\.withFallbackToMain)
 		) {
 			ForEach(displayWrapper.wrappedValue.all, id: \.self) { display in
@@ -141,7 +141,7 @@ private struct ClearWebsiteDataSetting: View {
 	@State private var hasCleared = false
 
 	var body: some View {
-		Button("Clear All Website Data") {
+		Button("Clear all website data") {
 			hasCleared = true
 			appState.webViewController.webView.clearWebsiteData(completion: nil)
 			WebsitesController.shared.thumbnailCache.removeAllImages()
@@ -184,7 +184,7 @@ private struct ShortcutsSettings: View {
 		Form {
 			VStack {
 				HStack(alignment: .firstTextBaseline) {
-					Text("Toggle Browsing Mode:")
+					Text("Toggle browsing mode:")
 						.frame(width: maxWidth, alignment: .trailing)
 					KeyboardShortcuts.Recorder(for: .toggleBrowsingMode)
 				}
@@ -196,13 +196,13 @@ private struct ShortcutsSettings: View {
 				}
 					.accessibilityElement()
 				HStack(alignment: .firstTextBaseline) {
-					Text("Next Website:")
+					Text("Next website:")
 						.frame(width: maxWidth, alignment: .trailing)
 					KeyboardShortcuts.Recorder(for: .nextWebsite)
 				}
 					.accessibilityElement()
 				HStack(alignment: .firstTextBaseline) {
-					Text("Previous Website:")
+					Text("Previous website:")
 						.frame(width: maxWidth, alignment: .trailing)
 					KeyboardShortcuts.Recorder(for: .previousWebsite)
 				}

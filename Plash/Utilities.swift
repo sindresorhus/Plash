@@ -604,30 +604,117 @@ enum Device {
 }
 
 
-private func escapeQuery(_ query: String) -> String {
-	// From RFC 3986
-	let generalDelimiters = ":#[]@"
-	let subDelimiters = "!$&'()*+,;="
+extension Sequence {
+	/**
+	Convert a sequence to a dictionary by mapping over the values and using the returned key as the key and the current sequence element as value.
 
-	var allowedCharacters = CharacterSet.urlQueryAllowed
-	allowedCharacters.remove(charactersIn: generalDelimiters + subDelimiters)
-	return query.addingPercentEncoding(withAllowedCharacters: allowedCharacters) ?? query
+	```
+	[1, 2, 3].toDictionary { $0 }
+	//=> [1: 1, 2: 2, 3: 3]
+	```
+	*/
+	func toDictionary<Key: Hashable>(with pickKey: (Element) -> Key) -> [Key: Element] {
+		var dictionary = [Key: Element]()
+		for element in self {
+			dictionary[pickKey(element)] = element
+		}
+		return dictionary
+	}
+
+	/**
+	Convert a sequence to a dictionary by mapping over the elements and returning a key/value tuple representing the new dictionary element.
+
+	```
+	[(1, "a"), (2, "b")].toDictionary { ($1, $0) }
+	//=> ["a": 1, "b": 2]
+	```
+	*/
+	func toDictionary<Key: Hashable, Value>(with pickKeyValue: (Element) -> (Key, Value)) -> [Key: Value] {
+		var dictionary = [Key: Value]()
+		for element in self {
+			let newElement = pickKeyValue(element)
+			dictionary[newElement.0] = newElement.1
+		}
+		return dictionary
+	}
+
+	/**
+	Same as the above but supports returning optional values.
+
+	```
+	[(1, "a"), (nil, "b")].toDictionary { ($1, $0) }
+	//=> ["a": 1, "b": nil]
+	```
+	*/
+	func toDictionary<Key: Hashable, Value>(with pickKeyValue: (Element) -> (Key, Value?)) -> [Key: Value?] {
+		var dictionary = [Key: Value?]()
+		for element in self {
+			let newElement = pickKeyValue(element)
+			dictionary[newElement.0] = newElement.1
+		}
+		return dictionary
+	}
 }
 
 
-extension Dictionary where Key: ExpressibleByStringLiteral, Value: ExpressibleByStringLiteral {
-	var asQueryItems: [URLQueryItem] {
+extension Dictionary {
+	func compactValues<T>() -> [Key: T] where Value == T? {
+		// TODO: Make this `compactMapValues(\.self)` when https://bugs.swift.org/browse/SR-12897 is fixed.
+		compactMapValues { $0 }
+	}
+}
+
+
+extension StringProtocol {
+	/// Check if the string only contains whitespace characters.
+	var isWhitespace: Bool {
+		allSatisfy(\.isWhitespace)
+	}
+
+	/// Check if the string is empty or only contains whitespace characters.
+	var isEmptyOrWhitespace: Bool { isEmpty || isWhitespace }
+}
+
+
+extension Collection {
+	/// Works on strings too, since they're just collections.
+	var nilIfEmpty: Self? { isEmpty ? nil : self }
+}
+
+extension StringProtocol {
+	var nilIfEmptyOrWhitespace: Self? { isEmptyOrWhitespace ? nil : self }
+}
+
+
+extension CharacterSet {
+	/// Characters allowed to be unescaped in an URL
+	/// https://tools.ietf.org/html/rfc3986#section-2.3
+	static let urlUnreservedRFC3986 = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~")
+}
+
+
+/// This should really not be necessary, but it's at least needed for my `formspree.io` form...
+/// Otherwise is results in "Internal Server Error" after submitting the form
+/// Relevant: https://www.djackson.org/why-we-do-not-use-urlcomponents/
+private func escapeQueryComponent(_ query: String) -> String {
+	query.addingPercentEncoding(withAllowedCharacters: .urlUnreservedRFC3986)!
+}
+
+
+extension Dictionary where Key == String {
+	/// This correctly escapes items. See `escapeQueryComponent`.
+	var toQueryItems: [URLQueryItem] {
 		map {
 			URLQueryItem(
-				name: escapeQuery($0 as! String),
-				value: escapeQuery($1 as! String)
+				name: escapeQueryComponent($0),
+				value: escapeQueryComponent("\($1)")
 			)
 		}
 	}
 
-	var asQueryString: String {
+	var toQueryString: String {
 		var components = URLComponents()
-		components.queryItems = asQueryItems
+		components.queryItems = toQueryItems
 		return components.query!
 	}
 }
@@ -635,7 +722,7 @@ extension Dictionary where Key: ExpressibleByStringLiteral, Value: ExpressibleBy
 
 extension URLComponents {
 	mutating func addDictionaryAsQuery(_ dict: [String: String]) {
-		percentEncodedQuery = dict.asQueryString
+		percentEncodedQuery = dict.toQueryString
 	}
 }
 
@@ -645,6 +732,20 @@ extension URL {
 		var components = URLComponents(url: self, resolvingAgainstBaseURL: false)!
 		components.addDictionaryAsQuery(dict)
 		return components.url ?? self
+	}
+}
+
+
+extension URLComponents {
+	/// This correctly escapes items. See `escapeQueryComponent`.
+	var queryDictionary: [String: String] {
+		get {
+			queryItems?.toDictionary { ($0.name, $0.value) }.compactValues() ?? [:]
+		}
+		set {
+			/// Using `percentEncodedQueryItems` instead of `queryItems` since the query items are already custom-escaped. See `escapeQueryComponent`.
+			percentEncodedQueryItems = newValue.toQueryItems
+		}
 	}
 }
 
@@ -5192,4 +5293,96 @@ struct NativeTextField: NSViewRepresentable {
 			}
 		}
 	}
+}
+
+
+enum SSPublishers {
+	private struct AppOpenURLPublisher: Publisher {
+		// We need this abstraction as `kAEGetURL` can only be subscribed to once.
+		private final class EventManager {
+			typealias Handler = (URLComponents) -> Void
+
+			static let shared = EventManager()
+
+			private var handlers = [UUID: Handler]()
+
+			@objc
+			private func handleEvent(_ event: NSAppleEventDescriptor, withReplyEvent replyEvent: NSAppleEventDescriptor) {
+				guard
+					let urlString = event.paramDescriptor(forKeyword: AEKeyword(keyDirectObject))?.stringValue,
+					let urlComponents = URLComponents(string: urlString)
+				else {
+					return
+				}
+
+				for handler in handlers.values {
+					handler(urlComponents)
+				}
+			}
+
+			func add(_ handler: @escaping Handler) -> UUID {
+				if handlers.isEmpty {
+					NSAppleEventManager.shared().setEventHandler(self, andSelector: #selector(handleEvent(_:withReplyEvent:)), forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
+				}
+
+				let id = UUID()
+				handlers[id] = handler
+				return id
+			}
+
+			func remove(_ id: UUID) {
+				handlers[id] = nil
+
+				if handlers.isEmpty {
+					NSAppleEventManager.shared().removeEventHandler(forEventClass: AEEventClass(kInternetEventClass), andEventID: AEEventID(kAEGetURL))
+				}
+			}
+		}
+
+		private final class InternalSubscription<S: Subscriber>: Subscription where S.Input == Output, S.Failure == Failure {
+			private var id: UUID?
+
+			var subscriber: S?
+
+			init() {
+				self.id = EventManager.shared.add { [weak self] in
+					_ = self?.subscriber?.receive($0)
+				}
+			}
+
+			deinit {
+				if let id = id {
+					EventManager.shared.remove(id)
+				}
+			}
+
+			func request(_ demand: Subscribers.Demand) {}
+
+			func cancel() {
+				subscriber = nil
+			}
+		}
+
+		typealias Output = URLComponents
+		typealias Failure = Never
+
+		func receive<S: Subscriber>(subscriber: S) where S.Input == Output, S.Failure == Failure {
+			let subscription = InternalSubscription<S>()
+			subscription.subscriber = subscriber
+			subscriber.receive(subscription: subscription)
+		}
+	}
+
+	/**
+	Publishes when the app receives an open URL event.
+
+	This can be useful for implementing support for a custom URL scheme.
+
+	If you use SwiftUI, you should use `View#onOpenURL` instead.
+
+	It returns `URLComponents` as it's more convenient, and also, `URL` does not support `foo:action` type URLs (without the slashes).
+
+	- Important: You must set up the listener before the app finishes launching. Ideally, in the app controller's initializer.
+	*/
+	static let appOpenURL: AnyPublisher<URLComponents, Never> = AppOpenURLPublisher().eraseToAnyPublisher()
 }

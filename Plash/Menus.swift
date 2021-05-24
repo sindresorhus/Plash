@@ -59,13 +59,13 @@ extension AppState {
 		)
 
 		menu.addUrlItem(
-			"Roadmap",
-			url: "https://github.com/sindresorhus/Plash/issues"
+			"Examples",
+			url: "https://github.com/sindresorhus/Plash/issues/1"
 		)
 
 		menu.addUrlItem(
-			"Examples",
-			url: "https://github.com/sindresorhus/Plash/issues/1"
+			"Scripting",
+			url: "https://github.com/sindresorhus/Plash#scripting"
 		)
 
 		menu.addSeparator()

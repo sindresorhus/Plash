@@ -18,6 +18,7 @@
 		E324215A2384FBE500D28A91 /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421592384FBE500D28A91 /* WebViewController.swift */; };
 		E3294F7E255783A800D4172F /* Defaults in Frameworks */ = {isa = PBXBuildFile; productRef = E3294F7D255783A800D4172F /* Defaults */; };
 		E333EB1B2385244E005FCE44 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E333EB1A2385244E005FCE44 /* SettingsView.swift */; };
+		E3369A9A265E344300BAC78B /* URLCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3369A99265E344300BAC78B /* URLCommands.swift */; };
 		E34FCBCE264D32150022BDD3 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34FCBCD264D32150022BDD3 /* App.swift */; };
 		E354442626061C9100CA060F /* Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = E354442526061C9100CA060F /* Migration.swift */; };
 		E354442C26062D2A00CA060F /* WebsitesWindowController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E354442B26062D2A00CA060F /* WebsitesWindowController.swift */; };
@@ -47,6 +48,7 @@
 		E32421572384F0E600D28A91 /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = Utilities.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E32421592384FBE500D28A91 /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = WebViewController.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E333EB1A2385244E005FCE44 /* SettingsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = SettingsView.swift; sourceTree = "<group>"; usesTabs = 1; };
+		E3369A99265E344300BAC78B /* URLCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLCommands.swift; sourceTree = "<group>"; };
 		E34FCBCD264D32150022BDD3 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		E354442526061C9100CA060F /* Migration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Migration.swift; sourceTree = "<group>"; };
 		E354442B26062D2A00CA060F /* WebsitesWindowController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsitesWindowController.swift; sourceTree = "<group>"; };
@@ -110,6 +112,7 @@
 				E32421352384E9D700D28A91 /* AddWebsiteView.swift */,
 				E333EB1A2385244E005FCE44 /* SettingsView.swift */,
 				E3EC5A85250D7A0C00ABE1A1 /* WelcomeView.swift */,
+				E3369A99265E344300BAC78B /* URLCommands.swift */,
 				E354442526061C9100CA060F /* Migration.swift */,
 				E32421572384F0E600D28A91 /* Utilities.swift */,
 				E32421372384E9D900D28A91 /* Assets.xcassets */,
@@ -264,6 +267,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E32421362384E9D700D28A91 /* AddWebsiteView.swift in Sources */,
+				E3369A9A265E344300BAC78B /* URLCommands.swift in Sources */,
 				E384F28024C3B37E002FD21B /* Events.swift in Sources */,
 				E384F28224C3B3CD002FD21B /* Menus.swift in Sources */,
 				E324215A2384FBE500D28A91 /* WebViewController.swift in Sources */,

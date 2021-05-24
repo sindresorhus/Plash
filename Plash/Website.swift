@@ -15,7 +15,7 @@ struct Website: Hashable, Codable, Identifiable {
 	var menuTitle: String { title.isEmpty ? subtitle : title }
 
 	// The space is there to force `NSMenu` to display an empty line.
-	var tooltip: String { "\(title)\n \n\(subtitle)" }
+	var tooltip: String { "\(title)\n \n\(subtitle)".trimmed }
 
 	var thumbnailCacheKey: String { url.isFileURL ? url.tildePath : (url.host ?? "") }
 

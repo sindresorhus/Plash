@@ -1,6 +1,7 @@
 import SwiftUI
 import Combine
 import Defaults
+import LinkPresentation
 
 final class WebsitesController {
 	static let shared = WebsitesController()
@@ -74,6 +75,32 @@ final class WebsitesController {
 		return allBinding[id: website.id]!
 	}
 
+	/**
+	Add a website from a URL.
+
+	Optionally, specify a title. If no title is given or if the title is empty, a title will be automatically fetched from the website.
+	*/
+	@discardableResult
+	func add(_ websiteURL: URL, title: String? = nil) -> Binding<Website> {
+		let websiteBinding = add(
+			Website(
+				id: UUID(),
+				isCurrent: true,
+				url: websiteURL,
+				invertColors: false,
+				usePrintStyles: false
+			)
+		)
+
+		if let title = title?.nilIfEmptyOrWhitespace {
+			websiteBinding.wrappedValue.title = title
+		} else {
+			fetchTitleIfNeeded(for: websiteBinding)
+		}
+
+		return websiteBinding
+	}
+
 	/// Remove a website.
 	func remove(_ website: Website) {
 		all = all.removingAll(website)
@@ -95,5 +122,27 @@ final class WebsitesController {
 		}
 
 		makeCurrent(website)
+	}
+
+	/**
+	Fetch the title for a website in the background if the existing title is empty.
+	*/
+	func fetchTitleIfNeeded(for website: Binding<Website>) {
+		guard website.wrappedValue.title.isEmpty else {
+			return
+		}
+
+		LPMetadataProvider().startFetchingMetadata(for: website.wrappedValue.url) { metadata, error in
+			guard
+				error == nil,
+				let title = metadata?.title
+			else {
+				return
+			}
+
+			DispatchQueue.main.async {
+				website.wrappedValue.title = title
+			}
+		}
 	}
 }

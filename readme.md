@@ -48,6 +48,7 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 - Audio is muted
 - Single image will be aspect-filled to your screen
 - Hide menu bar icon
+- [Scriptable](#scripting)
 
 ## Download
 
@@ -109,11 +110,110 @@ You can use the “CSS” field in the website settings to adjust the padding of
 ![](Stuff/screenshot4.jpg)
 ![](Stuff/screenshot5.jpg)
 
+## Scripting
+
+You can control Plash using anything that supports opening a URL with a custom scheme.
+
+For example, to reload the current website, run this terminal command:
+
+```console
+$ open -g plash:reload
+```
+
+### Tools
+
+- [plash-cli](https://github.com/sindresorhus/plash-cli) - Command-line tool.
+- [alfred-plash](https://github.com/sindresorhus/alfred-plash) - Alfred workflow.
+
+### Commands
+
+#### `add`
+
+Add a website to Plash.
+
+You can optionally specify a title. If no title is given, a title will be automatically fetched from the website.
+
+```console
+$ open -g 'plash:add?url=https://sindresorhus.com/plash&title=Plash%20website'
+```
+
+*Don‘t forget to correctly encode query parameters.*
+
+**Note:** Local file URLs are not supported.
+
+#### `reload`
+
+Reload the current website.
+
+```console
+$ open -g plash:reload
+```
+
+#### `next`
+
+Switch to the next website in the list.
+
+```console
+$ open -g plash:next
+```
+
+#### `previous`
+
+Switch to the previous website in the list.
+
+```console
+$ open -g plash:previous
+```
+
+#### `toggle-browsing-mode`
+
+Toggle browser mode.
+
+```console
+$ open -g plash:toggle-browsing-mode
+```
+
+### Examples
+
+#### Node.js
+
+```js
+import {execFileSync} from 'node:child_process';
+
+execFileSync('open', ['--background', 'plash:reload']);
+```
+
+#### Swift
+
+```swift
+import Cocoa
+
+let command = "plash:reload"
+
+let configuration = NSWorkspace.OpenConfiguration()
+configuration.activates = false
+NSWorkspace.shared.open(URL(string: command)!, configuration: configuration)
+```
+
+#### AppleScript
+
+```applescript
+do shell script "open --background 'plash:reload'"
+```
+
+#### Python
+
+```python
+import subprocess
+
+subprocess.run(['open', '--background', 'plash:reload'])
+```
+
 ## FAQ
 
 #### Can I contribute localizations?
 
-We don't have any immediate plans to localize the app.
+I don't have any immediate plans to localize the app.
 
 #### What does “Plash” mean?
 
@@ -123,17 +223,11 @@ We don't have any immediate plans to localize the app.
 
 No, this app depends on features only available on macOS 11.
 
-#### Is this a native app?
-
-Yes, it’s a native app written in Swift.
-
 ## Built with
 
 - [Defaults](https://github.com/sindresorhus/Defaults) - Swifty and modern UserDefaults
 - [KeyboardShortcuts](https://github.com/sindresorhus/KeyboardShortcuts) - Add user-customizable global keyboard shortcuts to your macOS app
 
-## Related
+## Links
 
-- [Website](https://sindresorhus.com/plash)
-- [Gifski](https://github.com/sindresorhus/Gifski) - Convert videos to high-quality GIFs
-- [More apps…](https://sindresorhus.com/apps)
+- [More apps by me](https://sindresorhus.com/apps)

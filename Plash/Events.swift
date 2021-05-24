@@ -15,8 +15,8 @@ extension AppState {
 			.sink { [self] result in
 				switch result {
 				case .success:
-					// TODO: When targeting macOS 11, I might be able to set `.pageLevel` before loading the page.
 					// Set the persisted zoom level.
+					// This must be here as `webView.url` needs to have been set.
 					let zoomLevel = webViewController.webView.zoomLevelWrapper
 					if zoomLevel != 1 {
 						webViewController.webView.zoomLevelWrapper = zoomLevel
@@ -106,7 +106,7 @@ extension AppState {
 		}
 
 		KeyboardShortcuts.onKeyUp(for: .reload) { [self] in
-			loadUserURL()
+			reloadWebsite()
 		}
 
 		KeyboardShortcuts.onKeyUp(for: .nextWebsite) {
