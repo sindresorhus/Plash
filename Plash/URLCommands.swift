@@ -41,6 +41,8 @@ extension AppState {
 			WebsitesController.shared.makeNextCurrent()
 		case "previous":
 			WebsitesController.shared.makePreviousCurrent()
+		case "random":
+			WebsitesController.shared.makeRandomCurrent()
 		case "toggle-browsing-mode":
 			Defaults[.isBrowsingMode].toggle()
 		default:

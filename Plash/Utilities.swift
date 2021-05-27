@@ -2296,36 +2296,66 @@ extension SetAlgebra {
 }
 
 
+extension Sequence {
+	func eraseToAnySequence() -> AnySequence<Element> { .init(self) }
+}
+
 extension Collection {
 	/**
-	Returns a infinite sequence with consecutively unique random elements from the collection.
+	Returns a infinite sequence with unique random elements from the collection.
+
+	Elements will only repeat after all elements have been seen.
+
+	This can be useful for slideshows and music playlists where you want to ensure that the elements are better spread out.
+
+	If the collection only has a single element, that element will be repeated forever.
+	If the collection is empty, it will never return any elements.
 
 	```
-	let x = [1, 2, 3].uniqueRandomElementIterator()
+	let sequence = [1, 2, 3, 4].infiniteUniformRandomSequence()
 
-	x.next()
-	//=> 2
-	x.next()
-	//=> 1
-
-	for element in x.prefix(2) {
+	for element in sequence.prefix(3) {
 		print(element)
 	}
 	//=> 3
 	//=> 1
+	//=> 2
+
+	let iterator = sequence.makeIterator()
+
+	iterator.next()
+	//=> 4
+	iterator.next()
+	//=> 1
 	```
 	*/
-	func uniqueRandomElementIterator() -> AnyIterator<Element> {
-		var previousNumber: Int?
+	func infiniteUniformRandomSequence() -> AnySequence<Element> {
+		guard !isEmpty else {
+			return [].eraseToAnySequence()
+		}
 
-		return AnyIterator {
-			var offset: Int
-			repeat {
-				offset = Int.random(in: 0..<count)
-			} while offset == previousNumber
-			previousNumber = offset
+		return AnySequence { () -> AnyIterator in
+			guard count > 1 else {
+				return AnyIterator { first }
+			}
 
-			return self[index(startIndex, offsetBy: offset)]
+			var currentIndices = [Index]()
+			var previousIndex: Index?
+
+			return AnyIterator {
+				if currentIndices.isEmpty {
+					currentIndices = indices.shuffled()
+
+					// Ensure there are no duplicate elements on the edges.
+					if currentIndices.last == previousIndex {
+						currentIndices = currentIndices.reversed()
+					}
+				}
+
+				let index = currentIndices.popLast()! // It cannot be nil.
+				previousIndex = index
+				return self[index]
+			}
 		}
 	}
 }
@@ -2346,7 +2376,7 @@ extension NSColor {
 		.systemIndigo
 	]
 
-	private static let uniqueRandomSystemColors = systemColors.uniqueRandomElementIterator()
+	private static let uniqueRandomSystemColors = systemColors.infiniteUniformRandomSequence().makeIterator()
 
 	static func uniqueRandomSystemColor() -> NSColor {
 		uniqueRandomSystemColors.next()!

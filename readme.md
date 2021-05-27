@@ -124,6 +124,7 @@ $ open -g plash:reload
 
 - [plash-cli](https://github.com/sindresorhus/plash-cli) - Command-line tool.
 - [alfred-plash](https://github.com/sindresorhus/alfred-plash) - Alfred workflow.
+- [Raycast commands](https://github.com/raycast/script-commands/tree/master/commands/apps/plash)
 
 ### Commands
 
@@ -165,9 +166,19 @@ Switch to the previous website in the list.
 $ open -g plash:previous
 ```
 
+#### `random`
+
+Switch to a random website in the list.
+
+It will never show the same website twice in a row, unless you only have a single website.
+
+```console
+$ open -g plash:random
+```
+
 #### `toggle-browsing-mode`
 
-Toggle browser mode.
+Toggle browsing mode.
 
 ```console
 $ open -g plash:toggle-browsing-mode

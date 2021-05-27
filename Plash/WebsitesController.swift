@@ -11,6 +11,7 @@ final class WebsitesController {
 	private var nextCurrent: Website? { all.elementAfterOrFirst(_current) }
 	private var previousCurrent: Website? { all.elementBeforeOrLast(_current) }
 
+	var randomWebsiteIterator = Defaults[.websites].infiniteUniformRandomSequence().makeIterator()
 	let thumbnailCache = SimpleImageCache<String>(diskCacheName: "websiteThumbnailCache")
 
 	/// The current website.
@@ -46,13 +47,22 @@ final class WebsitesController {
 
 	private func setUpEvents() {
 		Defaults.publisher(.websites)
-			.sink { change in
+			.sink { [weak self] change in
+				guard let self = self else {
+					return
+				}
+
 				// Ensures there's always a current website.
 				if
 					change.newValue.allSatisfy(!\.isCurrent),
 					let website = change.newValue.first
 				{
 					website.makeCurrent()
+				}
+
+				// We only reset the iterator if a website was added/removed.
+				if change.newValue.map(\.id) != change.oldValue.map(\.id) {
+					self.randomWebsiteIterator = self.all.infiniteUniformRandomSequence().makeIterator()
 				}
 			}
 			.store(in: &cancellables)
@@ -118,6 +128,15 @@ final class WebsitesController {
 	/// Makes the previous website the current one.
 	func makePreviousCurrent() {
 		guard let website = previousCurrent else {
+			return
+		}
+
+		makeCurrent(website)
+	}
+
+	/// Makes a random website in the list the current one.
+	func makeRandomCurrent() {
+		guard let website = randomWebsiteIterator.next() else {
 			return
 		}
 
