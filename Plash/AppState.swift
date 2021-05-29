@@ -38,6 +38,7 @@ final class AppState: ObservableObject {
 
 	var isEnabled = true {
 		didSet {
+			resetTimer()
 			statusItemButton.appearsDisabled = !isEnabled
 
 			if isEnabled {
@@ -50,6 +51,8 @@ final class AppState: ObservableObject {
 			}
 		}
 	}
+
+	var isScreenLocked = false
 
 	var reloadTimer: Timer?
 
@@ -117,18 +120,18 @@ final class AppState: ObservableObject {
 	}
 
 	func setEnabledStatus() {
-		isEnabled = !(Defaults[.deactivateOnBattery] && powerSourceWatcher?.powerSource.isUsingBattery == true)
+		isEnabled = !isScreenLocked && !(Defaults[.deactivateOnBattery] && powerSourceWatcher?.powerSource.isUsingBattery == true)
 	}
 
 	func resetTimer() {
 		reloadTimer?.invalidate()
 		reloadTimer = nil
 
-		guard !isBrowsingMode else {
-			return
-		}
-
-		guard let reloadInterval = Defaults[.reloadInterval] else {
+		guard
+			isEnabled,
+			!isBrowsingMode,
+			let reloadInterval = Defaults[.reloadInterval]
+		else {
 			return
 		}
 

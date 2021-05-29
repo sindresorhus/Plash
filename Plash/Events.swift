@@ -39,9 +39,16 @@ extension AppState {
 			}
 			.store(in: &cancellables)
 
-		NSWorkspace.Publishers.didWake
+		SSPublishers.deviceDidWake
 			.sink { [self] in
 				loadUserURL()
+			}
+			.store(in: &cancellables)
+
+		SSPublishers.isScreenLocked
+			.sink { [self] in
+				isScreenLocked = $0
+				setEnabledStatus()
 			}
 			.store(in: &cancellables)
 

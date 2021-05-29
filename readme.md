@@ -124,7 +124,7 @@ $ open -g plash:reload
 
 - [plash-cli](https://github.com/sindresorhus/plash-cli) - Command-line tool.
 - [alfred-plash](https://github.com/sindresorhus/alfred-plash) - Alfred workflow.
-- [Raycast commands](https://github.com/raycast/script-commands/tree/master/commands/apps/plash)
+- [Raycast commands](https://github.com/raycast/script-commands/tree/master/commands#plash)
 
 ### Commands
 

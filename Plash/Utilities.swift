@@ -1907,9 +1907,9 @@ extension NSScreen {
 	/// This includes screens being added/removed, resolution change, and the screen frame changing (dock and menu bar being toggled).
 	static var publisher: AnyPublisher<Void, Never> {
 		Publishers.Merge(
-			NSApplication.Publishers.didChangeScreenParameters,
+			SSPublishers.screenParametersDidChange,
 			// We use a wake up notification as the screen setup might have changed during sleep. For example, a screen could have been unplugged.
-			NSWorkspace.Publishers.didWake
+			SSPublishers.deviceDidWake
 		)
 			.eraseToAnyPublisher()
 	}
@@ -3279,28 +3279,6 @@ extension SSApp {
 		execute()
 	}
 }
-
-
-extension NSWorkspace {
-	enum Publishers {
-		/// Publishes when the machine wakes from sleep.
-		static let didWake = NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)
-				.map { _ in }
-				.eraseToAnyPublisher()
-	}
-}
-
-
-extension NSApplication {
-	enum Publishers {
-		/// Publishes when the configuration of the displays attached to the computer is changed.
-		/// The configuration change can be made either programmatically or when the user changes settings in the Displays control panel.
-		static let didChangeScreenParameters = NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
-				.map { _ in }
-				.eraseToAnyPublisher()
-	}
-}
-
 
 
 extension AnyCancellable {
@@ -5326,7 +5304,37 @@ struct NativeTextField: NSViewRepresentable {
 }
 
 
+extension Notification.Name {
+	/// Must be used with `DistributedNotificationCenter`.
+	static let screenIsLocked = Self("com.apple.screenIsLocked")
+
+	/// Must be used with `DistributedNotificationCenter`.
+	static let screenIsUnlocked = Self("com.apple.screenIsUnlocked")
+}
+
+
 enum SSPublishers {
+	/// Publishes when the machine wakes from sleep.
+	static let deviceDidWake = NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)
+		.map { _ in }
+		.eraseToAnyPublisher()
+
+	/// Publishes when the configuration of the displays attached to the computer is changed.
+	/// The configuration change can be made either programmatically or when the user changes settings in the Displays control panel.
+	static let screenParametersDidChange = NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
+		.map { _ in }
+		.eraseToAnyPublisher()
+
+	/// Publishes when the screen becomes locked/unlocked.
+	static let isScreenLocked = Publishers.Merge(
+		DistributedNotificationCenter.default().publisher(for: .screenIsLocked).map { _ in true },
+		DistributedNotificationCenter.default().publisher(for: .screenIsUnlocked).map { _ in false }
+	)
+		.eraseToAnyPublisher()
+}
+
+
+extension SSPublishers {
 	private struct AppOpenURLPublisher: Publisher {
 		// We need this abstraction as `kAEGetURL` can only be subscribed to once.
 		private final class EventManager {

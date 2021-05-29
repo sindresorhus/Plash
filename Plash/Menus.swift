@@ -101,6 +101,14 @@ extension AppState {
 			}
 				.setShortcut(for: .previousWebsite)
 
+			menu.addCallbackItem(
+				"Reload Website",
+				isEnabled: WebsitesController.shared.current != nil
+			) { [weak self] _ in
+				self?.loadUserURL()
+			}
+				.setShortcut(for: .reload)
+
 			menu.addItem("Switch")
 				.withSubmenu(createSwitchMenu())
 
@@ -119,14 +127,6 @@ extension AppState {
 		}
 
 		menu.addSeparator()
-
-		menu.addCallbackItem(
-			"Reload",
-			isEnabled: WebsitesController.shared.current != nil
-		) { [weak self] _ in
-			self?.loadUserURL()
-		}
-			.setShortcut(for: .reload)
 
 		menu.addCallbackItem(
 			"Browsing Mode",

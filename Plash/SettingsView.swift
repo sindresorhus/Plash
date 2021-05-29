@@ -188,25 +188,25 @@ private struct ShortcutsSettings: View {
 						.frame(width: maxWidth, alignment: .trailing)
 					KeyboardShortcuts.Recorder(for: .toggleBrowsingMode)
 				}
-					.accessibilityElement()
+					.accessibilityElement(children: .combine)
 				HStack(alignment: .firstTextBaseline) {
-					Text("Reload:")
+					Text("Reload website:")
 						.frame(width: maxWidth, alignment: .trailing)
 					KeyboardShortcuts.Recorder(for: .reload)
 				}
-					.accessibilityElement()
+					.accessibilityElement(children: .combine)
 				HStack(alignment: .firstTextBaseline) {
 					Text("Next website:")
 						.frame(width: maxWidth, alignment: .trailing)
 					KeyboardShortcuts.Recorder(for: .nextWebsite)
 				}
-					.accessibilityElement()
+					.accessibilityElement(children: .combine)
 				HStack(alignment: .firstTextBaseline) {
 					Text("Previous website:")
 						.frame(width: maxWidth, alignment: .trailing)
 					KeyboardShortcuts.Recorder(for: .previousWebsite)
 				}
-					.accessibilityElement()
+					.accessibilityElement(children: .combine)
 			}
 		}
 			.padding()

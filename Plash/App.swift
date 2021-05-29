@@ -15,7 +15,7 @@ struct AppMain: App {
 	@StateObject private var appState = AppState.shared
 
 	var body: some Scene {
-		// This is needed for standard keyboard shortcuts to work in text fields.
+		// This is needed for standard keyboard shortcuts to work in text fields. (macOS 11.3)
 		WindowGroup {
 			if false {}
 		}
