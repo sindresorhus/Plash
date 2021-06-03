@@ -27,6 +27,9 @@ extension Defaults.Keys {
 	static let customCSS = Key<String>("customCSS", default: "")
 }
 
+extension Website: Defaults.Serializable {}
+extension Display: Defaults.Serializable {}
+
 extension KeyboardShortcuts.Name {
 	static let toggleBrowsingMode = Self("toggleBrowsingMode")
 	static let reload = Self("reload")

@@ -486,7 +486,7 @@
 			repositoryURL = "https://github.com/sindresorhus/Defaults";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.1.0;
+				minimumVersion = 5.0.0;
 			};
 		};
 		E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {

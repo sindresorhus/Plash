@@ -86,6 +86,8 @@ final class AppState: ObservableObject {
 			]
 		)
 
+		Defaults.migrate(.websites, to: .v5)
+
 		setUpURLCommands()
 
 		DispatchQueue.main.async { [self] in
