@@ -1,14 +1,18 @@
 import Foundation
+import Defaults
 
 struct Website: Hashable, Codable, Identifiable {
 	let id: UUID
 	var isCurrent: Bool
 	var url: URL
 	@DecodableDefault.EmptyString var title: String
-	var invertColors: Bool
+	@DecodableDefault.Custom<InvertColors> var invertColors2
 	var usePrintStyles: Bool
 	var css = ""
 	var javaScript = ""
+
+	// Deprecated
+	var invertColors: Bool
 
 	var subtitle: String { url.humanString }
 
@@ -26,4 +30,27 @@ struct Website: Hashable, Codable, Identifiable {
 	func remove() {
 		WebsitesController.shared.remove(self)
 	}
+}
+
+extension Website {
+	enum InvertColors: String, CaseIterable, Codable, Defaults.Serializable {
+		case never
+		case always
+		case darkMode
+
+		var title: String {
+			switch self {
+			case .never:
+				return "Never"
+			case .always:
+				return "Always"
+			case .darkMode:
+				return "When in dark mode"
+			}
+		}
+	}
+}
+
+extension Website.InvertColors: DecodableDefault.Source {
+	static let defaultValue = never
 }

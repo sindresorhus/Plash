@@ -14,9 +14,9 @@ extension AppState {
 				id: UUID(),
 				isCurrent: true,
 				url: url.normalized(),
-				invertColors: Defaults[.invertColors],
 				usePrintStyles: false,
-				css: Defaults[.customCSS]
+				css: Defaults[.customCSS],
+				invertColors: Defaults[.invertColors]
 			)
 		)
 	}
@@ -27,8 +27,15 @@ extension AppState {
 		}
 	}
 
+	private func migrateToWebsiteWithInvertColorsEnum() {
+		for website in WebsitesController.shared.allBinding {
+			website.wrappedValue.invertColors2 = website.wrappedValue.invertColors ? .always : .never
+		}
+	}
+
 	func migrate() {
 		migrateToWebsiteStruct()
 		migrateToAddTitle()
+		migrateToWebsiteWithInvertColorsEnum()
 	}
 }

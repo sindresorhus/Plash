@@ -15,8 +15,8 @@ struct AddWebsiteView: View {
 		id: UUID(),
 		isCurrent: true,
 		url: ".",
-		invertColors: false,
-		usePrintStyles: false
+		usePrintStyles: false,
+		invertColors: false
 	)
 
 	private var isURLValid: Bool {
@@ -142,7 +142,11 @@ struct AddWebsiteView: View {
 	private var editingView: some View {
 		Divider()
 		VStack(alignment: .leading) {
-			Toggle("Invert colors", isOn: website.invertColors)
+			EnumPicker("Invert colors:", enumBinding: website.invertColors2) { element, _ in
+				Text(element.title)
+			}
+				.fixedSize()
+				.padding(.bottom, 4)
 				.help("Creates a fake dark mode for websites without a native dark mode by inverting all the colors on the website.")
 			Toggle("Use print styles", isOn: website.usePrintStyles)
 				.help("Forces the website to use its print styles (“@media print”) if any. Some websites have a simpler presentation for printing, for example, Google Calendar.")

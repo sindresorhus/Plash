@@ -97,8 +97,8 @@ final class WebsitesController {
 				id: UUID(),
 				isCurrent: true,
 				url: websiteURL,
-				invertColors: false,
-				usePrintStyles: false
+				usePrintStyles: false,
+				invertColors: false
 			)
 		)
 

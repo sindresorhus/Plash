@@ -39,8 +39,10 @@ final class WebViewController: NSViewController {
 		webView.drawsBackground = false
 
 		if let website = WebsitesController.shared.current {
-			if website.invertColors {
-				userContentController.invertColors()
+			if website.invertColors2 != .never {
+				userContentController.invertColors(
+					onlyWhenInDarkMode: website.invertColors2 == .darkMode
+				)
 			}
 
 			if website.usePrintStyles {
