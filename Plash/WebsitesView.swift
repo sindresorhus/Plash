@@ -97,7 +97,7 @@ private struct RowView: View {
 			}
 		}
 			.padding(.horizontal)
-			.frame(height: 64)
+			.frame(height: 64) // Note: Setting a fixed height prevents a lot of SwiftUI rendering bugs.
 			// TODO: This makes `onMove` not work when clicking the text.
 			// https://github.com/feedback-assistant/reports/issues/46
 			// Still an issue on macOS 11.2.3.
@@ -146,12 +146,21 @@ struct WebsitesView: View {
 				Button {
 					isShowingAddSheet = true
 				} label: {
-					Image(systemName: "plus")
+					Label("Add Website", systemImage: "plus")
+						.labelStyle(IconOnlyLabelStyle())
 				}
 					.keyboardShortcut(.defaultAction)
-					.help("Add website")
 			}
 				.padding()
+				.overlay2(alignment: .leading) {
+					if !websites.isEmpty {
+						HideableInfoBox(
+							id: "websitesListTips",
+							message: "Right-click to edit. Drag and drop to reorder."
+						)
+							.padding(.leading)
+					}
+				}
 			ScrollViewReader { scrollViewProxy in
 				List {
 					ForEach($websites) { index, website in
@@ -198,22 +207,12 @@ struct WebsitesView: View {
 					)
 					.overlay(Divider(), alignment: .top)
 			}
-			if !websites.isEmpty {
-				// TODO: Use proper vibrancy material and list inset when supported in SwiftUI.
-				Text("Right-click to edit. Drag and drop to reorder.")
-					.font(.system(size: 10))
-					.frame(maxWidth: .infinity)
-					.frame(height: 32)
-					.background(Color.primary.opacity(0.02))
-					.foregroundColor(.secondary)
-					.overlay(Divider(), alignment: .top)
-			}
 		}
 			.frame(
 				width: 420,
 				height: 520
 			)
-			.sheet2(isPresented: $isShowingAddSheet) {
+			.sheet(isPresented: $isShowingAddSheet) {
 				AddWebsiteView(
 					isEditing: false,
 					website: nil
@@ -228,9 +227,8 @@ struct WebsitesView: View {
 //					Button {
 //						isShowingAddSheet = true
 //					} label: {
-//						Image(systemName: "plus")
+//						Label("Add Website", systemImage: "plus")
 //					}
-//						.keyboardShortcut(.defaultAction)
 //				}
 //			}
 	}

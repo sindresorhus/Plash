@@ -170,7 +170,7 @@ extension WebViewController: WKUIDelegate {
 	func webView(_ webView: WKWebView, createWebViewWith configuration: WKWebViewConfiguration, for navigationAction: WKNavigationAction, windowFeatures: WKWindowFeatures) -> WKWebView? {
 		guard
 			AppState.shared.isBrowsingMode,
-			NSApp.currentEvent?.modifiers != .option
+			NSEvent.modifiers != .option
 		else {
 			// This makes it so that requests to open something in a new window just opens in the existing web view.
 			if navigationAction.targetFrame == nil {

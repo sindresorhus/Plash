@@ -101,7 +101,7 @@ final class AppState: ObservableObject {
 		_ = desktopWindow
 		setUpEvents()
 		showWelcomeScreenIfNeeded()
-		SSApp.requestReviewAfterBeingCalledThisManyTimes([10, 100, 500])
+		SSApp.requestReviewAfterBeingCalledThisManyTimes([5, 50, 500])
 
 		#if DEBUG
 //		SSApp.showSettingsWindow()

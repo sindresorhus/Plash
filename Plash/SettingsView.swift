@@ -58,7 +58,7 @@ private struct ReloadIntervalSetting: View {
 		formatter.formattingContext = .standalone
 		formatter.locale = Locale.autoupdatingCurrent
 		formatter.numberStyle = .decimal
-		formatter.minimum = NSNumber(value: minimumReloadInterval)
+		formatter.minimum = minimumReloadInterval as NSNumber
 		formatter.minimumFractionDigits = 1
 		formatter.maximumFractionDigits = 1
 		formatter.isLenient = true

@@ -1355,6 +1355,14 @@ extension NSAlert {
 
 
 extension NSEvent {
+	static var modifiers: ModifierFlags {
+		modifierFlags
+			.intersection(.deviceIndependentFlagsMask)
+			// We remove `capsLock` as it shouldn't affect the modifiers.
+			// We remove `numericPad`/`function` as arrow keys trigger it, use `event.specialKeys` instead.
+			.subtracting([.capsLock, .numericPad, .function])
+	}
+
 	/**
 	Real modifiers.
 
@@ -1812,6 +1820,19 @@ extension WKWebView {
 		}
 	}
 }
+
+//@available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+//extension WKWebView {
+//	/// Clear all website data like cookies, local storage, caches, etc.
+//	func clearWebsiteData() async {
+//		HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
+//
+//		let store = WKWebsiteDataStore.default()
+//		let types = WKWebsiteDataStore.allWebsiteDataTypes()
+//		let records = await store.dataRecords(ofTypes: types)
+//        await store.removeData(ofTypes: types, for: records)
+//	}
+//}
 
 
 extension WKPreferences {
@@ -3547,21 +3568,7 @@ extension View {
 
 
 extension View {
-	// Note: iOS 14.5 fixed support for multiple `.sheet` and `.fullscreenCover`. Unclear, when it will be fixed for macOS and other methods though.
-	/// This allows multiple sheets on a single view, which `.sheet()` doesn't.
-	func sheet2<Content: View>(
-		isPresented: Binding<Bool>,
-		onDismiss: (() -> Void)? = nil,
-		@ViewBuilder content: @escaping () -> Content
-	) -> some View {
-		background(
-			EmptyView().sheet(
-				isPresented: isPresented,
-				onDismiss: onDismiss,
-				content: content
-			)
-		)
-	}
+	// Note: macOS 11.3 fixed support for multiple `.sheet`. Unclear, when it will be fixed for other methods though.
 
 	/// This allows multiple alerts on a single view, which `.alert()` doesn't.
 	func alert2(
@@ -5451,5 +5458,91 @@ extension EnumPicker where Label == Text {
 		self.enumBinding = enumBinding
 		self.label = Text(title)
 		self.content = content
+	}
+}
+
+
+// TODO: Remove when targeting macOS 12.
+extension View {
+	func overlay2<Overlay: View>(
+		alignment: Alignment = .center,
+		@ViewBuilder content: () -> Overlay
+	) -> some View {
+		overlay(ZStack(content: content), alignment: alignment)
+	}
+
+	func background2<V: View>(
+		alignment: Alignment = .center,
+		@ViewBuilder content: () -> V
+	) -> some View {
+		background(ZStack(content: content), alignment: alignment)
+	}
+}
+
+
+/**
+A view, which when set to hidden, will never show again.
+
+This can be useful for info boxes that the user can close and should not see again.
+*/
+struct PersistentlyHideableView<Content: View>: View {
+	static func key(id: String, idPrefix: String? = nil) -> Defaults.Key<Bool> {
+		.init("SS__\(idPrefix ?? "PersistentlyHideableView")__\(id)", default: false)
+	}
+
+	@Default private var isHidden: Bool
+	private let content: Content
+
+	init(
+		id: String,
+		idPrefix: String? = nil,
+		@ViewBuilder content: (@escaping () -> Void) -> Content
+	) {
+		self._isHidden = Default(Self.key(id: id, idPrefix: idPrefix))
+
+		var selfWorkaround: Self?
+		self.content = content {
+			withAnimation(.spring()) {
+				selfWorkaround?.isHidden = true
+			}
+		}
+		selfWorkaround = self
+	}
+
+	var body: some View {
+		if !isHidden {
+			content
+		}
+	}
+}
+
+
+/**
+Info box that is only shown until the user clicks the hide button, and then never again.
+*/
+struct HideableInfoBox: View {
+	let id: String
+	let message: String
+
+	var body: some View {
+		PersistentlyHideableView(id: id, idPrefix: "HideableInfoBox") { hide in
+			HStack {
+				Button {
+					hide()
+				} label: {
+					Label("Hide", systemImage: "xmark.circle.fill")
+						.labelStyle(IconOnlyLabelStyle())
+				}
+					.buttonStyle(BorderlessButtonStyle())
+				Text(message)
+					.font(.system(size: NSFont.smallSystemFontSize))
+					.multilineTextAlignment(.leading)
+					.foregroundColor(.secondary)
+			}
+				.padding(.vertical, 6)
+				.padding(.horizontal, 8)
+				.backgroundColor(.primary.opacity(0.05))
+				.clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+		}
 	}
 }
