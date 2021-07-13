@@ -113,7 +113,7 @@ private struct RowView: View {
 			}
 			.contextMenu {
 				// TODO: Any better label for this?
-				Button("Make Current") {
+				Button("Set as Current") {
 					website.makeCurrent()
 				}
 					.disabled(website.isCurrent)
@@ -243,7 +243,7 @@ struct WebsitesView: View {
 }
 
 struct ManageWebsitesView_Previews: PreviewProvider {
-    static var previews: some View {
+	static var previews: some View {
 		WebsitesView()
-    }
+	}
 }

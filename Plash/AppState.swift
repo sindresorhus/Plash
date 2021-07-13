@@ -63,7 +63,10 @@ final class AppState: ObservableObject {
 				statusItemButton.contentTintColor = .systemRed
 
 				// TODO: Also present the error when the user just added it from the input box as then it's also "interactive".
-				if isBrowsingMode {
+				if
+					isBrowsingMode,
+					!error.localizedDescription.contains("No internet connection")
+				{
 					NSApp.presentError(error)
 				}
 
