@@ -49,6 +49,7 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 - Single image will be aspect-filled to your screen
 - Hide menu bar icon
 - [Scriptable](#scripting)
+- [Share extension](#share-extension)
 
 ## Download
 
@@ -119,6 +120,10 @@ For example, to reload the current website, run this terminal command:
 ```console
 $ open -g plash:reload
 ```
+
+## Share extension
+
+Plash comes bundled with a [share extension](https://support.apple.com/guide/mac-help/use-the-share-menu-on-mac-mh40614/mac). You can, for example, use it to quickly add a website you have open in Safari to Plash.
 
 ### Tools
 

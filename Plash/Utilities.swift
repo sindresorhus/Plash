@@ -3766,6 +3766,26 @@ extension NSItemProvider {
 }
 
 
+// Strongly-typed versions of some of the methods.
+extension NSItemProvider {
+	func hasItemConformingTo(_ contentType: UTType) -> Bool {
+		hasItemConformingToTypeIdentifier(contentType.identifier)
+	}
+
+	func loadItem(
+		forType contentType: UTType,
+		options: [AnyHashable: Any]? = nil, // swiftlint:disable:this discouraged_optional_collection
+		completionHandler: NSItemProvider.CompletionHandler? = nil
+	) {
+		loadItem(
+			forTypeIdentifier: contentType.identifier,
+			options: options,
+			completionHandler: completionHandler
+		)
+	}
+}
+
+
 /**
 ```
 let x = ["a", "", "b"].filter(!\.isEmpty)

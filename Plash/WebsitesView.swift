@@ -40,7 +40,7 @@ private struct IconView: View {
 
 			guard
 				let iconProvider = metadata?.iconProvider,
-				iconProvider.hasItemConformingToTypeIdentifier("public.image")
+				iconProvider.hasItemConformingTo(.image)
 			else {
 				DispatchQueue.main.async {
 					iconFetcher = WebsiteIconFetcher()
