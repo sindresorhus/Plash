@@ -3259,6 +3259,8 @@ extension URL {
 	/**
 	Create a URL from a human string, gracefully.
 
+	By default, it only accepts `localhost` as a TLD-less URL.
+
 	```
 	URL(humanString: "sindresorhus.com")?.absoluteString
 	//=> "https://sindresorhus.com"
@@ -3267,7 +3269,35 @@ extension URL {
 	init?(humanString: String) {
 		let string = humanString.trimmed
 
-		guard !string.isEmpty else {
+		guard
+			!string.isEmpty,
+			!string.hasPrefix("."),
+			!string.hasSuffix("."),
+			string != "https://",
+			string != "http://",
+			string != "file://"
+		else {
+			return nil
+		}
+
+		let isValid = string.contains(".")
+			|| string.hasPrefix("localhost")
+			|| string.hasPrefix("file://")
+
+		guard
+			!string.hasPrefix("https://"),
+			!string.hasPrefix("http://"),
+			!string.hasPrefix("file://")
+		else {
+			guard isValid else {
+				return nil
+			}
+
+			self.init(string: string)
+			return
+		}
+
+		guard isValid else {
 			return nil
 		}
 

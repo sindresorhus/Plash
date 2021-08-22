@@ -20,11 +20,7 @@ struct AddWebsiteView: View {
 	)
 
 	private var isURLValid: Bool {
-		let urlString2 = website.wrappedValue.url.absoluteString
-		return
-			(urlString.contains(".") || urlString.hasPrefix("file://"))
-			&& URL.isValid(string: urlString)
-			&& (urlString2.contains(".") || urlString2.hasPrefix("file://"))
+		URL.isValid(string: urlString)
 			&& website.wrappedValue.url.isValid
 	}
 
