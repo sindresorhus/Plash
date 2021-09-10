@@ -131,7 +131,7 @@ extension WebViewController: WKNavigationDelegate {
 			originalURL.host != newURL.host
 		{
 			// Hide Plash if it's in front of everything.
-			if Defaults[.isBrowsingMode] && Defaults[.bringBrowsingModeToFront] {
+			if Defaults[.isBrowsingMode], Defaults[.bringBrowsingModeToFront] {
 				Defaults[.isBrowsingMode] = false
 			}
 

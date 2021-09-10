@@ -112,7 +112,6 @@ private struct RowView: View {
 				)
 			}
 			.contextMenu {
-				// TODO: Any better label for this?
 				Button("Set as Current") {
 					website.makeCurrent()
 				}

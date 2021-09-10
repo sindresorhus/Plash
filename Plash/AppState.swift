@@ -31,7 +31,7 @@ final class AppState: ObservableObject {
 	var isBrowsingMode = false {
 		didSet {
 			desktopWindow.isInteractive = isBrowsingMode
-			desktopWindow.alphaValue = isBrowsingMode ? 1 : CGFloat(Defaults[.opacity])
+			desktopWindow.alphaValue = isBrowsingMode ? 1 : Defaults[.opacity]
 			resetTimer()
 		}
 	}

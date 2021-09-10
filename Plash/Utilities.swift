@@ -35,11 +35,7 @@ func delay(seconds: TimeInterval, closure: @escaping () -> Void) {
 }
 
 
-extension Double {
-	/// Get a CGFloat from a Double. This makes it easier to work with optionals.
-	var cgFloat: CGFloat { CGFloat(self) }
-}
-
+// swiftlint:disable:next no_cgfloat
 extension CGFloat {
 	/// Get a Double from a CGFloat. This makes it easier to work with optionals.
 	var double: Double { Double(self) }
@@ -760,10 +756,10 @@ extension NSEdgeInsets {
 		right: Double = 0
 	) {
 		self.init()
-		self.top = CGFloat(top)
-		self.left = CGFloat(left)
-		self.bottom = CGFloat(bottom)
-		self.right = CGFloat(right)
+		self.top = top
+		self.left = left
+		self.bottom = bottom
+		self.right = right
 	}
 
 	init(all: Double) {
@@ -777,21 +773,21 @@ extension NSEdgeInsets {
 
 	init(horizontal: Double, vertical: Double) {
 		self.init(
-			top: CGFloat(vertical),
-			left: CGFloat(horizontal),
-			bottom: CGFloat(vertical),
-			right: CGFloat(horizontal)
+			top: vertical,
+			left: horizontal,
+			bottom: vertical,
+			right: horizontal
 		)
 	}
 
-	var horizontal: Double { Double(left + right) }
-	var vertical: Double { Double(top + bottom) }
+	var horizontal: Double { left + right }
+	var vertical: Double { top + bottom }
 }
 
 
 extension String {
 	/// NSString has some useful properties that String does not.
-	var nsString: NSString { self as NSString }
+	var nsString: NSString { self as NSString } // swiftlint:disable:this legacy_objc_type
 
 	var attributedString: NSAttributedString { .init(string: self) }
 }
@@ -1853,8 +1849,8 @@ extension WKWindowFeatures {
 	/// Defaults to 600 for width/height if not specified.
 	var size: CGSize {
 		.init(
-			width: CGFloat(truncating: width ?? 600),
-			height: CGFloat(truncating: height ?? 600)
+			width: Double(truncating: width ?? 600),
+			height: Double(truncating: height ?? 600)
 		)
 	}
 }
@@ -1972,7 +1968,7 @@ extension NSScreen {
 			// Without this, the website would show through the 1 point padding between the menu bar and the window.
 			let statusBarBottomPadding = 1.0
 
-			screenFrame.size.height -= CGFloat(NSStatusBar.actualThickness + statusBarBottomPadding)
+			screenFrame.size.height -= NSStatusBar.actualThickness + statusBarBottomPadding
 		}
 
 		return screenFrame
@@ -2077,7 +2073,7 @@ extension NSWorkspace {
 			return nil
 		}
 
-		let height = Double(screen.visibleFrame.origin.y - screen.frame.origin.y)
+		let height = screen.visibleFrame.origin.y - screen.frame.origin.y
 
 		guard height != 0 else {
 			return nil
@@ -2111,8 +2107,8 @@ extension NSStatusBar {
 		// There's a 1 point gap between the status bar and any maximized window.
 		let statusBarBottomPadding = 1.0
 
-		let menuBarHeight = CGFloat(actualThickness + statusBarBottomPadding)
-		let dockHeight = CGFloat(NSWorkspace.shared.dockHeight ?? 0)
+		let menuBarHeight = actualThickness + statusBarBottomPadding
+		let dockHeight = NSWorkspace.shared.dockHeight ?? 0
 
 		return (screen.frame.height - screen.visibleFrame.height - dockHeight) < menuBarHeight
 	}
@@ -2620,7 +2616,7 @@ enum SecurityScopedBookmarkManager {
 		}
 
 		subscript(url: URL) -> Data? {
-			// TODO: Should it really be resolving symlinks?
+			// Resolving symlinks is important for normalization. For example, sometimes a reference to the Desktop directory is pointed at a symlink in the sandbox container: `file:///Users/sindresorhus/Library/Containers/com.sindresorhus.Plash/Data/Desktop/`.
 			get { bookmarkStore[url.resolvingSymlinksInPath().absoluteString] }
 			set {
 				var bookmarks = bookmarkStore
@@ -3154,7 +3150,7 @@ class SingletonWindowController: NSWindowController, NSWindowDelegate { // swift
 	}
 
 	func windowWillClose(_ notification: Notification) {
-		Self.instances[Self] = nil
+		Self.instances[Self.self] = nil
 	}
 
 	@available(*, unavailable)
@@ -3760,7 +3756,6 @@ extension NSItemProvider {
 			}
 
 			completionHandler(image)
-			return
 		}
 	}
 }
@@ -3948,7 +3943,7 @@ final class SimpleImageCache<Key: SimpleImageCacheKeyable> {
 	init(diskCacheName: String? = nil) {
 		if let diskCacheName = diskCacheName {
 			do {
-				cacheDirectory = try createCacheDirectory(name: diskCacheName)
+				self.cacheDirectory = try createCacheDirectory(name: diskCacheName)
 			} catch {
 				assertionFailure("Failed to create cache directory: \(error)")
 			}
@@ -4436,7 +4431,7 @@ struct InfoPopoverButton<Content: View>: View {
 					.multilineText()
 					.ifLet(maxWidth) {
 						// TODO: `maxWidth` doesn't work. Causes the popover to me infinite height. (macOS 11.2.3)
-						$0.frame(width: CGFloat($1))
+						$0.frame(width: $1)
 					}
 			}
 	}
@@ -4736,7 +4731,7 @@ extension WebsiteIconFetcher: WKNavigationDelegate {
 extension View {
 	/// Corner radius with a custom corner style.
 	func cornerRadius(_ radius: Double, style: RoundedCornerStyle) -> some View {
-		clipShape(RoundedRectangle(cornerRadius: radius.cgFloat, style: style))
+		clipShape(RoundedRectangle(cornerRadius: radius, style: style))
 	}
 
 	/**
@@ -4751,8 +4746,8 @@ extension View {
 	) -> some View {
 		self.cornerRadius(cornerRadius, style: cornerStyle)
 			.overlay(
-				RoundedRectangle(cornerRadius: cornerRadius.cgFloat, style: cornerStyle)
-					.strokeBorder(content, lineWidth: lineWidth.cgFloat)
+				RoundedRectangle(cornerRadius: cornerRadius, style: cornerStyle)
+					.strokeBorder(content, lineWidth: lineWidth)
 			)
 	}
 
@@ -4767,8 +4762,8 @@ extension View {
 	) -> some View {
 		self.cornerRadius(cornerRadius, style: cornerStyle)
 			.overlay(
-				RoundedRectangle(cornerRadius: cornerRadius.cgFloat, style: cornerStyle)
-					.strokeBorder(color, lineWidth: lineWidth.cgFloat)
+				RoundedRectangle(cornerRadius: cornerRadius, style: cornerStyle)
+					.strokeBorder(color, lineWidth: lineWidth)
 			)
 	}
 }

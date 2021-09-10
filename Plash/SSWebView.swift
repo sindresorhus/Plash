@@ -134,9 +134,9 @@ extension SSWebView {
 	}
 
 	var zoomLevelWrapper: Double {
-		get { zoomLevelDefaultsValue ?? Double(pageZoom) }
+		get { zoomLevelDefaultsValue ?? pageZoom }
 		set {
-			pageZoom = CGFloat(newValue)
+			pageZoom = newValue
 
 			if let zoomDefaultsKey = zoomLevelDefaultsKey {
 				Defaults[zoomDefaultsKey] = newValue

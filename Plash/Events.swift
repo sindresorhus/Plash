@@ -74,7 +74,7 @@ extension AppState {
 
 		Defaults.publisher(.opacity)
 			.sink { [self] change in
-				desktopWindow.alphaValue = isBrowsingMode ? 1 : CGFloat(change.newValue)
+				desktopWindow.alphaValue = isBrowsingMode ? 1 : change.newValue
 			}
 			.store(in: &cancellables)
 

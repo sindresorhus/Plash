@@ -21,12 +21,15 @@ only_rules:
   - custom_rules
   - deployment_target
   - discarded_notification_center_observer
+  - discouraged_assert
   - discouraged_direct_init
+  - discouraged_none_name
   - discouraged_object_literal
   - discouraged_optional_boolean
   - discouraged_optional_collection
   - duplicate_enum_cases
   - duplicate_imports
+  - duplicated_key_in_dictionary_literal
   - dynamic_inline
   - empty_collection_literal
   - empty_count
@@ -86,6 +89,7 @@ only_rules:
   - prefer_zero_over_explicit_init
   - private_action
   - private_outlet
+  - private_subject
   - private_unit_test
   - prohibited_super_call
   - protocol_property_accessors_order
@@ -138,6 +142,7 @@ only_rules:
   - xctfail_message
   - yoda_condition
 analyzer_rules:
+  - capture_variable
   - unused_declaration
   - unused_import
 number_separator:
@@ -155,12 +160,14 @@ identifier_name:
   excluded:
     - 'x'
     - 'y'
+    - 'z'
     - 'a'
     - 'b'
     - 'x1'
     - 'x2'
     - 'y1'
     - 'y2'
+    - 'z2'
 deployment_target:
   macOS_deployment_target: '11'
 custom_rules:
@@ -176,9 +183,19 @@ custom_rules:
     regex: '\bNSPoint\b'
     match_kinds: typeidentifier
     message: 'Use CGPoint instead of NSPoint'
+  no_cgfloat:
+    regex: '\bCGFloat\b'
+    match_kinds: typeidentifier
+    message: 'Use Double instead of CGFloat'
+  no_cgfloat2:
+    regex: '\bCGFloat\('
+    message: 'Use Double instead of CGFloat'
   swiftui_state_private:
-    regex: '@(State|StateObject)\s+var'
-    message: "SwiftUI @State/@StateObject properties should be private"
+    regex: '@(State|StateObject|ObservedObject|EnvironmentObject)\s+var'
+    message: 'SwiftUI @State/@StateObject/@ObservedObject/@EnvironmentObject properties should be private'
+  swiftui_environment_private:
+    regex: '@Environment\(\\\.\w+\)\s+var'
+    message: 'SwiftUI @Environment properties should be private'
   final_class:
     regex: '^class [a-zA-Z\d]+[^{]+\{'
-    message: "Classes should be marked as final whenever possible. If you actually need it to be subclassable, just add `// swiftlint:disable:next final_class`."
+    message: 'Classes should be marked as final whenever possible. If you actually need it to be subclassable, just add `// swiftlint:disable:next final_class`.'

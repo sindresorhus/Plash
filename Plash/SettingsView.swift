@@ -178,7 +178,7 @@ private struct GeneralSettings: View {
 }
 
 private struct ShortcutsSettings: View {
-	private let maxWidth: CGFloat = 160
+	private let maxWidth = 160.0
 
 	var body: some View {
 		Form {

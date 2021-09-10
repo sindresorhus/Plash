@@ -2,7 +2,7 @@ import SwiftUI
 import Defaults
 import KeyboardShortcuts
 
-struct Constants {
+enum Constants {
 	static let menuBarIcon = NSImage(named: "MenuBarIcon")!
 }
 
