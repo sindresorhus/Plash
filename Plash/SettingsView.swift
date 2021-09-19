@@ -223,6 +223,7 @@ private struct AdvancedSettings: View {
 					BringBrowsingModeToFrontSetting()
 					OpenExternalLinksInBrowserSetting()
 					HideMenuBarIconSetting()
+					Defaults.Toggle("Mute audio", key: .muteAudio)
 				}
 					.padding()
 					.padding(.horizontal)

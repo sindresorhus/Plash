@@ -23,7 +23,9 @@ final class WebViewController: NSViewController {
 		let userContentController = WKUserContentController()
 		configuration.userContentController = userContentController
 
-		userContentController.muteAudio()
+		if Defaults[.muteAudio] {
+			userContentController.muteAudio()
+		}
 
 		let preferences = WKPreferences()
 		preferences.javaScriptCanOpenWindowsAutomatically = false
