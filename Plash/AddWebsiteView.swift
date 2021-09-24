@@ -268,6 +268,13 @@ struct AddWebsiteView: View {
 	private func add() {
 		WebsitesController.shared.add(website.wrappedValue)
 		presentationMode.wrappedValue.dismiss()
+
+		SSApp.runOnce(identifier: "editWebsiteTip") {
+			// TODO: Find a better way to inform the user about this.
+			NSAlert.showModal(
+				title: "Right-click a website in the list to edit it, toggle dark mode, add custom CSS/JavaScript, and more."
+			)
+		}
 	}
 
 	private func chooseLocalWebsite(_ completionHandler: @escaping (URL?) -> Void) {

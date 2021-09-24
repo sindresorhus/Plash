@@ -31,7 +31,7 @@ extension AppState {
 				If you have any feedback, bug reports, or feature requests, use the feedback button in the app. I quickly respond to all submissions.
 				""",
 			buttonTitles: [
-				"Get Started"
+				"Get Started with Plash"
 			]
 		)
 
