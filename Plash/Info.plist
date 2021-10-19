@@ -31,6 +31,17 @@
 	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>INIntentsSupported</key>
+	<array>
+		<string>AddWebsiteIntent</string>
+		<string>ReloadWebsiteIntent</string>
+		<string>NextWebsiteIntent</string>
+		<string>PreviousWebsiteIntent</string>
+		<string>RandomWebsiteIntent</string>
+		<string>ToggleBrowsingModeIntent</string>
+		<string>GetCurrentWebsiteIntent</string>
+		<string>GetWebsitesIntent</string>
+	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>LSApplicationCategoryType</key>
@@ -50,5 +61,16 @@
 	<string>MIT License © Sindre Sorhus</string>
 	<key>NSSupportsSuddenTermination</key>
 	<true/>
+	<key>NSUserActivityTypes</key>
+	<array>
+		<string>AddWebsiteIntent</string>
+		<string>GetCurrentWebsiteIntent</string>
+		<string>GetWebsitesIntent</string>
+		<string>NextWebsiteIntent</string>
+		<string>PreviousWebsiteIntent</string>
+		<string>RandomWebsiteIntent</string>
+		<string>ReloadWebsiteIntent</string>
+		<string>ToggleBrowsingModeIntent</string>
+	</array>
 </dict>
 </plist>

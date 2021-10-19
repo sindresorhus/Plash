@@ -151,16 +151,18 @@ final class WebsitesController {
 			return
 		}
 
-		LPMetadataProvider().startFetchingMetadata(for: website.wrappedValue.url) { metadata, error in
-			guard
-				error == nil,
-				let title = metadata?.title
-			else {
-				return
-			}
+		DispatchQueue.main.async {
+			LPMetadataProvider().startFetchingMetadata(for: website.wrappedValue.url) { metadata, error in
+				guard
+					error == nil,
+					let title = metadata?.title
+				else {
+					return
+				}
 
-			DispatchQueue.main.async {
-				website.wrappedValue.title = title
+				DispatchQueue.main.async {
+					website.wrappedValue.title = title
+				}
 			}
 		}
 	}

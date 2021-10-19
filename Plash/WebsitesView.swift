@@ -121,6 +121,7 @@ private struct RowView: View {
 					edit()
 				}
 				Divider()
+				// TODO: Mark as destructive when targeting macOS 12.
 				Button("Delete") {
 					website.remove()
 				}
@@ -146,7 +147,7 @@ struct WebsitesView: View {
 					isShowingAddSheet = true
 				} label: {
 					Label("Add Website", systemImage: "plus")
-						.labelStyle(IconOnlyLabelStyle())
+						.labelStyle(.iconOnly)
 				}
 					.keyboardShortcut(.defaultAction)
 			}
@@ -162,31 +163,41 @@ struct WebsitesView: View {
 				}
 			ScrollViewReader { scrollViewProxy in
 				List {
-					ForEach($websites) { index, website in
-						RowView(website: website)
-
-						// Workaround for bug where new entries have almost no height. (macOS 11.3)
-						if index == websites.count - 1 {
-							Color.clear
-								.frame(height: 1)
-								.overlay(
-									Color(NSColor.alternatingContentBackgroundColors[0])
-										.frame(maxWidth: .infinity, maxHeight: .infinity)
-										.padding(-6)
-								)
-								.id(bottomScrollID)
+					if #available(macOS 12, *) {
+						ForEach($websites) { website in
+							RowView(website: website)
 						}
+							.onMove(perform: move)
+							.onDelete(perform: delete)
+						Color.clear
+							.frame(height: 1)
+							.padding(.bottom, 30) // Ensures it scrolls fully to the bottom when adding new websites.
+							.id(bottomScrollID)
+					} else {
+						ForEach($websites) { index, website in
+							RowView(website: website)
+
+							// Workaround for bug where new entries have almost no height. (macOS 11.3)
+							if index == websites.count - 1 {
+								Color.clear
+									.frame(height: 1)
+									.overlay(
+										Color(NSColor.alternatingContentBackgroundColors[0])
+											.frame(maxWidth: .infinity, maxHeight: .infinity)
+											.padding(-6)
+									)
+									.id(bottomScrollID)
+							}
+						}
+							.onMove(perform: move)
+							.onDelete(perform: delete)
+							.listRowBackground(
+								Color.primary
+									.opacity(0.04)
+									.border(.primary.opacity(0.07), width: 1, cornerRadius: 6, cornerStyle: .continuous)
+									.padding(.vertical, 6)
+							)
 					}
-						.onMove(perform: move)
-						.onDelete(perform: delete)
-						// TODO: Use this instead of `.frame()` on the row when the above workaround is no longer needed.
-						// .listRowInsets(.init(top: 20, leading: 0, bottom: 20, trailing: 0))
-						.listRowBackground(
-							Color.primary
-								.opacity(0.04)
-								.border(.primary.opacity(0.07), width: 1, cornerRadius: 6, cornerStyle: .continuous)
-								.padding(.vertical, 6)
-						)
 				}
 					.onChange(of: websites) { [oldWebsites = websites] websites in
 						// Check that a website was added.
@@ -198,13 +209,24 @@ struct WebsitesView: View {
 							scrollViewProxy.scrollTo(bottomScrollID, anchor: .top)
 						}
 					}
-					.overlay(
-						websites.isEmpty
-							? Text("No Websites").emptyStateTextStyle()
-							: nil,
-						alignment: .center
-					)
-					.overlay(Divider(), alignment: .top)
+					.overlay2(alignment: .center) {
+						if websites.isEmpty {
+							Text("No Websites")
+								.emptyStateTextStyle()
+						}
+					}
+					.overlay2(alignment: .top) {
+						Divider()
+					}
+					.modify {
+						guard #available(macOS 12, *) else {
+							return nil
+						}
+
+						return $0
+							.listStyle(.inset(alternatesRowBackgrounds: true))
+							.eraseToAnyView()
+					}
 			}
 		}
 			.frame(

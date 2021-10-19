@@ -61,6 +61,7 @@ extension AppState {
 			.store(in: &cancellables)
 
 		Defaults.publisher(.isBrowsingMode)
+			.receive(on: DispatchQueue.main)
 			.sink { [self] change in
 				isBrowsingMode = change.newValue
 			}

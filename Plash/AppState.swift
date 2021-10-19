@@ -166,6 +166,10 @@ final class AppState: ObservableObject {
 		loadURL(WebsitesController.shared.current?.url)
 	}
 
+	func toggleBrowsingMode() {
+		Defaults[.isBrowsingMode].toggle()
+	}
+
 	func loadURL(_ url: URL?) {
 		webViewError = nil
 

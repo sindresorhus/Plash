@@ -48,6 +48,7 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 - Audio is muted
 - Single image will be aspect-filled to your screen
 - Hide menu bar icon
+- Shortcuts support
 - [Scriptable](#scripting)
 - [Share extension](#share-extension)
 

@@ -53,11 +53,11 @@ struct AddWebsiteView: View {
 				Button("show the time.") {
 					urlString = "https://time.pablopunk.com/?seconds&fg=white&bg=transparent"
 				}
-					.buttonStyle(LinkButtonStyle())
+					.buttonStyle(.link)
 			}
 			Spacer()
 			Link("More ideas", destination: "https://github.com/sindresorhus/Plash/issues/1")
-				.buttonStyle(LinkButtonStyle())
+				.buttonStyle(.link)
 		}
 			.box()
 	}
@@ -67,7 +67,7 @@ struct AddWebsiteView: View {
 			HStack {
 //				TextField(
 //					"twitter.com",
-//					// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines.
+//					// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines. (macOS 12.0)
 //					// TODO: Report to Apple. Still an issue on macOS 12.
 //					text: $urlString.setMap(\.removingNewlines)
 //				)
@@ -78,7 +78,7 @@ struct AddWebsiteView: View {
 					roundedStyle: true,
 					isSingleLine: true
 				)
-					.textFieldStyle(RoundedBorderTextFieldStyle())
+					.textFieldStyle(.roundedBorder)
 					.lineLimit(1)
 					.padding(.vertical)
 					.onChange(of: website.wrappedValue.url) {
@@ -114,22 +114,19 @@ struct AddWebsiteView: View {
 			}
 			TextField(
 				"Title",
-				// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines.
+				// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines. (macOS 12.0)
 				text: website.title.setMap(\.removingNewlines)
 			)
-				.textFieldStyle(RoundedBorderTextFieldStyle())
+				.textFieldStyle(.roundedBorder)
 				.lineLimit(1)
 				.disabled(isFetchingTitle)
-				.overlay(
-					Group {
-						if isFetchingTitle {
-							ProgressView()
-								.controlSize(.small)
-								.offset(x: -4)
-						}
-					},
-					alignment: .trailing
-				)
+				.overlay2(alignment: .trailing) {
+					if isFetchingTitle {
+						ProgressView()
+							.controlSize(.small)
+							.offset(x: -4)
+					}
+				}
 		}
 			.padding()
 	}

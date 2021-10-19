@@ -19,6 +19,7 @@ This enables you to have a highly dynamic desktop wallpaper. You could display y
 - Audio is muted
 - Single image will be aspect-filled to your screen
 - Hide menu bar icon
+- Shortcuts support
 - Scriptable (see the Plash website)
 - Share extension
 

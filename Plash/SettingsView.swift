@@ -111,7 +111,7 @@ private struct HideMenuBarIconSetting: View {
 			.onChange {
 				isShowingAlert = $0
 			}
-			.alert(isPresented: $isShowingAlert) {
+			.alert2(isPresented: $isShowingAlert) {
 				Alert(
 					title: Text("If you need to access the Plash menu, launch the app again to reveal the menu bar icon for 5 seconds.")
 				)

@@ -19,6 +19,7 @@ final class SSWebView: WKWebView {
 		super.init(frame: frame, configuration: configuration)
 
 		Defaults.publisher(.isBrowsingMode)
+			.receive(on: DispatchQueue.main)
 			.sink { [weak self] _ in
 				self?.toggleBrowsingModeClass()
 			}

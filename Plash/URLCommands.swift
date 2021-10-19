@@ -44,7 +44,7 @@ extension AppState {
 		case "random":
 			WebsitesController.shared.makeRandomCurrent()
 		case "toggle-browsing-mode":
-			Defaults[.isBrowsingMode].toggle()
+			toggleBrowsingMode()
 		default:
 			showMessage("The command “\(command)” is not supported.")
 		}

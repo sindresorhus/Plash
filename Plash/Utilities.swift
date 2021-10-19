@@ -3662,6 +3662,7 @@ extension RandomAccessCollection where Element: Identifiable {
 	}
 }
 
+// TODO: Remove this and the above when targeting macOS 12.
 extension ForEach where ID == Data.Element.ID, Data.Element: Identifiable, Content: View {
 	init<T>(
 		_ data: Binding<T>,
@@ -5576,9 +5577,9 @@ struct HideableInfoBox: View {
 					hide()
 				} label: {
 					Label("Hide", systemImage: "xmark.circle.fill")
-						.labelStyle(IconOnlyLabelStyle())
+						.labelStyle(.iconOnly)
 				}
-					.buttonStyle(BorderlessButtonStyle())
+					.buttonStyle(.borderless)
 				Text(message)
 					.font(.system(size: NSFont.smallSystemFontSize))
 					.multilineTextAlignment(.leading)
