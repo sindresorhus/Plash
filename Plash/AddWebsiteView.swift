@@ -98,9 +98,12 @@ struct AddWebsiteView: View {
 							return
 						}
 
-						website.wrappedValue.url = url
+						// Tries to work around an obscure crash.
+						DispatchQueue.main.async {
+							website.wrappedValue.url = url
 
-						fetchTitle()
+							fetchTitle()
+						}
 					}
 				Button("Local Website…") {
 					chooseLocalWebsite {

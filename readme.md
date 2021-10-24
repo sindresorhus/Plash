@@ -58,7 +58,7 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 
 Requires macOS 11 or later.
 
-*[Last macOS 10.15 compatible version.](https://github.com/sindresorhus/Plash/releases/tag/v2.1.0)*
+*[Last macOS 10.15 compatible version.](https://github.com/sindresorhus/Plash/releases/tag/v2.1.0) (2.1.0)*
 
 <!-- You can try out the bleeding edge [here](https://install.appcenter.ms/users/sindresorhus/apps/plash/distribution_groups/public) (latest commit). -->
 

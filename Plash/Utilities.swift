@@ -37,7 +37,9 @@ func delay(seconds: TimeInterval, closure: @escaping () -> Void) {
 
 // swiftlint:disable:next no_cgfloat
 extension CGFloat {
-	/// Get a Double from a CGFloat. This makes it easier to work with optionals.
+	/**
+	Get a Double from a CGFloat. This makes it easier to work with optionals.
+	*/
 	var double: Double { Double(self) }
 }
 
@@ -101,45 +103,21 @@ final class SSMenu: NSMenu, NSMenuDelegate {
 
 // TODO: Adopt the native method if this lands in Swift
 // From: https://github.com/apple/swift-evolution/pull/861/files#diff-7227258cce0fbf6442a789b162652031R110
-// Reasons why code should die at runtime
 public struct FatalReason: CustomStringConvertible {
-	/// Die because this code branch should be unreachable.
 	public static let unreachable = Self("Should never be reached during execution.")
-
-	/// Die because this method or function has not yet been implemented.
 	public static let notYetImplemented = Self("Not yet implemented.")
-
-	/// Die because a default method must be overridden by a
-	/// subtype or extension.
 	public static let subtypeMustOverride = Self("Must be overridden in subtype.")
-
-	/// Die because this functionality should never be called,
-	/// typically to silence requirements.
 	public static let mustNotBeCalled = Self("Should never be called.")
 
-	/// An underlying string-based cause for a fatal error.
 	public let reason: String
 
-	/// Establishes a new instance of a `FatalReason` with a string-based explanation.
 	public init(_ reason: String) {
 		self.reason = reason
 	}
 
-	/// Conforms to CustomStringConvertible, allowing reason to
-	/// print directly to complaint.
 	public var description: String { reason }
 }
-/// Unconditionally prints a given message and stops execution.
-///
-/// - Parameters:
-///   - reason: A predefined `FatalReason`.
-///   - function: The name of the calling function to print with `message`. The
-///     default is the calling scope where `fatalError(because:, function:, file:, line:)`
-///     is called.
-///   - file: The file name to print with `message`. The default is the file
-///     where `fatalError(because:, function:, file:, line:)` is called.
-///   - line: The line number to print along with `message`. The default is the
-///     line number where `fatalError(because:, function:, file:, line:)` is called.
+
 public func fatalError(
 	because reason: FatalReason,
 	function: StaticString = #function,
@@ -148,7 +126,7 @@ public func fatalError(
 ) -> Never {
 	fatalError("\(function): \(reason)", file: file, line: UInt(line))
 }
-///
+
 
 
 final class CallbackMenuItem: NSMenuItem {
@@ -525,7 +503,9 @@ enum SSApp {
 }
 
 extension SSApp {
-	/// Manually show the SwiftUI settings window.
+	/**
+	Manually show the SwiftUI settings window.
+	*/
 	static func showSettingsWindow() {
 		if NSApp.activationPolicy() == .accessory {
 			NSApp.activate(ignoringOtherApps: true)
@@ -539,12 +519,15 @@ extension SSApp {
 }
 
 
-/// Convenience for opening URLs.
 extension URL {
+	/**
+	Convenience for opening URLs.
+	*/
 	func open() {
 		NSWorkspace.shared.open(self)
 	}
 }
+
 extension String {
 	/*
 	```
@@ -662,18 +645,24 @@ extension Dictionary {
 
 
 extension StringProtocol {
-	/// Check if the string only contains whitespace characters.
+	/**
+	Check if the string only contains whitespace characters.
+	*/
 	var isWhitespace: Bool {
 		allSatisfy(\.isWhitespace)
 	}
 
-	/// Check if the string is empty or only contains whitespace characters.
+	/**
+	Check if the string is empty or only contains whitespace characters.
+	*/
 	var isEmptyOrWhitespace: Bool { isEmpty || isWhitespace }
 }
 
 
 extension Collection {
-	/// Works on strings too, since they're just collections.
+	/**
+	Works on strings too, since they're just collections.
+	*/
 	var nilIfEmpty: Self? { isEmpty ? nil : self }
 }
 
@@ -683,22 +672,31 @@ extension StringProtocol {
 
 
 extension CharacterSet {
-	/// Characters allowed to be unescaped in an URL
-	/// https://tools.ietf.org/html/rfc3986#section-2.3
+	/**
+	Characters allowed to be unescaped in an URL.
+
+	https://tools.ietf.org/html/rfc3986#section-2.3
+	*/
 	static let urlUnreservedRFC3986 = CharacterSet(charactersIn: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._~")
 }
 
 
-/// This should really not be necessary, but it's at least needed for my `formspree.io` form...
-/// Otherwise is results in "Internal Server Error" after submitting the form
-/// Relevant: https://www.djackson.org/why-we-do-not-use-urlcomponents/
+/**
+This should really not be necessary, but it's at least needed for my `formspree.io` form...
+
+Otherwise is results in "Internal Server Error" after submitting the form
+
+Relevant: https://www.djackson.org/why-we-do-not-use-urlcomponents/
+*/
 private func escapeQueryComponent(_ query: String) -> String {
 	query.addingPercentEncoding(withAllowedCharacters: .urlUnreservedRFC3986)!
 }
 
 
 extension Dictionary where Key == String {
-	/// This correctly escapes items. See `escapeQueryComponent`.
+	/**
+	This correctly escapes items. See `escapeQueryComponent`.
+	*/
 	var toQueryItems: [URLQueryItem] {
 		map {
 			URLQueryItem(
@@ -733,13 +731,15 @@ extension URL {
 
 
 extension URLComponents {
-	/// This correctly escapes items. See `escapeQueryComponent`.
+	/**
+	This correctly escapes items. See `escapeQueryComponent`.
+	*/
 	var queryDictionary: [String: String] {
 		get {
 			queryItems?.toDictionary { ($0.name, $0.value) }.compactValues() ?? [:]
 		}
 		set {
-			/// Using `percentEncodedQueryItems` instead of `queryItems` since the query items are already custom-escaped. See `escapeQueryComponent`.
+			// Using `percentEncodedQueryItems` instead of `queryItems` since the query items are already custom-escaped. See `escapeQueryComponent`.
 			percentEncodedQueryItems = newValue.toQueryItems
 		}
 	}
@@ -786,7 +786,6 @@ extension NSEdgeInsets {
 
 
 extension String {
-	/// NSString has some useful properties that String does not.
 	var nsString: NSString { self as NSString } // swiftlint:disable:this legacy_objc_type
 
 	var attributedString: NSAttributedString { .init(string: self) }
@@ -936,7 +935,9 @@ extension URL {
 		return url.isValid
 	}
 
-	/// Check if the `host` part of a URL is an IP address.
+	/**
+	Check if the `host` part of a URL is an IP address.
+	*/
 	var isHostAnIPAddress: Bool {
 		guard let host = host else {
 			return false
@@ -1106,7 +1107,9 @@ extension String {
 		return Self(dropFirst(prefix.count))
 	}
 
-	/// Returns a string with the matches of the given regex replaced with the given replacement string.
+	/**
+	Returns a string with the matches of the given regex replaced with the given replacement string.
+	*/
 	func replacingOccurrences(matchingRegex regex: Self, with replacement: Self) -> Self {
 		replacingOccurrences(of: regex, with: replacement, options: .regularExpression)
 	}
@@ -1195,8 +1198,9 @@ extension Binding {
 
 
 extension URL {
-	/// `URLComponents` have better parsing than `URL` and supports
-	/// things like `scheme:path` (notice the missing `//`).
+	/**
+	`URLComponents` have better parsing than `URL` and supports things like `scheme:path` (notice the missing `//`).
+	*/
 	var components: URLComponents? {
 		URLComponents(url: self, resolvingAgainstBaseURL: true)
 	}
@@ -1267,7 +1271,9 @@ extension WKWebView {
 
 
 extension NSAlert {
-	/// Show an alert as a window-modal sheet, or as an app-modal (window-indepedendent) alert if the window is `nil` or not given.
+	/**
+	Show an alert as a window-modal sheet, or as an app-modal (window-indepedendent) alert if the window is `nil` or not given.
+	*/
 	@discardableResult
 	static func showModal(
 		for window: NSWindow? = nil,
@@ -1287,8 +1293,11 @@ extension NSAlert {
 			.runModal(for: window)
 	}
 
-	/// The index in the `buttonTitles` array for the button to use as default.
-	/// Set `-1` to not have any default. Useful for really destructive actions.
+	/**
+	The index in the `buttonTitles` array for the button to use as default.
+
+	Set `-1` to not have any default. Useful for really destructive actions.
+	*/
 	var defaultButtonIndex: Int {
 		get {
 			buttons.firstIndex { $0.keyEquivalent == "\r" } ?? -1
@@ -1327,7 +1336,9 @@ extension NSAlert {
 		}
 	}
 
-	/// Runs the alert as a window-modal sheet, or as an app-modal (window-indepedendent) alert if the window is `nil` or not given.
+	/**
+	Runs the alert as a window-modal sheet, or as an app-modal (window-indepedendent) alert if the window is `nil` or not given.
+	*/
 	@discardableResult
 	func runModal(for window: NSWindow? = nil) -> NSApplication.ModalResponse {
 		guard let window = window else {
@@ -1341,7 +1352,9 @@ extension NSAlert {
 		return NSApp.runModal(for: window)
 	}
 
-	/// Adds buttons with the given titles to the alert.
+	/**
+	Adds buttons with the given titles to the alert.
+	*/
 	func addButtons(withTitles buttonTitles: [String]) {
 		for buttonTitle in buttonTitles {
 			addButton(withTitle: buttonTitle)
@@ -1472,7 +1485,9 @@ extension WKWebView {
 	}
 
 	// https://github.com/feedback-assistant/reports/issues/81
-	/// Whether the web view should have a background. Set to `false` to make it transparent.
+	/**
+	Whether the web view should have a background. Set to `false` to make it transparent.
+	*/
 	var drawsBackground: Bool {
 		get {
 			value(forKey: "drawsBackground") as? Bool ?? true
@@ -1513,7 +1528,9 @@ extension WebViewController: WKUIDelegate {
 ```
 */
 extension WKWebView {
-	/// Default handler for JavaScript `alert()` to be used in `WKDelegate`.
+	/**
+	Default handler for JavaScript `alert()` to be used in `WKDelegate`.
+	*/
 	func defaultAlertHandler(message: String, completion: @escaping () -> Void) {
 		let alert = NSAlert()
 		alert.messageText = message
@@ -1521,7 +1538,9 @@ extension WKWebView {
 		completion()
 	}
 
-	/// Default handler for JavaScript `confirm()` to be used in `WKDelegate`.
+	/**
+	Default handler for JavaScript `confirm()` to be used in `WKDelegate`.
+	*/
 	func defaultConfirmHandler(message: String, completion: @escaping (Bool) -> Void) {
 		let alert = NSAlert()
 		alert.alertStyle = .informational
@@ -1533,7 +1552,9 @@ extension WKWebView {
 		completion(result)
 	}
 
-	/// Default handler for JavaScript `prompt()` to be used in `WKDelegate`.
+	/**
+	Default handler for JavaScript `prompt()` to be used in `WKDelegate`.
+	*/
 	func defaultPromptHandler(prompt: String, defaultText: String?, completion: @escaping (String?) -> Void) {
 		let alert = NSAlert()
 		alert.alertStyle = .informational
@@ -1549,7 +1570,9 @@ extension WKWebView {
 		completion(result)
 	}
 
-	/// Default handler for JavaScript initiated upload panel to be used in `WKDelegate`.
+	/**
+	Default handler for JavaScript initiated upload panel to be used in `WKDelegate`.
+	*/
 	func defaultUploadPanelHandler(parameters: WKOpenPanelParameters, completion: @escaping ([URL]?) -> Void) { // swiftlint:disable:this discouraged_optional_collection
 		let openPanel = NSOpenPanel()
 		openPanel.level = .floating
@@ -1564,7 +1587,9 @@ extension WKWebView {
 	}
 
 	// Can be tested at https://jigsaw.w3.org/HTTP/Basic/ with `guest` as username and password.
-	/// Default handler for websites requiring basic authentication. To be used in `WKDelegate`.
+	/**
+	Default handler for websites requiring basic authentication. To be used in `WKDelegate`.
+	*/
 	func defaultAuthChallengeHandler(challenge: URLAuthenticationChallenge, completion: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
 		guard
 			let host = url?.host,
@@ -1633,7 +1658,9 @@ extension WKWebView {
 }
 
 extension WKUserContentController {
-	/// Add CSS to the page.
+	/**
+	Add CSS to the page.
+	*/
 	func addCSS(_ css: String) {
 		let source = WKWebView.createCSSInjectScript(css)
 
@@ -1694,7 +1721,9 @@ extension WKUserContentController {
 		}
 		"""
 
-	/// Invert the colors on the page. Pseudo dark mode.
+	/**
+	Invert the colors on the page. Pseudo dark mode.
+	*/
 	func invertColors(onlyWhenInDarkMode: Bool) {
 		if onlyWhenInDarkMode {
 			addCSS(
@@ -1751,7 +1780,9 @@ extension WKUserContentController {
 		"""
 
 	// https://github.com/feedback-assistant/reports/issues/79
-	/// Mute all existing and future audio on websites, including audio in videos.
+	/**
+	Mute all existing and future audio on websites, including audio in videos.
+	*/
 	func muteAudio() {
 		let userScript = WKUserScript(
 			source: Self.muteAudioCode,
@@ -1800,9 +1831,11 @@ extension WKWebView {
 
 
 extension WKWebView {
-	/// Clear all website data like cookies, local storage, caches, etc.
+	/**
+	Clear all website data like cookies, local storage, caches, etc.
+	*/
 	func clearWebsiteData(completion: (() -> Void)?) {
-		HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
+		HTTPCookieStorage.shared.removeCookies(since: .distantPast)
 
 		let dataStore = WKWebsiteDataStore.default()
 		let types = WKWebsiteDataStore.allWebsiteDataTypes()
@@ -1819,9 +1852,11 @@ extension WKWebView {
 
 //@available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
 //extension WKWebView {
-//	/// Clear all website data like cookies, local storage, caches, etc.
+//	/**
+//	Clear all website data like cookies, local storage, caches, etc.
+//	*/
 //	func clearWebsiteData() async {
-//		HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
+//		HTTPCookieStorage.shared.removeCookies(since: .distantPast)
 //
 //		let store = WKWebsiteDataStore.default()
 //		let types = WKWebsiteDataStore.allWebsiteDataTypes()
@@ -1845,8 +1880,11 @@ extension WKPreferences {
 
 
 extension WKWindowFeatures {
-	/// The size of the window.
-	/// Defaults to 600 for width/height if not specified.
+	/**
+	The size of the window.
+
+	Defaults to 600 for width/height if not specified.
+	*/
 	var size: CGSize {
 		.init(
 			width: Double(truncating: width ?? 600),
@@ -1912,7 +1950,9 @@ final class ObservableValue<Value>: ObservableObject {
 		)
 	}
 
-	/// Manually trigger an update.
+	/**
+	Manually trigger an update.
+	*/
 	func update() {
 		objectWillChange.send()
 	}
@@ -1930,8 +1970,11 @@ extension NSScreen {
 		screens.first { $0.id == id }
 	}
 
-	/// Returns a publisher that sends updates when anything related to screens change.
-	/// This includes screens being added/removed, resolution change, and the screen frame changing (dock and menu bar being toggled).
+	/**
+	Returns a publisher that sends updates when anything related to screens change.
+
+	This includes screens being added/removed, resolution change, and the screen frame changing (dock and menu bar being toggled).
+	*/
 	static var publisher: AnyPublisher<Void, Never> {
 		Publishers.Merge(
 			SSPublishers.screenParametersDidChange,
@@ -1941,25 +1984,36 @@ extension NSScreen {
 			.eraseToAnyPublisher()
 	}
 
-	/// Get the screen that contains the menu bar and has origin at (0, 0).
+	/**
+	Get the screen that contains the menu bar and has origin at (0, 0).
+	*/
 	static var primary: NSScreen? { screens.first }
 
-	/// This can be useful if you store a reference to a `NSScreen` instance as it may have been disconnected.
+	/**
+	This can be useful if you store a reference to a `NSScreen` instance as it may have been disconnected.
+	*/
 	var isConnected: Bool {
 		Self.screens.contains { $0 == self }
 	}
 
-	/// Get the main screen if the current screen is not connected.
+	/**
+	Get the main screen if the current screen is not connected.
+	*/
 	var withFallbackToMain: NSScreen? { isConnected ? self : .main }
 
-	/// Whether the screen shows a status bar.
-	/// Returns `false` if the status bar is set to show/hide automatically as it then doesn't take up any screen space.
+	/**
+	Whether the screen shows a status bar.
+
+	Returns `false` if the status bar is set to show/hide automatically as it then doesn't take up any screen space.
+	*/
 	var hasStatusBar: Bool {
 		// When `screensHaveSeparateSpaces == true`, the menu bar shows on all the screens.
 		!NSStatusBar.isAutomaticallyToggled && (self == .primary || Self.screensHaveSeparateSpaces)
 	}
 
-	/// Get the frame of the actual visible part of the screen. This means under the dock, but *not* under the status bar if there's a status bar. This is different from `.visibleFrame` which also includes the space under the status bar.
+	/**
+	Get the frame of the actual visible part of the screen. This means under the dock, but *not* under the status bar if there's a status bar. This is different from `.visibleFrame` which also includes the space under the status bar.
+	*/
 	var visibleFrameWithoutStatusBar: CGRect {
 		var screenFrame = frame
 
@@ -1977,33 +2031,49 @@ extension NSScreen {
 
 
 struct Display: Hashable, Codable, Identifiable {
-	/// Self wrapped in an observable that updates when display change.
+	/**
+	Self wrapped in an observable that updates when display change.
+	*/
 	static let observable = ObservableValue(
 		value: Self.self,
 		publisher: NSScreen.publisher
 	)
 
-	/// The main display.
+	/**
+	The main display.
+	*/
 	static let main = Self(id: CGMainDisplayID())
 
-	/// All displays.
+	/**
+	All displays.
+	*/
 	static var all: [Self] {
 		NSScreen.screens.map { self.init(screen: $0) }
 	}
 
-	/// The ID of the display.
+	/**
+	The ID of the display.
+	*/
 	let id: CGDirectDisplayID
 
-	/// The `NSScreen` for the display.
-	var screen: NSScreen? { NSScreen.from(cgDirectDisplayID: id) }
+	/**
+	The `NSScreen` for the display.
+	*/
+	var screen: NSScreen? { .from(cgDirectDisplayID: id) }
 
-	/// The localized name of the display.
+	/**
+	The localized name of the display.
+	*/
 	var localizedName: String { screen?.localizedName ?? "<Unknown name>" }
 
-	/// Whether the display is connected.
+	/**
+	Whether the display is connected.
+	*/
 	var isConnected: Bool { screen?.isConnected ?? false }
 
-	/// Get the main display if the current display is not connected.
+	/**
+	Get the main display if the current display is not connected.
+	*/
 	var withFallbackToMain: Self { isConnected ? self : .main }
 
 	init(id: CGDirectDisplayID) {
@@ -2017,7 +2087,9 @@ struct Display: Hashable, Codable, Identifiable {
 
 
 extension String {
-	/// Word wrap the string at the given length.
+	/**
+	Word wrap the string at the given length.
+	*/
 	func wrapped(atLength length: Int) -> Self {
 		var string = ""
 		var currentLineLength = 0
@@ -2045,7 +2117,9 @@ extension String {
 
 
 extension String {
-	/// Make a URL more human-friendly by removing the scheme and `www.`.
+	/**
+	Make a URL more human-friendly by removing the scheme and `www.`.
+	*/
 	var removingSchemeAndWWWFromURL: Self {
 		replacingOccurrences(matchingRegex: #"^https?:\/\/(?:www.)?"#, with: "")
 	}
@@ -2053,7 +2127,9 @@ extension String {
 
 
 extension URL {
-	/// Human-friendly representation of the URL: `https://sindresorhus.com/` → `sindresorhus.com`.
+	/**
+	Human-friendly representation of the URL: `https://sindresorhus.com/` → `sindresorhus.com`.
+	*/
 	var humanString: String {
 		guard !isFileURL else {
 			return tildePath
@@ -2066,8 +2142,11 @@ extension URL {
 
 
 extension NSWorkspace {
-	/// Returns the height of the Dock.
-	/// It's `nil` if there's no primary screen or if the Dock is set to be automatically hidden.
+	/**
+	Returns the height of the Dock.
+
+	It's `nil` if there's no primary screen or if the Dock is set to be automatically hidden.
+	*/
 	var dockHeight: Double? {
 		guard let screen = NSScreen.primary else {
 			return nil
@@ -2082,7 +2161,9 @@ extension NSWorkspace {
 		return height
 	}
 
-	/// Whether the user has "Turn Hiding On" enabled in the Dock preferences.
+	/**
+	Whether the user has "Turn Hiding On" enabled in the Dock preferences.
+	*/
 	var isDockAutomaticallyToggled: Bool {
 		guard NSScreen.primary != nil else {
 			return false
@@ -2094,11 +2175,16 @@ extension NSWorkspace {
 
 
 extension NSStatusBar {
-	/// The actual thickness of the status bar. `.thickness` confusingly returns the thickness of the content area.
-	/// Keep in mind for screen calculations that the status bar has an additional 1 point padding below it (between it and windows).
+	/**
+	The actual thickness of the status bar. `.thickness` confusingly returns the thickness of the content area.
+
+	Keep in mind for screen calculations that the status bar has an additional 1 point padding below it (between it and windows).
+	*/
 	static let actualThickness = 24.0
 
-	/// Whether the user has "Automatically hide and show the menu bar" enabled in system preferences.
+	/**
+	Whether the user has "Automatically hide and show the menu bar" enabled in system preferences.
+	*/
 	static var isAutomaticallyToggled: Bool {
 		guard let screen = NSScreen.primary else {
 			return false
@@ -2214,7 +2300,9 @@ private struct BoxModifier: ViewModifier {
 }
 
 extension View {
-	/// Wrap the content in a box.
+	/**
+	Wrap the content in a box.
+	*/
 	func box() -> some View {
 		modifier(BoxModifier())
 	}
@@ -2264,7 +2352,9 @@ final class PowerSourceWatcher {
 
 	private lazy var didChangeSubject = CurrentValueSubject<PowerSource, Never>(powerSource)
 
-	/// Publishes the power source when it changes. It also publishes an initial event.
+	/**
+	Publishes the power source when it changes. It also publishes an initial event.
+	*/
 	private(set) lazy var didChangePublisher = didChangeSubject.eraseToAnyPublisher()
 
 	var powerSource: PowerSource {
@@ -2294,7 +2384,9 @@ final class PowerSourceWatcher {
 }
 
 
-/// A view that doesn't accept any mouse events.
+/**
+A view that doesn't accept any mouse events.
+*/
 class NonInteractiveView: NSView { // swiftlint:disable:this final_class
 	override var mouseDownCanMoveWindow: Bool { true }
 	override func acceptsFirstMouse(for event: NSEvent?) -> Bool { false }
@@ -2303,7 +2395,9 @@ class NonInteractiveView: NSView { // swiftlint:disable:this final_class
 
 
 extension SetAlgebra {
-	/// Insert the `value` if it doesn't exist, otherwise remove it.
+	/**
+	Insert the `value` if it doesn't exist, otherwise remove it.
+	*/
 	mutating func toggleExistence(_ value: Element) {
 		if contains(value) {
 			remove(value)
@@ -2312,7 +2406,9 @@ extension SetAlgebra {
 		}
 	}
 
-	/// Insert the `value` if `shouldExist` is true, otherwise remove it.
+	/**
+	Insert the `value` if `shouldExist` is true, otherwise remove it.
+	*/
 	mutating func toggleExistence(_ value: Element, shouldExist: Bool) {
 		if shouldExist {
 			insert(value)
@@ -2412,7 +2508,9 @@ extension NSColor {
 
 
 extension Timer {
-	/// Creates a repeating timer that runs for the given `duration`.
+	/**
+	Creates a repeating timer that runs for the given `duration`.
+	*/
 	@discardableResult
 	open class func scheduledRepeatingTimer(
 		withTimeInterval interval: TimeInterval,
@@ -2463,7 +2561,9 @@ extension NSStatusBarButton {
 
 
 extension RangeReplaceableCollection {
-	/// Move the element at the `from` index to the `to` index.
+	/**
+	Move the element at the `from` index to the `to` index.
+	*/
 	mutating func move(from fromIndex: Index, to toIndex: Index) {
 		guard fromIndex != toIndex else {
 			return
@@ -2474,7 +2574,9 @@ extension RangeReplaceableCollection {
 }
 
 extension RangeReplaceableCollection where Element: Equatable {
-	/// Move the first equal element to the `to` index.
+	/**
+	Move the first equal element to the `to` index.
+	*/
 	mutating func move(_ element: Element, to toIndex: Index) {
 		guard let fromIndex = firstIndex(of: element) else {
 			return
@@ -2485,7 +2587,9 @@ extension RangeReplaceableCollection where Element: Equatable {
 }
 
 extension Collection where Index == Int, Element: Equatable {
-	/// Returns an array where the given element has moved to the `to` index.
+	/**
+	Returns an array where the given element has moved to the `to` index.
+	*/
 	func moving(_ element: Element, to toIndex: Index) -> [Element] {
 		var array = Array(self)
 		array.move(element, to: toIndex)
@@ -2494,7 +2598,9 @@ extension Collection where Index == Int, Element: Equatable {
 }
 
 extension Collection where Index == Int, Element: Equatable {
-	/// Returns an array where the given element has moved to the end of the array.
+	/**
+	Returns an array where the given element has moved to the end of the array.
+	*/
 	func movingToEnd(_ element: Element) -> [Element] {
 		moving(element, to: endIndex - 1)
 	}
@@ -2519,14 +2625,18 @@ extension String {
 
 
 extension URL {
-	/// Returns the user's real home directory when called in a sandboxed app.
+	/**
+	Returns the user's real home directory when called in a sandboxed app.
+	*/
 	static let realHomeDirectory = Self(
 		fileURLWithFileSystemRepresentation: getpwuid(getuid())!.pointee.pw_dir!,
 		isDirectory: true,
 		relativeTo: nil
 	)
 
-	/// Ensures the URL points to the closest directory if it's a file or self.
+	/**
+	Ensures the URL points to the closest directory if it's a file or self.
+	*/
 	var directoryURL: Self { hasDirectoryPath ? self : deletingLastPathComponent() }
 
 	var tildePath: String {
@@ -2599,7 +2709,9 @@ extension URL {
 
 
 // TODO: I plan to extract this into a Swift Package when it's been battle-tested.
-/// This always requests the permission to a directory. If you give it file URL, it will ask for permission to the parent directory.
+/**
+This always requests the permission to a directory. If you give it file URL, it will ask for permission to the parent directory.
+*/
 enum SecurityScopedBookmarkManager {
 	private static let lock = NSLock()
 
@@ -2657,15 +2769,20 @@ enum SecurityScopedBookmarkManager {
 
 	private static var bookmarks = BookmarksUserDefaults()
 
-	/// Save the bookmark.
+	/**
+	Save the bookmark.
+	*/
 	static func saveBookmark(for url: URL) throws {
 		bookmarks[url] = try url.accessSecurityScopedResource {
 			try $0.bookmarkData(options: .withSecurityScope)
 		}
 	}
 
-	/// Load the bookmark.
-	/// Returns `nil` if there's no bookmark for the given URL or if the bookmark cannot be loaded.
+	/**
+	Load the bookmark.
+
+	Returns `nil` if there's no bookmark for the given URL or if the bookmark cannot be loaded.
+	*/
 	static func loadBookmark(for url: URL) -> URL? {
 		guard let bookmarkData = bookmarks[url] else {
 			return nil
@@ -2692,7 +2809,9 @@ enum SecurityScopedBookmarkManager {
 		return newUrl
 	}
 
-	/// Returns `nil` if the user didn't give permission or if the bookmark couldn't be saved.
+	/**
+	Returns `nil` if the user didn't give permission or if the bookmark couldn't be saved.
+	*/
 	static func promptUserForPermission(atDirectory directoryURL: URL, message: String? = nil) -> URL? {
 		lock.lock()
 
@@ -2738,8 +2857,11 @@ enum SecurityScopedBookmarkManager {
 		return securityScopedURL
 	}
 
-	/// Access the URL in the given closure and have the access cleaned up afterwards.
-	/// The closure receives a boolean of whether the URL is accessible.
+	/**
+	Access the URL in the given closure and have the access cleaned up afterwards.
+
+	The closure receives a boolean of whether the URL is accessible.
+	*/
 	static func accessURL(_ url: URL, accessHandler: () throws -> Void) rethrows {
 		_ = url.startAccessingSecurityScopedResource()
 
@@ -2750,8 +2872,11 @@ enum SecurityScopedBookmarkManager {
 		try accessHandler()
 	}
 
-	/// Accepts a file URL to a directory or file. If it's a file, it will prompt for permissions to its containing directory.
-	/// It handles cleaning up the access to the URL for you.
+	/**
+	Accepts a file URL to a directory or file. If it's a file, it will prompt for permissions to its containing directory.
+
+	It handles cleaning up the access to the URL for you.
+	*/
 	static func accessURLByPromptingIfNeeded(_ url: URL, accessHandler: () throws -> Void) {
 		let directoryURL = url.directoryURL
 
@@ -2767,8 +2892,11 @@ enum SecurityScopedBookmarkManager {
 		}
 	}
 
-	/// Accepts a file URL to a directory or file. If it's a file, it will prompt for permissions to its containing directory.
-	/// You have to manually call the returned method when you no longer need access to the URL.
+	/**
+	Accepts a file URL to a directory or file. If it's a file, it will prompt for permissions to its containing directory.
+
+	You have to manually call the returned method when you no longer need access to the URL.
+	*/
 	@discardableResult
 	static func accessURLByPromptingIfNeeded(_ url: URL) -> (() -> Void) {
 		let directoryURL = url.directoryURL
@@ -2786,14 +2914,20 @@ enum SecurityScopedBookmarkManager {
 }
 
 extension URL {
-	/// Accepts a file URL to a directory or file. If it's a file, it will prompt for permissions to its containing directory.
-	/// It handles cleaning up the access to the URL for you.
+	/**
+	Accepts a file URL to a directory or file. If it's a file, it will prompt for permissions to its containing directory.
+
+	It handles cleaning up the access to the URL for you.
+	*/
 	func accessSandboxedURLByPromptingIfNeeded(accessHandler: () throws -> Void) {
 		SecurityScopedBookmarkManager.accessURLByPromptingIfNeeded(self, accessHandler: accessHandler)
 	}
 
-	/// Accepts a file URL to a directory or file. If it's a file, it will prompt for permissions to its containing directory.
-	/// You have to manually call the returned method when you no longer need access to the URL.
+	/**
+	Accepts a file URL to a directory or file. If it's a file, it will prompt for permissions to its containing directory.
+
+	You have to manually call the returned method when you no longer need access to the URL.
+	*/
 	func accessSandboxedURLByPromptingIfNeeded() -> (() -> Void) {
 		SecurityScopedBookmarkManager.accessURLByPromptingIfNeeded(self)
 	}
@@ -2899,7 +3033,9 @@ extension URL {
 
 
 enum Reachability {
-	/// Checks whether we're currently online.
+	/**
+	Checks whether we're currently online.
+	*/
 	static func isOnline(host: String = "apple.com") -> Bool {
 		guard let ref = SCNetworkReachabilityCreateWithName(nil, host) else {
 			return false
@@ -2913,7 +3049,9 @@ enum Reachability {
 		return flags.contains(.reachable) && !flags.contains(.connectionRequired)
 	}
 
-	/// Checks multiple sources of whether we're currently online.
+	/**
+	Checks multiple sources of whether we're currently online.
+	*/
 	static func isOnlineExtensive() -> Bool {
 		let hosts = [
 			"apple.com",
@@ -3027,14 +3165,20 @@ extension NSResponder {
 }
 
 extension Error {
-	/// Present the error as an async sheet on the given window.
-	/// - Note: This exists because the built-in `NSResponder#presentError(forModal:)` method requires too many arguments, selector as callback, and it says it's modal but it's not blocking, which is surprising.
+	/**
+	Present the error as an async sheet on the given window.
+
+	- Note: This exists because the built-in `NSResponder#presentError(forModal:)` method requires too many arguments, selector as callback, and it says it's modal but it's not blocking, which is surprising.
+	*/
 	func presentAsSheet(for window: NSWindow, didPresent: (() -> Void)?) {
 		NSApp.presentErrorAsSheet(self, for: window, didPresent: didPresent)
 	}
 
-	/// Present the error as a blocking modal sheet on the given window.
-	/// If the window is nil, the error will be presented in an app-level modal dialog.
+	/**
+	Present the error as a blocking modal sheet on the given window.
+
+	If the window is nil, the error will be presented in an app-level modal dialog.
+	*/
 	func presentAsModalSheet(for window: NSWindow?) {
 		guard let window = window else {
 			presentAsModal()
@@ -3048,7 +3192,9 @@ extension Error {
 		NSApp.runModal(for: window)
 	}
 
-	/// Present the error as a blocking app-level modal dialog.
+	/**
+	Present the error as a blocking app-level modal dialog.
+	*/
 	func presentAsModal() {
 		NSApp.presentError(self)
 	}
@@ -3078,7 +3224,9 @@ extension Error {
 
 
 extension WKWebView {
-	/// Returns `true` if the error can be ignored.
+	/**
+	Returns `true` if the error can be ignored.
+	*/
 	static func canIgnoreError(_ error: Error) -> Bool {
 		// Ignore the request being cancelled which can happen if the user clicks on a link while a website is loading.
 		error.isCancelled || error.isWebViewPluginHandledLoad
@@ -3327,7 +3475,9 @@ extension SSApp {
 		return true
 	}
 
-	/// Run a closure only once ever, even between relaunches of the app.
+	/**
+	Run a closure only once ever, even between relaunches of the app.
+	*/
 	static func runOnce(identifier: String, _ execute: () -> Void) {
 		guard runOnceShouldRun(identifier: identifier) else {
 			return
@@ -3343,7 +3493,9 @@ extension AnyCancellable {
 		static let cancellables = ObjectAssociation<Set<AnyCancellable>>(defaultValue: [])
 	}
 
-	/// Stores this AnyCancellable for the lifetime of the given `object`.
+	/**
+	Stores this AnyCancellable for the lifetime of the given `object`.
+	*/
 	func store(forTheLifetimeOf object: AnyObject) {
 		store(in: &AssociatedKeys.cancellables[object])
 	}
@@ -3480,9 +3632,6 @@ extension Color {
 
 
 extension View {
-	/// Returns a type-erased version of `self`.
-	///
-	/// - Important: Use `@ViewBuilder` or `Group` instead whenever possible!
 	func eraseToAnyView() -> AnyView {
 		AnyView(self)
 	}
@@ -3586,7 +3735,9 @@ private struct EmptyStateTextModifier: ViewModifier {
 }
 
 extension View {
-	/// For empty states in the UI. For example, no items in a list, no search results, etc.
+	/**
+	For empty states in the UI. For example, no items in a list, no search results, etc.
+	*/
 	func emptyStateTextStyle() -> some View {
 		modifier(EmptyStateTextModifier())
 	}
@@ -3596,7 +3747,9 @@ extension View {
 extension View {
 	// Note: macOS 11.3 fixed support for multiple `.sheet`. Unclear, when it will be fixed for other methods though.
 
-	/// This allows multiple alerts on a single view, which `.alert()` doesn't.
+	/**
+	This allows multiple alerts on a single view, which `.alert()` doesn't.
+	*/
 	func alert2(
 		isPresented: Binding<Bool>,
 		content: @escaping () -> Alert
@@ -3609,7 +3762,9 @@ extension View {
 		)
 	}
 
-	/// This allows multiple popovers on a single view, which `.popover()` doesn't.
+	/**
+	This allows multiple popovers on a single view, which `.popover()` doesn't.
+	*/
 	func popover2<Content: View>(
 		isPresented: Binding<Bool>,
 		attachmentAnchor: PopoverAttachmentAnchor = .rect(.bounds),
@@ -3699,7 +3854,9 @@ extension Sequence where Element: Equatable {
 
 
 extension Collection {
-	/// Copies the collection and moves all the elements at the specified offsets to the specified destination offset, preserving ordering.
+	/**
+	Copies the collection and moves all the elements at the specified offsets to the specified destination offset, preserving ordering.
+	*/
 	func moving(fromOffsets source: IndexSet, toOffset destination: Int) -> [Element] {
 		var copy = Array(self)
 		copy.move(fromOffsets: source, toOffset: destination)
@@ -3708,7 +3865,9 @@ extension Collection {
 }
 
 extension RangeReplaceableCollection {
-	/// Copies the collection and removes all the elements at the specified offsets from the collection.
+	/**
+	Copies the collection and removes all the elements at the specified offsets from the collection.
+	*/
 	func removing(atOffsets offsets: IndexSet) -> [Element] {
 		var copy = Array(self)
 		copy.remove(atOffsets: offsets)
@@ -3748,7 +3907,9 @@ extension NSImage: NSItemProviderWriting {
 }
 
 extension NSItemProvider {
-	/// Get an image from the provider if any.
+	/**
+	Get an image from the provider if any.
+	*/
 	func getImage(_ completionHandler: @escaping (NSImage?) -> Void) {
 		loadObject(ofClass: NSImage.self) { image, _ in
 			guard let image = image as? NSImage else {
@@ -3796,7 +3957,9 @@ prefix func ! <Root>(rhs: KeyPath<Root, Bool>) -> (Root) -> Bool { // swiftlint:
 
 
 extension String {
-	/// Get the string as UTF-8 data.
+	/**
+	Get the string as UTF-8 data.
+	*/
 	var data: Data { Data(utf8) }
 }
 
@@ -3857,7 +4020,9 @@ extension String {
 }
 
 
-/// Wrapper around `NSCache` that enables using any hashable key and any value.
+/**
+Wrapper around `NSCache` that enables using any hashable key and any value.
+*/
 final class Cache<Key: Hashable, Value> {
 	private final class WrappedKey: NSObject {
 		let key: Key
@@ -3904,7 +4069,9 @@ final class Cache<Key: Hashable, Value> {
 		}
 	}
 
-	/// Removes all entries.
+	/**
+	Removes all entries.
+	*/
 	func removeAll() {
 		cache.removeAllObjects()
 	}
@@ -4378,7 +4545,9 @@ enum OperatingSystem {
 }
 
 extension OperatingSystem {
-	/// - Note: Only use this when you cannot use an `if #available` check. For example, inline in function calls.
+	/**
+	- Note: Only use this when you cannot use an `if #available` check. For example, inline in function calls.
+	*/
 	static let isMacOS12OrLater: Bool = {
 		#if os(macOS)
 		if #available(macOS 12, *) {
@@ -4447,7 +4616,9 @@ extension InfoPopoverButton where Content == Text {
 
 
 extension CGSize {
-	/// Create a CGSize from string dimensions in the format `100x100`.
+	/**
+	Create a CGSize from string dimensions in the format `100x100`.
+	*/
 	static func from(dimensions: String) -> Self? {
 		let parts = dimensions.split(separator: "x").compactMap { Int($0) }
 
@@ -4730,7 +4901,9 @@ extension WebsiteIconFetcher: WKNavigationDelegate {
 
 
 extension View {
-	/// Corner radius with a custom corner style.
+	/**
+	Corner radius with a custom corner style.
+	*/
 	func cornerRadius(_ radius: Double, style: RoundedCornerStyle) -> some View {
 		clipShape(RoundedRectangle(cornerRadius: radius, style: style))
 	}
@@ -4794,7 +4967,9 @@ extension Numeric {
 extension SSApp {
 	private static let key = Defaults.Key("SSApp_requestReview", default: 0)
 
-	/// Requests a review only after this method has been called the given amount of times.
+	/**
+	Requests a review only after this method has been called the given amount of times.
+	*/
 	static func requestReviewAfterBeingCalledThisManyTimes(_ counts: [Int]) {
 		guard
 			!SSApp.isFirstLaunch,
@@ -4904,8 +5079,10 @@ extension DecodableDefault.Wrapper: Encodable where Value: Encodable {
 
 
 extension View {
+	/**
+	Make the view subscribe to the given notification.
+	*/
 	func onNotification(
-		/// Make the view subscribe to the given notification.
 		_ name: Notification.Name,
 		object: AnyObject? = nil,
 		perform action: @escaping (Notification) -> Void
@@ -4917,7 +5094,9 @@ extension View {
 }
 
 
-/// A helper that converts a binding to a collection of elements into a collection of bindings to the individual elements.
+/**
+A helper that converts a binding to a collection of elements into a collection of bindings to the individual elements.
+*/
 struct BindingCollection<Base: MutableCollection & RandomAccessCollection>: RandomAccessCollection {
 	let base: Binding<Base>
 
@@ -4960,7 +5139,9 @@ extension BindingCollection where Base.Element: Identifiable {
 
 
 extension Defaults {
-	/// Get a `Binding` for a `Defaults` key.
+	/**
+	Get a `Binding` for a `Defaults` key.
+	*/
 	static func binding<Value: Codable>(for key: Key<Value>) -> Binding<Value> {
 		.init(
 			get: { self[key] },
@@ -4972,7 +5153,9 @@ extension Defaults {
 }
 
 extension Defaults {
-	/// Get a `BindingCollection` for a `Defaults` key.
+	/**
+	Get a `BindingCollection` for a `Defaults` key.
+	*/
 	static func bindingCollection<Value: Codable>(for key: Key<Value>) -> BindingCollection<Value> where Value: MutableCollection & RandomAccessCollection {
 		.init(base: binding(for: key))
 	}
@@ -5108,7 +5291,9 @@ private struct WindowAccessor: NSViewRepresentable {
 }
 
 extension View {
-	/// Bind the native backing-window of a SwiftUI window to a property.
+	/**
+	Bind the native backing-window of a SwiftUI window to a property.
+	*/
 	func bindNativeWindow(_ window: Binding<NSWindow?>) -> some View {
 		background(WindowAccessor(window))
 	}
@@ -5128,12 +5313,16 @@ private struct WindowViewModifier: ViewModifier {
 }
 
 extension View {
-	/// Access the native backing-window of a SwiftUI window.
+	/**
+	Access the native backing-window of a SwiftUI window.
+	*/
 	func accessNativeWindow(_ onWindow: @escaping (NSWindow?) -> Void) -> some View {
 		modifier(WindowViewModifier(onWindow: onWindow))
 	}
 
-	/// Set the window level of a SwiftUI window.
+	/**
+	Set the window level of a SwiftUI window.
+	*/
 	func windowLevel(_ level: NSWindow.Level) -> some View {
 		accessNativeWindow {
 			$0?.level = level
@@ -5160,7 +5349,9 @@ enum SettingsTabType {
 }
 
 extension View {
-	/// Make the view a settings tab of the given type.
+	/**
+	Make the view a settings tab of the given type.
+	*/
 	func settingsTabItem(_ type: SettingsTabType) -> some View {
 		tabItem { type.label }
 	}
@@ -5243,27 +5434,38 @@ struct NativeTextField: NSViewRepresentable {
 
 
 extension Notification.Name {
-	/// Must be used with `DistributedNotificationCenter`.
+	/**
+	Must be used with `DistributedNotificationCenter`.
+	*/
 	static let screenIsLocked = Self("com.apple.screenIsLocked")
 
-	/// Must be used with `DistributedNotificationCenter`.
+	/**
+	Must be used with `DistributedNotificationCenter`.
+	*/
 	static let screenIsUnlocked = Self("com.apple.screenIsUnlocked")
 }
 
 
 enum SSPublishers {
-	/// Publishes when the machine wakes from sleep.
+	/**
+	Publishes when the machine wakes from sleep.
+	*/
 	static let deviceDidWake = NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)
 		.map { _ in }
 		.eraseToAnyPublisher()
 
-	/// Publishes when the configuration of the displays attached to the computer is changed.
-	/// The configuration change can be made either programmatically or when the user changes settings in the Displays control panel.
+	/**
+	Publishes when the configuration of the displays attached to the computer is changed.
+
+	The configuration change can be made either programmatically or when the user changes settings in the Displays control panel.
+	*/
 	static let screenParametersDidChange = NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
 		.map { _ in }
 		.eraseToAnyPublisher()
 
-	/// Publishes when the screen becomes locked/unlocked.
+	/**
+	Publishes when the screen becomes locked/unlocked.
+	*/
 	static let isScreenLocked = Publishers.Merge(
 		DistributedNotificationCenter.default().publisher(for: .screenIsLocked).map { _ in true },
 		DistributedNotificationCenter.default().publisher(for: .screenIsUnlocked).map { _ in false }
@@ -5482,15 +5684,18 @@ struct ContentView: View {
 */
 struct EnumPicker<Enum, Label, Content>: View where Enum: CaseIterable & Equatable, Enum.AllCases.Index: Hashable, Label: View, Content: View {
 	let enumBinding: Binding<Enum>
-	let label: Label
 	@ViewBuilder let content: (Enum, Bool) -> Content
+	@ViewBuilder let label: () -> Label
 
 	var body: some View {
-		Picker(selection: enumBinding.caseIndex, label: label) {
+		Picker(selection: enumBinding.caseIndex) {
 			ForEach(Array(Enum.allCases).indexed(), id: \.0) { index, element in
+				// TODO: Is `isSelected` really useful? If not, remove it.
 				content(element, element == enumBinding.wrappedValue)
 					.tag(index)
 			}
+		} label: {
+			label()
 		}
 	}
 }
@@ -5502,8 +5707,8 @@ extension EnumPicker where Label == Text {
 		@ViewBuilder content: @escaping (Enum, Bool) -> Content
 	) where S: StringProtocol {
 		self.enumBinding = enumBinding
-		self.label = Text(title)
 		self.content = content
+		self.label = { Text(title) }
 	}
 }
 

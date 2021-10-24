@@ -14,7 +14,9 @@ final class WebsitesController {
 	var randomWebsiteIterator = Defaults[.websites].infiniteUniformRandomSequence().makeIterator()
 	let thumbnailCache = SimpleImageCache<String>(diskCacheName: "websiteThumbnailCache")
 
-	/// The current website.
+	/**
+	The current website.
+	*/
 	var current: Website? {
 		get { _current ?? all.first }
 		set {
@@ -30,7 +32,9 @@ final class WebsitesController {
 		}
 	}
 
-	/// All websites.
+	/**
+	All websites.
+	*/
 	var all: [Website] {
 		get { Defaults[.websites] }
 		set {
@@ -68,14 +72,18 @@ final class WebsitesController {
 			.store(in: &cancellables)
 	}
 
-	/// Make a website the current one.
+	/**
+	Make a website the current one.
+	*/
 	private func makeCurrent(_ website: Website) {
 		all = all.modifying {
 			$0.isCurrent = $0.id == website.id
 		}
 	}
 
-	/// Add a website.
+	/**
+	Add a website.
+	*/
 	@discardableResult
 	func add(_ website: Website) -> Binding<Website> {
 		// The order here is important.
@@ -111,12 +119,16 @@ final class WebsitesController {
 		return websiteBinding
 	}
 
-	/// Remove a website.
+	/**
+	Remove a website.
+	*/
 	func remove(_ website: Website) {
 		all = all.removingAll(website)
 	}
 
-	/// Makes the next website the current one.
+	/**
+	Makes the next website the current one.
+	*/
 	func makeNextCurrent() {
 		guard let website = nextCurrent else {
 			return
@@ -125,7 +137,9 @@ final class WebsitesController {
 		makeCurrent(website)
 	}
 
-	/// Makes the previous website the current one.
+	/**
+	Makes the previous website the current one.
+	*/
 	func makePreviousCurrent() {
 		guard let website = previousCurrent else {
 			return
@@ -134,7 +148,9 @@ final class WebsitesController {
 		makeCurrent(website)
 	}
 
-	/// Makes a random website in the list the current one.
+	/**
+	Makes a random website in the list the current one.
+	*/
 	func makeRandomCurrent() {
 		guard let website = randomWebsiteIterator.next() else {
 			return

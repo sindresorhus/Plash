@@ -7,7 +7,9 @@ final class WebViewController: NSViewController {
 	private var popupWindow: NSWindow?
 	private let didLoadSubject = PassthroughSubject<Void, Error>()
 
-	/// Publishes when the web view finishes loading a page.
+	/**
+	Publishes when the web view finishes loading a page.
+	*/
 	lazy var didLoadPublisher = didLoadSubject.eraseToAnyPublisher()
 
 	var response: HTTPURLResponse?
