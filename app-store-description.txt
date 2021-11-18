@@ -63,6 +63,13 @@ Use `[[screenWidth]]` and `[[screenHeight]]` in any URL and Plash will substitut
 If you have some cool use-case you want to share or some other feedback, please do send me an email through the “Send Feedback” button in the app.
 
 
+■ FAQ
+
+‣ How can I switch to a specific website with a keyboard shortcut?
+
+Make a shortcut in the Shortcuts app that uses the “Set Current Website” action and then set a keyboard shortcut for the shortcut.
+
+
 ■ Support
 
 Click the “Send Feedback…” menu item in the app.

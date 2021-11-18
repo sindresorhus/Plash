@@ -240,6 +240,10 @@ I don't have any immediate plans to localize the app.
 
 No, this app depends on features only available on macOS 11.
 
+#### How can I switch to a specific website with a keyboard shortcut?
+
+Make a shortcut in the Shortcuts app that uses the “Set Current Website” action and then set a keyboard shortcut for the shortcut.
+
 ## Built with
 
 - [Defaults](https://github.com/sindresorhus/Defaults) - Swifty and modern UserDefaults

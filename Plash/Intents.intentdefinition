@@ -9,7 +9,7 @@
 	<key>INIntentDefinitionNamespace</key>
 	<string>9OgPhf</string>
 	<key>INIntentDefinitionSystemVersion</key>
-	<string>21A5552a</string>
+	<string>21A559</string>
 	<key>INIntentDefinitionToolsBuildVersion</key>
 	<string>13A1030d</string>
 	<key>INIntentDefinitionToolsVersion</key>
@@ -539,6 +539,151 @@
 			<string>Custom</string>
 			<key>INIntentVerb</key>
 			<string>Get</string>
+		</dict>
+		<dict>
+			<key>INIntentCategory</key>
+			<string>set</string>
+			<key>INIntentConfigurable</key>
+			<true/>
+			<key>INIntentDescription</key>
+			<string>Sets the current website in Plash to the input website.</string>
+			<key>INIntentDescriptionID</key>
+			<string>VYLDfR</string>
+			<key>INIntentIneligibleForSuggestions</key>
+			<true/>
+			<key>INIntentInput</key>
+			<string>website</string>
+			<key>INIntentKeyParameter</key>
+			<string>website</string>
+			<key>INIntentLastParameterTag</key>
+			<integer>2</integer>
+			<key>INIntentManagedParameterCombinations</key>
+			<dict>
+				<key>website</key>
+				<dict>
+					<key>INIntentParameterCombinationSupportsBackgroundExecution</key>
+					<true/>
+					<key>INIntentParameterCombinationTitle</key>
+					<string>Set current website to ${website}</string>
+					<key>INIntentParameterCombinationTitleID</key>
+					<string>NmOH1o</string>
+					<key>INIntentParameterCombinationUpdatesLinked</key>
+					<true/>
+				</dict>
+			</dict>
+			<key>INIntentName</key>
+			<string>SetCurrentWebsite</string>
+			<key>INIntentParameters</key>
+			<array>
+				<dict>
+					<key>INIntentParameterConfigurable</key>
+					<true/>
+					<key>INIntentParameterDisplayName</key>
+					<string>Website</string>
+					<key>INIntentParameterDisplayNameID</key>
+					<string>Ej5nHU</string>
+					<key>INIntentParameterDisplayPriority</key>
+					<integer>1</integer>
+					<key>INIntentParameterName</key>
+					<string>website</string>
+					<key>INIntentParameterObjectType</key>
+					<string>Website_</string>
+					<key>INIntentParameterObjectTypeNamespace</key>
+					<string>9OgPhf</string>
+					<key>INIntentParameterPromptDialogs</key>
+					<array>
+						<dict>
+							<key>INIntentParameterPromptDialogCustom</key>
+							<true/>
+							<key>INIntentParameterPromptDialogType</key>
+							<string>Configuration</string>
+						</dict>
+						<dict>
+							<key>INIntentParameterPromptDialogCustom</key>
+							<true/>
+							<key>INIntentParameterPromptDialogType</key>
+							<string>Primary</string>
+						</dict>
+						<dict>
+							<key>INIntentParameterPromptDialogCustom</key>
+							<true/>
+							<key>INIntentParameterPromptDialogFormatString</key>
+							<string>There are ${count} options matching ‘${website}’.</string>
+							<key>INIntentParameterPromptDialogFormatStringID</key>
+							<string>seGJnF</string>
+							<key>INIntentParameterPromptDialogType</key>
+							<string>DisambiguationIntroduction</string>
+						</dict>
+						<dict>
+							<key>INIntentParameterPromptDialogCustom</key>
+							<true/>
+							<key>INIntentParameterPromptDialogFormatString</key>
+							<string>Just to confirm, you wanted ‘${website}’?</string>
+							<key>INIntentParameterPromptDialogFormatStringID</key>
+							<string>N6KPQF</string>
+							<key>INIntentParameterPromptDialogType</key>
+							<string>Confirmation</string>
+						</dict>
+					</array>
+					<key>INIntentParameterSupportsDynamicEnumeration</key>
+					<true/>
+					<key>INIntentParameterTag</key>
+					<integer>2</integer>
+					<key>INIntentParameterType</key>
+					<string>Object</string>
+				</dict>
+			</array>
+			<key>INIntentResponse</key>
+			<dict>
+				<key>INIntentResponseCodes</key>
+				<array>
+					<dict>
+						<key>INIntentResponseCodeName</key>
+						<string>success</string>
+						<key>INIntentResponseCodeSuccess</key>
+						<true/>
+					</dict>
+					<dict>
+						<key>INIntentResponseCodeConciseFormatString</key>
+						<string>${failure}</string>
+						<key>INIntentResponseCodeConciseFormatStringID</key>
+						<string>dw4COB</string>
+						<key>INIntentResponseCodeFormatString</key>
+						<string>${failure}</string>
+						<key>INIntentResponseCodeFormatStringID</key>
+						<string>HFeJoB</string>
+						<key>INIntentResponseCodeName</key>
+						<string>failure</string>
+					</dict>
+				</array>
+				<key>INIntentResponseLastParameterTag</key>
+				<integer>1</integer>
+				<key>INIntentResponseParameters</key>
+				<array>
+					<dict>
+						<key>INIntentResponseParameterDisplayName</key>
+						<string>Failure</string>
+						<key>INIntentResponseParameterDisplayNameID</key>
+						<string>CW1QCr</string>
+						<key>INIntentResponseParameterDisplayPriority</key>
+						<integer>1</integer>
+						<key>INIntentResponseParameterName</key>
+						<string>failure</string>
+						<key>INIntentResponseParameterTag</key>
+						<integer>1</integer>
+						<key>INIntentResponseParameterType</key>
+						<string>String</string>
+					</dict>
+				</array>
+			</dict>
+			<key>INIntentTitle</key>
+			<string>Set Current Website</string>
+			<key>INIntentTitleID</key>
+			<string>saaI61</string>
+			<key>INIntentType</key>
+			<string>Custom</string>
+			<key>INIntentVerb</key>
+			<string>Set</string>
 		</dict>
 	</array>
 	<key>INTypes</key>

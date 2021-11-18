@@ -5138,6 +5138,18 @@ extension BindingCollection where Base.Element: Identifiable {
 }
 
 
+extension Collection where Element: Identifiable {
+	/**
+	Get the element with the given `ID` in a collection of `Identifible` elements.
+
+	It assumes there are no duplicates and it will just get the first matching element.
+	*/
+	subscript(id id: Element.ID) -> Element? {
+		first { $0.id == id }
+	}
+}
+
+
 extension Defaults {
 	/**
 	Get a `Binding` for a `Defaults` key.

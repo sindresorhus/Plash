@@ -113,6 +113,29 @@ final class GetWebsitesIntentHandler: NSObject, GetWebsitesIntentHandling {
 }
 
 @available(macOS 12, *)
+@MainActor
+final class SetCurrentWebsiteIntentHandler: NSObject, SetCurrentWebsiteIntentHandling {
+	func provideWebsiteOptionsCollection(for intent: SetCurrentWebsiteIntent) async throws -> INObjectCollection<Website_> {
+		let websites = WebsitesController.shared.all.map { Website_($0) }
+		return .init(items: websites)
+	}
+
+	func handle(intent: SetCurrentWebsiteIntent) async -> SetCurrentWebsiteIntentResponse {
+		guard
+			let identifier = intent.website?.identifier,
+			let uuid = UUID(uuidString: identifier),
+			let website = WebsitesController.shared.all[id: uuid]
+		else {
+			return .failure(failure: "Could not find the website.")
+		}
+
+		WebsitesController.shared.current = website
+
+		return .init(code: .success, userActivity: nil)
+	}
+}
+
+@available(macOS 12, *)
 extension AppDelegate {
 	@MainActor
 	func application(_ application: NSApplication, handlerFor intent: INIntent) -> Any? {
@@ -133,6 +156,8 @@ extension AppDelegate {
 			return GetCurrentWebsiteIntentHandler()
 		case is GetWebsitesIntent:
 			return GetWebsitesIntentHandler()
+		case is SetCurrentWebsiteIntent:
+			return SetCurrentWebsiteIntentHandler()
 		default:
 			assertionFailure("No handler for this intent")
 			return nil
