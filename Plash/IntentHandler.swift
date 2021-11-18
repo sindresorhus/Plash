@@ -2,6 +2,10 @@ import Cocoa
 import Intents
 
 extension Website_ {
+	static var all: [Website_] {
+		WebsitesController.shared.all.map { Website_($0) }
+	}
+
 	fileprivate convenience init(_ website: Website) {
 		self.init(
 			identifier: website.id.uuidString,
@@ -12,6 +16,18 @@ extension Website_ {
 
 		self.url = website.url
 		self.isCurrent = website.isCurrent as NSNumber
+	}
+
+	var toPlashWebsite: Website? {
+		guard
+			let identifier = identifier,
+			let uuid = UUID(uuidString: identifier),
+			let website = WebsitesController.shared.all[id: uuid]
+		else {
+			return nil
+		}
+
+		return website
 	}
 }
 
@@ -35,9 +51,11 @@ final class AddWebsiteIntentHandler: NSObject, AddWebsiteIntentHandling {
 			return .init(code: .failure, userActivity: nil)
 		}
 
-		WebsitesController.shared.add(url, title: intent.title?.nilIfEmptyOrWhitespace)
+		let website = WebsitesController.shared.add(url, title: intent.title?.nilIfEmptyOrWhitespace).wrappedValue
 
-		return .init(code: .success, userActivity: nil)
+		let response = AddWebsiteIntentResponse(code: .success, userActivity: nil)
+		response.result = .init(website)
+		return response
 	}
 }
 
@@ -106,8 +124,50 @@ final class GetCurrentWebsiteIntentHandler: NSObject, GetCurrentWebsiteIntentHan
 @MainActor
 final class GetWebsitesIntentHandler: NSObject, GetWebsitesIntentHandling {
 	func handle(intent: GetWebsitesIntent) async -> GetWebsitesIntentResponse {
+		var websites = Website_.all
+
+		if
+			intent.shouldFilter?.boolValue == true,
+			let matchText = intent.matchText?.trimmed.lowercased()
+		{
+			websites = websites.filter {
+				let title = $0.displayString.lowercased()
+
+				guard
+					let urlString = $0.subtitleString?.lowercased(),
+					let url = URL(string: urlString)
+				else {
+					return false
+				}
+
+				switch intent.condition {
+				case .unknown:
+					return true
+				case .titleEquals:
+					return title == matchText
+				case .titleContains:
+					return title.contains(matchText)
+				case .titleBeginsWith:
+					return title.hasPrefix(matchText)
+				case .titleEndsWith:
+					return title.hasSuffix(matchText)
+				case .urlEquals:
+					return url.absoluteString == matchText
+				case .urlHostEquals:
+					return url.host == matchText
+				}
+			}
+		}
+
+		if
+			intent.shouldLimit?.boolValue == true,
+			let limit = intent.limit as? Int
+		{
+			websites = Array(websites.prefix(limit))
+		}
+
 		let response = GetWebsitesIntentResponse(code: .success, userActivity: nil)
-		response.websites = WebsitesController.shared.all.map { Website_($0) }
+		response.websites = websites
 		return response
 	}
 }
@@ -116,20 +176,39 @@ final class GetWebsitesIntentHandler: NSObject, GetWebsitesIntentHandling {
 @MainActor
 final class SetCurrentWebsiteIntentHandler: NSObject, SetCurrentWebsiteIntentHandling {
 	func provideWebsiteOptionsCollection(for intent: SetCurrentWebsiteIntent) async throws -> INObjectCollection<Website_> {
-		let websites = WebsitesController.shared.all.map { Website_($0) }
-		return .init(items: websites)
+		.init(items: Website_.all)
 	}
 
 	func handle(intent: SetCurrentWebsiteIntent) async -> SetCurrentWebsiteIntentResponse {
-		guard
-			let identifier = intent.website?.identifier,
-			let uuid = UUID(uuidString: identifier),
-			let website = WebsitesController.shared.all[id: uuid]
-		else {
+		guard let website = intent.website?.toPlashWebsite else {
 			return .failure(failure: "Could not find the website.")
 		}
 
 		WebsitesController.shared.current = website
+
+		return .init(code: .success, userActivity: nil)
+	}
+}
+
+@available(macOS 12, *)
+@MainActor
+final class RemoveWebsitesIntentHandler: NSObject, RemoveWebsitesIntentHandling {
+	func provideWebsitesOptionsCollection(for intent: RemoveWebsitesIntent) async throws -> INObjectCollection<Website_> {
+		.init(items: Website_.all)
+	}
+
+	func handle(intent: RemoveWebsitesIntent) async -> RemoveWebsitesIntentResponse {
+		guard let websites = intent.websites?.nilIfEmpty else {
+			return .init(code: .success, userActivity: nil)
+		}
+
+		for website in websites {
+			guard let website = website.toPlashWebsite else {
+				continue
+			}
+
+			WebsitesController.shared.remove(website)
+		}
 
 		return .init(code: .success, userActivity: nil)
 	}
@@ -158,6 +237,8 @@ extension AppDelegate {
 			return GetWebsitesIntentHandler()
 		case is SetCurrentWebsiteIntent:
 			return SetCurrentWebsiteIntentHandler()
+		case is RemoveWebsitesIntent:
+			return RemoveWebsitesIntentHandler()
 		default:
 			assertionFailure("No handler for this intent")
 			return nil

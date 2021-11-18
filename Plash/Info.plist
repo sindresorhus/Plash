@@ -42,6 +42,7 @@
 		<string>GetCurrentWebsiteIntent</string>
 		<string>GetWebsitesIntent</string>
 		<string>SetCurrentWebsiteIntent</string>
+		<string>RemoveWebsitesIntent</string>
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
@@ -71,6 +72,7 @@
 		<string>PreviousWebsiteIntent</string>
 		<string>RandomWebsiteIntent</string>
 		<string>ReloadWebsiteIntent</string>
+		<string>RemoveWebsitesIntent</string>
 		<string>SetCurrentWebsiteIntent</string>
 		<string>ToggleBrowsingModeIntent</string>
 	</array>
