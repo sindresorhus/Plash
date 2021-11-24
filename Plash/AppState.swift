@@ -91,8 +91,6 @@ final class AppState: ObservableObject {
 
 		Defaults.migrate(.websites, to: .v5)
 
-		setUpURLCommands()
-
 		DispatchQueue.main.async { [self] in
 			didLaunch()
 		}
@@ -222,6 +220,11 @@ final class AppState: ObservableObject {
 }
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
+	func applicationWillFinishLaunching(_ notification: Notification) {
+		// It's important that this is here so it's registered in time.
+		AppState.shared.setUpURLCommands()
+	}
+
 	// This is only run when the app is started when it's already running.
 	func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
 		AppState.shared.handleMenuBarIcon()

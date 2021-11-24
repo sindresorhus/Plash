@@ -168,7 +168,10 @@ final class WebsitesController {
 		}
 
 		DispatchQueue.main.async {
-			LPMetadataProvider().startFetchingMetadata(for: website.wrappedValue.url) { metadata, error in
+			let metadataProvider = LPMetadataProvider()
+			metadataProvider.shouldFetchSubresources = false
+
+			metadataProvider.startFetchingMetadata(for: website.wrappedValue.url) { metadata, error in
 				guard
 					error == nil,
 					let title = metadata?.title

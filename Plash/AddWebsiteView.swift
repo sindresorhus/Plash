@@ -351,7 +351,10 @@ struct AddWebsiteView: View {
 			isFetchingTitle = true
 		}
 
-		LPMetadataProvider().startFetchingMetadata(for: url) { metadata, error in
+		let metadataProvider = LPMetadataProvider()
+		metadataProvider.shouldFetchSubresources = false
+
+		metadataProvider.startFetchingMetadata(for: url) { metadata, error in
 			withAnimation {
 				isFetchingTitle = false
 			}
