@@ -77,15 +77,15 @@ final class SSWebView: WKWebView {
 
 		menu.addSeparator()
 
-		menu.addCallbackItem("Actual Size", isEnabled: pageZoom != 1) { [weak self] _ in
+		menu.addCallbackItem("Actual Size", isEnabled: pageZoom != 1) { [weak self] in
 			self?.zoomLevelWrapper = 1
 		}
 
-		menu.addCallbackItem("Zoom In") { [weak self] _ in
+		menu.addCallbackItem("Zoom In") { [weak self] in
 			self?.zoomLevelWrapper += 0.2
 		}
 
-		menu.addCallbackItem("Zoom Out") { [weak self] _ in
+		menu.addCallbackItem("Zoom Out") { [weak self] in
 			self?.zoomLevelWrapper -= 0.2
 		}
 
@@ -98,7 +98,7 @@ final class SSWebView: WKWebView {
 		if Defaults[.hideMenuBarIcon] {
 			menu.addSeparator()
 
-			menu.addCallbackItem("Show Menu Bar Icon") { _ in
+			menu.addCallbackItem("Show Menu Bar Icon") {
 				AppState.shared.handleMenuBarIcon()
 			}
 		}

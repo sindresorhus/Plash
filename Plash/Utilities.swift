@@ -136,6 +136,8 @@ final class CallbackMenuItem: NSMenuItem {
 		validateCallback = callback
 	}
 
+	private let callback: () -> Void
+
 	init(
 		_ title: String,
 		key: String = "",
@@ -144,9 +146,9 @@ final class CallbackMenuItem: NSMenuItem {
 		isEnabled: Bool = true,
 		isChecked: Bool = false,
 		isHidden: Bool = false,
-		callback: @escaping (NSMenuItem) -> Void
+		action: @escaping () -> Void
 	) {
-		self.callback = callback
+		self.callback = action
 		super.init(title: title, action: #selector(action(_:)), keyEquivalent: key)
 		self.target = self
 		self.isEnabled = isEnabled
@@ -163,11 +165,9 @@ final class CallbackMenuItem: NSMenuItem {
 		fatalError(because: .notYetImplemented)
 	}
 
-	private let callback: (NSMenuItem) -> Void
-
 	@objc
-	func action(_ sender: NSMenuItem) {
-		callback(sender)
+	private func action(_ sender: NSMenuItem) {
+		callback()
 	}
 }
 
@@ -181,16 +181,13 @@ extension CallbackMenuItem: NSMenuItemValidation {
 extension NSMenuItem {
 	convenience init(
 		_ title: String,
-		action: Selector? = nil,
 		key: String = "",
 		keyModifiers: NSEvent.ModifierFlags? = nil,
-		data: Any? = nil,
 		isEnabled: Bool = true,
 		isChecked: Bool = false,
 		isHidden: Bool = false
 	) {
-		self.init(title: title, action: action, keyEquivalent: key)
-		self.representedObject = data
+		self.init(title: title, action: nil, keyEquivalent: key)
 		self.isEnabled = isEnabled
 		self.isChecked = isChecked
 		self.isHidden = isHidden
@@ -202,20 +199,16 @@ extension NSMenuItem {
 
 	convenience init(
 		_ attributedTitle: NSAttributedString,
-		action: Selector? = nil,
 		key: String = "",
 		keyModifiers: NSEvent.ModifierFlags? = nil,
-		data: Any? = nil,
 		isEnabled: Bool = true,
 		isChecked: Bool = false,
 		isHidden: Bool = false
 	) {
 		self.init(
 			"",
-			action: action,
 			key: key,
 			keyModifiers: keyModifiers,
-			data: data,
 			isEnabled: isEnabled,
 			isChecked: isChecked,
 			isHidden: isHidden
@@ -262,20 +255,16 @@ extension NSMenu {
 	@discardableResult
 	func addItem(
 		_ title: String,
-		action: Selector? = nil,
 		key: String = "",
 		keyModifiers: NSEvent.ModifierFlags? = nil,
-		data: Any? = nil,
 		isEnabled: Bool = true,
 		isChecked: Bool = false,
 		isHidden: Bool = false
 	) -> NSMenuItem {
 		let menuItem = NSMenuItem(
 			title,
-			action: action,
 			key: key,
 			keyModifiers: keyModifiers,
-			data: data,
 			isEnabled: isEnabled,
 			isChecked: isChecked,
 			isHidden: isHidden
@@ -287,20 +276,16 @@ extension NSMenu {
 	@discardableResult
 	func addItem(
 		_ attributedTitle: NSAttributedString,
-		action: Selector? = nil,
 		key: String = "",
 		keyModifiers: NSEvent.ModifierFlags? = nil,
-		data: Any? = nil,
 		isEnabled: Bool = true,
 		isChecked: Bool = false,
 		isHidden: Bool = false
 	) -> NSMenuItem {
 		let menuItem = NSMenuItem(
 			attributedTitle,
-			action: action,
 			key: key,
 			keyModifiers: keyModifiers,
-			data: data,
 			isEnabled: isEnabled,
 			isChecked: isChecked,
 			isHidden: isHidden
@@ -314,21 +299,19 @@ extension NSMenu {
 		_ title: String,
 		key: String = "",
 		keyModifiers: NSEvent.ModifierFlags? = nil,
-		data: Any? = nil,
 		isEnabled: Bool = true,
 		isChecked: Bool = false,
 		isHidden: Bool = false,
-		callback: @escaping (NSMenuItem) -> Void
+		action: @escaping () -> Void
 	) -> NSMenuItem {
 		let menuItem = CallbackMenuItem(
 			title,
 			key: key,
 			keyModifiers: keyModifiers,
-			data: data,
 			isEnabled: isEnabled,
 			isChecked: isChecked,
 			isHidden: isHidden,
-			callback: callback
+			action: action
 		)
 		addItem(menuItem)
 		return menuItem
@@ -339,21 +322,19 @@ extension NSMenu {
 		_ title: NSAttributedString,
 		key: String = "",
 		keyModifiers: NSEvent.ModifierFlags? = nil,
-		data: Any? = nil,
 		isEnabled: Bool = true,
 		isChecked: Bool = false,
 		isHidden: Bool = false,
-		callback: @escaping (NSMenuItem) -> Void
+		action: @escaping () -> Void
 	) -> NSMenuItem {
 		let menuItem = CallbackMenuItem(
 			"",
 			key: key,
 			keyModifiers: keyModifiers,
-			data: data,
 			isEnabled: isEnabled,
 			isChecked: isChecked,
 			isHidden: isHidden,
-			callback: callback
+			action: action
 		)
 		menuItem.attributedTitle = title
 		addItem(menuItem)
@@ -362,91 +343,38 @@ extension NSMenu {
 
 	@discardableResult
 	func addSettingsItem() -> NSMenuItem {
-		addCallbackItem("Preferences…", key: ",") { _ in
+		addCallbackItem("Preferences…", key: ",") {
 			SSApp.showSettingsWindow()
 		}
 	}
 
 	@discardableResult
-	func addUrlItem(_ title: String, url: URL) -> NSMenuItem {
-		addCallbackItem(title) { _ in
-			NSWorkspace.shared.open(url)
+	func addLinkItem(_ title: String, destination: URL) -> NSMenuItem {
+		addCallbackItem(title) {
+			destination.open()
 		}
 	}
 
 	@discardableResult
-	func addUrlItem(_ title: NSAttributedString, url: URL) -> NSMenuItem {
-		addCallbackItem(title) { _ in
-			NSWorkspace.shared.open(url)
+	func addLinkItem(_ title: NSAttributedString, destination: URL) -> NSMenuItem {
+		addCallbackItem(title) {
+			destination.open()
 		}
 	}
 
 	@discardableResult
 	func addMoreAppsItem() -> NSMenuItem {
-		addUrlItem(
+		addLinkItem(
 			"More Apps By Me",
-			url: URL("macappstore://apps.apple.com/developer/id328077650")
+			destination: "macappstore://apps.apple.com/developer/id328077650"
 		)
-	}
-
-	@discardableResult
-	func addDefaultsItem<Value: Equatable>(
-		_ title: String,
-		key: Defaults.Key<Value>,
-		value: Value,
-		isEnabled: Bool = true,
-		callback: ((NSMenuItem) -> Void)? = nil
-	) -> NSMenuItem {
-		addCallbackItem(
-			title,
-			isEnabled: isEnabled,
-			isChecked: value == Defaults[key]
-		) { item in
-			Defaults[key] = value
-			callback?(item)
-		}
-	}
-
-	@discardableResult
-	func addDefaultsItemForBool(
-		_ title: String,
-		key: Defaults.Key<Bool>,
-		isEnabled: Bool = true,
-		callback: ((NSMenuItem) -> Void)? = nil
-	) -> NSMenuItem {
-		addCallbackItem(
-			title,
-			isEnabled: isEnabled,
-			isChecked: Defaults[key]
-		) { item in
-			Defaults[key].toggle()
-			callback?(item)
-		}
-	}
-
-	@discardableResult
-	func addDefaultsItemForBool(
-		_ title: String,
-		key: String,
-		isEnabled: Bool = true,
-		callback: ((NSMenuItem) -> Void)? = nil
-	) -> NSMenuItem {
-		let bool = UserDefaults.standard.bool(forKey: key)
-		return addCallbackItem(
-			title,
-			isEnabled: isEnabled,
-			isChecked: bool
-		) { item in
-			UserDefaults.standard.set(!bool, forKey: key)
-			callback?(item)
-		}
 	}
 
 	@discardableResult
 	func addAboutItem() -> NSMenuItem {
 		addCallbackItem("About") {
 			NSApp.activate(ignoringOtherApps: true)
-			NSApp.orderFrontStandardAboutPanel($0)
+			NSApp.orderFrontStandardAboutPanel(nil)
 		}
 	}
 
@@ -454,7 +382,7 @@ extension NSMenu {
 	func addQuitItem() -> NSMenuItem {
 		addSeparator()
 
-		return addCallbackItem("Quit \(SSApp.name)", key: "q") { _ in
+		return addCallbackItem("Quit \(SSApp.name)", key: "q") {
 			SSApp.quit()
 		}
 	}
@@ -498,7 +426,9 @@ enum SSApp {
 			"metadata": metadata
 		]
 
-		URL("https://sindresorhus.com/feedback/").addingDictionaryAsQuery(query).open()
+		URL("https://sindresorhus.com/feedback/")
+			.addingDictionaryAsQuery(query)
+			.open()
 	}
 }
 
@@ -592,7 +522,7 @@ extension Sequence {
 	//=> [1: 1, 2: 2, 3: 3]
 	```
 	*/
-	func toDictionary<Key: Hashable>(with pickKey: (Element) -> Key) -> [Key: Element] {
+	func toDictionary<Key: Hashable>(withKey pickKey: (Element) -> Key) -> [Key: Element] {
 		var dictionary = [Key: Element]()
 		for element in self {
 			dictionary[pickKey(element)] = element
@@ -608,7 +538,7 @@ extension Sequence {
 	//=> ["a": 1, "b": 2]
 	```
 	*/
-	func toDictionary<Key: Hashable, Value>(with pickKeyValue: (Element) -> (Key, Value)) -> [Key: Value] {
+	func toDictionary<Key: Hashable, Value>(withKey pickKeyValue: (Element) -> (Key, Value)) -> [Key: Value] {
 		var dictionary = [Key: Value]()
 		for element in self {
 			let newElement = pickKeyValue(element)
@@ -625,7 +555,7 @@ extension Sequence {
 	//=> ["a": 1, "b": nil]
 	```
 	*/
-	func toDictionary<Key: Hashable, Value>(with pickKeyValue: (Element) -> (Key, Value?)) -> [Key: Value?] {
+	func toDictionary<Key: Hashable, Value>(withKey pickKeyValue: (Element) -> (Key, Value?)) -> [Key: Value?] {
 		var dictionary = [Key: Value?]()
 		for element in self {
 			let newElement = pickKeyValue(element)
@@ -788,7 +718,7 @@ extension NSEdgeInsets {
 extension String {
 	var nsString: NSString { self as NSString } // swiftlint:disable:this legacy_objc_type
 
-	var attributedString: NSAttributedString { .init(string: self) }
+	var nsAttributedString: NSAttributedString { .init(string: self) }
 }
 
 
@@ -799,16 +729,16 @@ protocol ControlActionClosureProtocol: NSObjectProtocol {
 	var action: Selector? { get set }
 }
 
-private final class ActionTrampoline<T>: NSObject {
-	let action: (T) -> Void
+private final class ActionTrampoline: NSObject {
+	private let action: () -> Void
 
-	init(action: @escaping (T) -> Void) {
+	init(action: @escaping () -> Void) {
 		self.action = action
 	}
 
 	@objc
-	func action(sender: AnyObject) {
-		action(sender as! T)
+	fileprivate func handleAction(_ sender: AnyObject) {
+		action()
 	}
 }
 
@@ -819,15 +749,15 @@ extension ControlActionClosureProtocol {
 	```
 	let button = NSButton(title: "Unicorn", target: nil, action: nil)
 
-	button.onAction { sender in
-		print("Button action: \(sender)")
+	button.onAction {
+		print("Button action")
 	}
 	```
 	*/
-	func onAction(_ action: @escaping (Self) -> Void) {
+	func onAction(_ action: @escaping () -> Void) {
 		let trampoline = ActionTrampoline(action: action)
 		target = trampoline
-		self.action = #selector(ActionTrampoline<Self>.action(sender:))
+		self.action = #selector(ActionTrampoline.handleAction)
 		objc_setAssociatedObject(self, &controlActionClosureProtocolAssociatedObjectKey, trampoline, .OBJC_ASSOCIATION_RETAIN)
 	}
 }
@@ -893,15 +823,12 @@ struct CocoaButton: NSViewRepresentable {
 		}
 
 		if title == nil {
-			nsView.attributedTitle = attributedTitle ?? "".attributedString
+			nsView.attributedTitle = attributedTitle ?? "".nsAttributedString
 		}
 
 		nsView.keyEquivalent = keyEquivalent?.rawValue ?? ""
 		nsView.bezelStyle = bezelStyle
-
-		nsView.onAction { _ in
-			action()
-		}
+		nsView.onAction(action)
 	}
 }
 
@@ -1850,6 +1777,7 @@ extension WKWebView {
 	}
 }
 
+// TODO: Enable when using Xcode 13.2.
 //@available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
 //extension WKWebView {
 //	/**
@@ -2486,6 +2414,7 @@ extension Collection {
 
 extension NSColor {
 	static let systemColors: Set<NSColor> = [
+		// TODO: Add the new colors wen targeting macOS 12.
 		.systemBlue,
 		.systemBrown,
 		.systemGray,
@@ -4905,7 +4834,7 @@ extension View {
 	Corner radius with a custom corner style.
 	*/
 	func cornerRadius(_ radius: Double, style: RoundedCornerStyle) -> some View {
-		clipShape(RoundedRectangle(cornerRadius: radius, style: style))
+		clipShape(.roundedRectangle(cornerRadius: radius, style: style))
 	}
 
 	/**
@@ -4919,10 +4848,10 @@ extension View {
 		cornerStyle: RoundedCornerStyle = .circular
 	) -> some View {
 		self.cornerRadius(cornerRadius, style: cornerStyle)
-			.overlay(
+			.overlay2 {
 				RoundedRectangle(cornerRadius: cornerRadius, style: cornerStyle)
 					.strokeBorder(content, lineWidth: lineWidth)
-			)
+			}
 	}
 
 	/**
@@ -4935,10 +4864,10 @@ extension View {
 		cornerStyle: RoundedCornerStyle = .circular
 	) -> some View {
 		self.cornerRadius(cornerRadius, style: cornerStyle)
-			.overlay(
+			.overlay2 {
 				RoundedRectangle(cornerRadius: cornerRadius, style: cornerStyle)
 					.strokeBorder(color, lineWidth: lineWidth)
-			)
+			}
 	}
 }
 
@@ -5805,7 +5734,38 @@ struct HideableInfoBox: View {
 				.padding(.vertical, 6)
 				.padding(.horizontal, 8)
 				.backgroundColor(.primary.opacity(0.05))
-				.clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+				.clipShape(.roundedRectangle(cornerRadius: 8, style: .continuous))
 		}
+	}
+}
+
+
+extension Shape where Self == Rectangle {
+	static var rectangle: Self { .init() }
+}
+
+extension Shape where Self == Circle {
+	static var circle: Self { .init() }
+}
+
+extension Shape where Self == Capsule {
+	static var capsule: Self { .init() }
+}
+
+extension Shape where Self == Ellipse {
+	static var ellipse: Self { .init() }
+}
+
+extension Shape where Self == ContainerRelativeShape {
+	static var containerRelative: Self { .init() }
+}
+
+extension Shape where Self == RoundedRectangle {
+	static func roundedRectangle(cornerRadius: Double, style: RoundedCornerStyle = .circular) -> Self {
+		.init(cornerRadius: cornerRadius, style: style)
+	}
+
+	static func roundedRectangle(cornerSize: CGSize, style: RoundedCornerStyle = .circular) -> Self {
+		.init(cornerSize: cornerSize, style: style)
 	}
 }

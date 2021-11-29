@@ -30,7 +30,7 @@ extension AppState {
 			let menuItem = menu.addCallbackItem(
 				website.menuTitle.truncating(to: 40),
 				isChecked: website.isCurrent
-			) { _ in
+			) {
 				website.makeCurrent()
 			}
 
@@ -47,32 +47,32 @@ extension AppState {
 
 		menu.addSeparator()
 
-		menu.addCallbackItem("Send Feedback…") { _ in
+		menu.addCallbackItem("Send Feedback…") {
 			SSApp.openSendFeedbackPage()
 		}
 
 		menu.addSeparator()
 
-		menu.addUrlItem(
+		menu.addLinkItem(
 			"Website",
-			url: "https://sindresorhus.com/plash"
+			destination: "https://sindresorhus.com/plash"
 		)
 
-		menu.addUrlItem(
+		menu.addLinkItem(
 			"Examples",
-			url: "https://github.com/sindresorhus/Plash/issues/1"
+			destination: "https://github.com/sindresorhus/Plash/issues/1"
 		)
 
-		menu.addUrlItem(
+		menu.addLinkItem(
 			"Scripting",
-			url: "https://github.com/sindresorhus/Plash#scripting"
+			destination: "https://github.com/sindresorhus/Plash#scripting"
 		)
 
 		menu.addSeparator()
 
-		menu.addUrlItem(
+		menu.addLinkItem(
 			"Rate on the App Store",
-			url: "macappstore://apps.apple.com/app/id1494023538?action=write-review"
+			destination: "macappstore://apps.apple.com/app/id1494023538?action=write-review"
 		)
 
 		menu.addMoreAppsItem()
@@ -82,7 +82,7 @@ extension AppState {
 
 	private func addWebsiteItems() {
 		if let error = webViewError {
-			menu.addDisabled("Error: \(error.localizedDescription)".wrapped(atLength: 36).attributedString)
+			menu.addDisabled("Error: \(error.localizedDescription)".wrapped(atLength: 36).nsAttributedString)
 			menu.addSeparator()
 		}
 
@@ -91,12 +91,12 @@ extension AppState {
 		menu.addSeparator()
 
 		if WebsitesController.shared.all.count > 1 {
-			menu.addCallbackItem("Next Website") { _ in
+			menu.addCallbackItem("Next Website") {
 				WebsitesController.shared.makeNextCurrent()
 			}
 				.setShortcut(for: .nextWebsite)
 
-			menu.addCallbackItem("Previous Website") { _ in
+			menu.addCallbackItem("Previous Website") {
 				WebsitesController.shared.makePreviousCurrent()
 			}
 				.setShortcut(for: .previousWebsite)
@@ -104,7 +104,7 @@ extension AppState {
 			menu.addCallbackItem(
 				"Reload Website",
 				isEnabled: WebsitesController.shared.current != nil
-			) { [weak self] _ in
+			) { [weak self] in
 				self?.loadUserURL()
 			}
 				.setShortcut(for: .reload)
@@ -115,14 +115,14 @@ extension AppState {
 			menu.addSeparator()
 		}
 
-		menu.addCallbackItem("Add Website…") { _ in
+		menu.addCallbackItem("Add Website…") {
 			WebsitesWindowController.showWindow()
 
 			// TODO: Find a better way to do this.
 			NotificationCenter.default.post(name: .showAddWebsiteDialog, object: nil)
 		}
 
-		menu.addCallbackItem("Websites…") { _ in
+		menu.addCallbackItem("Websites…") {
 			WebsitesWindowController.showWindow()
 		}
 
@@ -132,8 +132,8 @@ extension AppState {
 			"Browsing Mode",
 			isEnabled: WebsitesController.shared.current != nil,
 			isChecked: Defaults[.isBrowsingMode]
-		) { menuItem in
-			Defaults[.isBrowsingMode] = !menuItem.isChecked
+		) {
+			Defaults[.isBrowsingMode].toggle()
 
 			SSApp.runOnce(identifier: "activatedBrowsingMode") {
 				DispatchQueue.main.async {

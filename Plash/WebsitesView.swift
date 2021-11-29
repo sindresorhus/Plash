@@ -19,7 +19,7 @@ private struct IconView: View {
 			}
 		}
 			.frame(width: 32, height: 32)
-			.clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+			.clipShape(.roundedRectangle(cornerRadius: 4, style: .continuous))
 			.onAppear {
 				fetchIcons()
 			}
