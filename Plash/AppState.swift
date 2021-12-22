@@ -125,6 +125,10 @@ final class AppState: ObservableObject {
 		}
 	}
 
+	func handleAppReopen() {
+		handleMenuBarIcon()
+	}
+
 	func setEnabledStatus() {
 		isEnabled = !isScreenLocked && !(Defaults[.deactivateOnBattery] && powerSourceWatcher?.powerSource.isUsingBattery == true)
 	}
@@ -225,9 +229,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 		AppState.shared.setUpURLCommands()
 	}
 
+	// Does not work on macOS 12 because of `WindowGroup`: https://github.com/feedback-assistant/reports/issues/246
 	// This is only run when the app is started when it's already running.
 	func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-		AppState.shared.handleMenuBarIcon()
+		AppState.shared.handleAppReopen()
 		return true
 	}
 }
