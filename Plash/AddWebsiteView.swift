@@ -81,29 +81,31 @@ struct AddWebsiteView: View {
 					.textFieldStyle(.roundedBorder)
 					.lineLimit(1)
 					.padding(.vertical)
+					// This change listener is used to respond to URL changes from the outside, like the "Revert" button or the Shortcuts actions.
 					.onChange(of: website.wrappedValue.url) {
-						guard $0.absoluteString != "-" else {
+						guard
+							$0.absoluteString != "-",
+							$0.absoluteString != urlString
+						else {
 							return
 						}
 
 						urlString = $0.absoluteString
 					}
-					.onChangeDebounced(of: urlString, dueTime: 0.5) {
+					.onChange(of: urlString) {
 						guard let url = URL(humanString: $0)?.normalized() else {
 							// Makes the “Revert” button work if the user clears the URL field.
 							if urlString.trimmed.isEmpty {
-								website.wrappedValue.url = URL(string: "-")!
+								website.wrappedValue.url = "-"
 							}
 
 							return
 						}
 
-						// Tries to work around an obscure crash.
-						DispatchQueue.main.async {
-							website.wrappedValue.url = url
-
-							fetchTitle()
-						}
+						website.wrappedValue.url = url
+					}
+					.onChangeDebounced(of: urlString, dueTime: 0.5) { _ in
+						fetchTitle()
 					}
 				Button("Local Website…") {
 					chooseLocalWebsite {

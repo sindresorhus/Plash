@@ -5105,8 +5105,9 @@ extension Defaults {
 
 private struct OnChangeDebouncedViewModifier<Value: Equatable>: ViewModifier {
 	private final class Debouncer: ObservableObject {
-		@Published var debouncedValue: Value
 		private var cancellable: AnyCancellable?
+
+		@Published var debouncedValue: Value
 
 		init(
 			wrappedValue: Value,
@@ -5117,6 +5118,7 @@ private struct OnChangeDebouncedViewModifier<Value: Equatable>: ViewModifier {
 
 			self.cancellable = $debouncedValue
 				.debounce(for: .seconds(dueTime), scheduler: DispatchQueue.main)
+				.receive(on: DispatchQueue.main)
 				.sink {
 					action($0)
 				}
