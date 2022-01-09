@@ -5159,7 +5159,10 @@ private struct OnChangeDebouncedViewModifier<Value: Equatable>: ViewModifier {
 					return
 				}
 
-				action(value)
+				// Try to work around SwiftUI crash. (macOS 12.1)
+				DispatchQueue.main.async {
+					action(value)
+				}
 			}
 	}
 }

@@ -1,7 +1,6 @@
 import SwiftUI
 import Combine
-import AppCenter
-import AppCenterCrashes
+import Sentry
 import Defaults
 
 final class AppState: ObservableObject {
@@ -78,18 +77,7 @@ final class AppState: ObservableObject {
 	}
 
 	init() {
-		UserDefaults.standard.register(defaults: [
-			"NSApplicationCrashOnExceptions": true
-		])
-
-		AppCenter.start(
-			withAppSecret: "27131b3e-4b25-4a92-b0d3-7bb6883f7343",
-			services: [
-				Crashes.self
-			]
-		)
-
-		Defaults.migrate(.websites, to: .v5)
+		setUpConfig()
 
 		DispatchQueue.main.async { [self] in
 			didLaunch()
@@ -111,6 +99,21 @@ final class AppState: ObservableObject {
 //		SSApp.showSettingsWindow()
 //		WebsitesWindowController.showWindow()
 		#endif
+	}
+
+	private func setUpConfig() {
+		UserDefaults.standard.register(defaults: [
+			"NSApplicationCrashOnExceptions": true
+		])
+
+		#if !DEBUG
+		SentrySDK.start {
+			$0.dsn = "https://4ad446a4961b44ff8dc808a08379914e@o844094.ingest.sentry.io/6140750"
+			$0.enableSwizzling = false
+		}
+		#endif
+
+		Defaults.migrate(.websites, to: .v5)
 	}
 
 	func handleMenuBarIcon() {

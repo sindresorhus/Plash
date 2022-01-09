@@ -228,6 +228,14 @@ subprocess.run(['open', '--background', 'plash:reload'])
 
 ## FAQ
 
+#### Can it automatically switch websites every 10 minutes?
+
+Plash can be automated with the built-in Shortcuts app, for example, using the “Switch to Next Website” action. Shortcuts on macOS 12 does not yet support automations, but for now, you can use the [Shortery app](https://apps.apple.com/app/id1594183810).
+
+#### Why does Plash use so much memory?
+
+Plash uses very little memory. Usually around 40 MB. However, the websites you display can take up a lot of memory, and sometimes even have a memory leaks.
+
 #### Can I contribute localizations?
 
 I don't have any immediate plans to localize the app.

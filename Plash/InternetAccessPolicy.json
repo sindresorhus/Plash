@@ -4,7 +4,7 @@
 	"Website": "https://sindresorhus.com/plash",
 	"Connections" : [
 		{
-			"Host" : "*.appcenter.ms",
+			"Host" : "*.sentry.io",
 			"NetworkProtocol" : "TCP",
 			"Port" : "443",
 			"Purpose" : "Plash sends crash reports to this server.",

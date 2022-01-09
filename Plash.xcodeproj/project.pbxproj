@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		E30F3D5B278AF95C004A463E /* Sentry in Frameworks */ = {isa = PBXBuildFile; productRef = E30F3D5A278AF95C004A463E /* Sentry */; };
 		E30FD88923C4515200C716E9 /* SSWebView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E30FD88823C4515200C716E9 /* SSWebView.swift */; };
 		E32421342384E9D700D28A91 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421332384E9D700D28A91 /* AppState.swift */; };
 		E32421362384E9D700D28A91 /* AddWebsiteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421352384E9D700D28A91 /* AddWebsiteView.swift */; };
@@ -30,7 +31,6 @@
 		E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = E3805F5A2466ED5600489E6C /* KeyboardShortcuts */; };
 		E384F28024C3B37E002FD21B /* Events.swift in Sources */ = {isa = PBXBuildFile; fileRef = E384F27F24C3B37E002FD21B /* Events.swift */; };
 		E384F28224C3B3CD002FD21B /* Menus.swift in Sources */ = {isa = PBXBuildFile; fileRef = E384F28124C3B3CD002FD21B /* Menus.swift */; };
-		E3959394247B986A0064CABE /* AppCenterCrashes in Frameworks */ = {isa = PBXBuildFile; productRef = E3959393247B986A0064CABE /* AppCenterCrashes */; };
 		E3C4E281251540F7007A6078 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = E3C4E280251540F7007A6078 /* LaunchAtLogin */; };
 		E3EC5A86250D7A0C00ABE1A1 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3EC5A85250D7A0C00ABE1A1 /* WelcomeView.swift */; };
 		E3FA21AD23C74E6B00059E43 /* InternetAccessPolicy.json in Resources */ = {isa = PBXBuildFile; fileRef = E3FA21AC23C74E6B00059E43 /* InternetAccessPolicy.json */; };
@@ -106,7 +106,7 @@
 				E3294F7E255783A800D4172F /* Defaults in Frameworks */,
 				E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */,
 				E3C4E281251540F7007A6078 /* LaunchAtLogin in Frameworks */,
-				E3959394247B986A0064CABE /* AppCenterCrashes in Frameworks */,
+				E30F3D5B278AF95C004A463E /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -222,9 +222,9 @@
 			name = Plash;
 			packageProductDependencies = (
 				E3805F5A2466ED5600489E6C /* KeyboardShortcuts */,
-				E3959393247B986A0064CABE /* AppCenterCrashes */,
 				E3C4E280251540F7007A6078 /* LaunchAtLogin */,
 				E3294F7D255783A800D4172F /* Defaults */,
+				E30F3D5A278AF95C004A463E /* Sentry */,
 			);
 			productName = Plash;
 			productReference = E32421302384E9D700D28A91 /* Plash.app */;
@@ -277,8 +277,8 @@
 			packageReferences = (
 				E32421482384ED8300D28A91 /* XCRemoteSwiftPackageReference "Defaults" */,
 				E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
-				E3959392247B986A0064CABE /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */,
 				E3C4E27F251540F7007A6078 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */,
+				E30F3D59278AF95C004A463E /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 			);
 			productRefGroup = E32421312384E9D700D28A91 /* Products */;
 			projectDirPath = "";
@@ -638,6 +638,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		E30F3D59278AF95C004A463E /* XCRemoteSwiftPackageReference "sentry-cocoa" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.8.0;
+			};
+		};
 		E32421482384ED8300D28A91 /* XCRemoteSwiftPackageReference "Defaults" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/Defaults";
@@ -654,14 +662,6 @@
 				minimumVersion = 1.3.0;
 			};
 		};
-		E3959392247B986A0064CABE /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/microsoft/appcenter-sdk-apple";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 4.3.0;
-			};
-		};
 		E3C4E27F251540F7007A6078 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin";
@@ -673,6 +673,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		E30F3D5A278AF95C004A463E /* Sentry */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E30F3D59278AF95C004A463E /* XCRemoteSwiftPackageReference "sentry-cocoa" */;
+			productName = Sentry;
+		};
 		E3294F7D255783A800D4172F /* Defaults */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E32421482384ED8300D28A91 /* XCRemoteSwiftPackageReference "Defaults" */;
@@ -682,11 +687,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
 			productName = KeyboardShortcuts;
-		};
-		E3959393247B986A0064CABE /* AppCenterCrashes */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E3959392247B986A0064CABE /* XCRemoteSwiftPackageReference "appcenter-sdk-apple" */;
-			productName = AppCenterCrashes;
 		};
 		E3C4E280251540F7007A6078 /* LaunchAtLogin */ = {
 			isa = XCSwiftPackageProductDependency;
