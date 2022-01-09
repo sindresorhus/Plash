@@ -167,22 +167,18 @@ final class WebsitesController {
 			return
 		}
 
-		DispatchQueue.main.async {
+		Task { @MainActor in // TODO: Not sure if this is needed.
 			let metadataProvider = LPMetadataProvider()
 			metadataProvider.shouldFetchSubresources = false
 
-			metadataProvider.startFetchingMetadata(for: website.wrappedValue.url) { metadata, error in
-				guard
-					error == nil,
-					let title = metadata?.title
-				else {
-					return
-				}
-
-				DispatchQueue.main.async {
-					website.wrappedValue.title = title
-				}
+			guard
+				let metadata = try? await metadataProvider.startFetchingMetadata(for: website.wrappedValue.url),
+				let title = metadata.title
+			else {
+				return
 			}
+
+			website.wrappedValue.title = title
 		}
 	}
 }

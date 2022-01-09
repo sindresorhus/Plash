@@ -105,11 +105,13 @@ struct AddWebsiteView: View {
 						website.wrappedValue.url = url
 					}
 					.onChangeDebounced(of: urlString, dueTime: 0.5) { _ in
-						fetchTitle()
+						Task {
+							await fetchTitle()
+						}
 					}
 				Button("Local Website…") {
-					chooseLocalWebsite {
-						guard let url = $0 else {
+					Task {
+						guard let url = await chooseLocalWebsite() else {
 							return
 						}
 
@@ -279,7 +281,8 @@ struct AddWebsiteView: View {
 		}
 	}
 
-	private func chooseLocalWebsite(_ completionHandler: @escaping (URL?) -> Void) {
+	@MainActor
+	private func chooseLocalWebsite() async -> URL? {
 //		guard let window = nativeWindow else {
 //			return
 //		}
@@ -296,6 +299,7 @@ struct AddWebsiteView: View {
 		panel.level = .modalPanel
 
 		let url = website.wrappedValue.url
+
 		if
 			isEditing,
 			url.isFileURL
@@ -305,35 +309,33 @@ struct AddWebsiteView: View {
 
 		// TODO: Make it a sheet instead when targeting macOS 12. On macOS 11, it doesn't work to open a sheet inside another sheet.
 		// panel.beginSheet(window) {
-		panel.begin {
-			guard
-				$0 == .OK,
-				let url = panel.url
-			else {
-				completionHandler(nil)
-				return
-			}
+		let result = await panel.begin()
 
-			guard url.appendingPathComponent("index.html", isDirectory: false).exists else {
-				NSAlert.showModal(title: "Please choose a directory that contains a “index.html” file.")
-				chooseLocalWebsite(completionHandler)
-				return
-			}
-
-			do {
-				try SecurityScopedBookmarkManager.saveBookmark(for: url)
-			} catch {
-				// TODO: Show the error in SwiftUI.
-				NSApp.presentError(error)
-				completionHandler(nil)
-				return
-			}
-
-			completionHandler(url)
+		guard
+			result == .OK,
+			let url = panel.url
+		else {
+			return nil
 		}
+
+		guard url.appendingPathComponent("index.html", isDirectory: false).exists else {
+			NSAlert.showModal(title: "Please choose a directory that contains a “index.html” file.")
+			return await chooseLocalWebsite()
+		}
+
+		do {
+			try SecurityScopedBookmarkManager.saveBookmark(for: url)
+		} catch {
+			// TODO: Show the error in SwiftUI.
+			NSApp.presentError(error)
+			return nil
+		}
+
+		return url
 	}
 
-	private func fetchTitle() {
+	@MainActor
+	private func fetchTitle() async {
 		// Ensure we don't erase a user's existing title.
 		if
 			isEditing,
@@ -353,29 +355,27 @@ struct AddWebsiteView: View {
 			isFetchingTitle = true
 		}
 
-		let metadataProvider = LPMetadataProvider()
-		metadataProvider.shouldFetchSubresources = false
-
-		metadataProvider.startFetchingMetadata(for: url) { metadata, error in
+		defer {
 			withAnimation {
 				isFetchingTitle = false
 			}
-
-			DispatchQueue.main.async {
-				guard
-					error == nil,
-					let title = metadata?.title
-				else {
-					if !isEditing || website.wrappedValue.title.isEmpty {
-						website.wrappedValue.title = ""
-					}
-
-					return
-				}
-
-				website.wrappedValue.title = title
-			}
 		}
+
+		let metadataProvider = LPMetadataProvider()
+		metadataProvider.shouldFetchSubresources = false
+
+		guard
+			let metadata = try? await metadataProvider.startFetchingMetadata(for: url),
+			let title = metadata.title
+		else {
+			if !isEditing || website.wrappedValue.title.isEmpty {
+				website.wrappedValue.title = ""
+			}
+
+			return
+		}
+
+		website.wrappedValue.title = title
 	}
 }
 

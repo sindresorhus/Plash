@@ -1,6 +1,8 @@
 import Cocoa
 
+@MainActor
 final class ShareViewController: NSViewController {
+	@MainActor
 	init() {
 		super.init(nibName: nil, bundle: nil)
 	}
@@ -18,18 +20,17 @@ final class ShareViewController: NSViewController {
 			return
 		}
 
-		attachment.loadObject(ofClass: NSURL.self) { [weak self] object, error in
-			guard let self = self else {
+		Task { @MainActor in // Not sure if this is needed, but added just in case.
+			let url: URL?
+			do {
+				url = try await attachment.loadObject(ofClass: NSURL.self) as URL?
+			} catch {
+				extensionContext!.cancelRequest(withError: error)
 				return
 			}
 
-			if let error = error {
-				self.extensionContext!.cancelRequest(withError: error)
-				return
-			}
-
-			guard let url = object as? NSURL else {
-				self.cancel()
+			guard let url = url else {
+				cancel()
 				return
 			}
 
@@ -38,10 +39,8 @@ final class ShareViewController: NSViewController {
 			components.path = "add"
 			components.queryItems = [URLQueryItem(name: "url", value: url.absoluteString)]
 
-			DispatchQueue.main.sync {
-				NSWorkspace.shared.open(components.url!)
-				self.extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
-			}
+			NSWorkspace.shared.open(components.url!)
+			extensionContext?.completeRequest(returningItems: [], completionHandler: nil)
 		}
 	}
 

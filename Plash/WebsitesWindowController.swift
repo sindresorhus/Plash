@@ -1,6 +1,8 @@
 import SwiftUI
 import Defaults
 
+// TODO
+//@MainActor
 final class WebsitesWindowController: SingletonWindowController {
 	private convenience init() {
 		let window = SwiftUIWindowForMenuBarApp()

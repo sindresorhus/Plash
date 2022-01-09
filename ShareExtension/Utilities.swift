@@ -19,6 +19,27 @@ extension NSExtensionContext {
 }
 
 
+extension NSItemProvider {
+	func loadObject<T>(ofClass: T.Type) async throws -> T? where T: NSItemProviderReading {
+		try await withCheckedThrowingContinuation { continuation in
+			_ = loadObject(ofClass: ofClass) { data, error in
+				if let error = error {
+					continuation.resume(throwing: error)
+					return
+				}
+
+				guard let image = data as? T else {
+					continuation.resume(returning: nil)
+					return
+				}
+
+				continuation.resume(returning: image)
+			}
+		}
+	}
+}
+
+
 // Strongly-typed versions of some of the methods.
 extension NSItemProvider {
 	func hasItemConformingTo(_ contentType: UTType) -> Bool {
@@ -27,13 +48,11 @@ extension NSItemProvider {
 
 	func loadItem(
 		forType contentType: UTType,
-		options: [AnyHashable: Any]? = nil, // swiftlint:disable:this discouraged_optional_collection
-		completionHandler: NSItemProvider.CompletionHandler? = nil
-	) {
-		loadItem(
+		options: [AnyHashable: Any]? = nil // swiftlint:disable:this discouraged_optional_collection
+	) async throws -> NSSecureCoding {
+		try await loadItem(
 			forTypeIdentifier: contentType.identifier,
-			options: options,
-			completionHandler: completionHandler
+			options: options
 		)
 	}
 }

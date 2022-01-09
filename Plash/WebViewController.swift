@@ -3,6 +3,7 @@ import Combine
 import WebKit
 import Defaults
 
+@MainActor
 final class WebViewController: NSViewController {
 	private var popupWindow: NSWindow?
 	private let didLoadSubject = PassthroughSubject<Void, Error>()
@@ -126,7 +127,7 @@ final class WebViewController: NSViewController {
 }
 
 extension WebViewController: WKNavigationDelegate {
-	func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction, decisionHandler: @escaping (WKNavigationActionPolicy) -> Void) {
+	func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
 		if
 			Defaults[.openExternalLinksInBrowser],
 			navigationAction.navigationType == .linkActivated,
@@ -140,14 +141,14 @@ extension WebViewController: WKNavigationDelegate {
 			}
 
 			newURL.open()
-			decisionHandler(.cancel)
-			return
+
+			return .cancel
 		}
 
-		decisionHandler(.allow)
+		return .allow
 	}
 
-	func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
+	func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse) async -> WKNavigationResponsePolicy {
 		if
 			navigationResponse.isForMainFrame,
 			let response = navigationResponse.response as? HTTPURLResponse
@@ -155,7 +156,7 @@ extension WebViewController: WKNavigationDelegate {
 			self.response = response
 		}
 
-		decisionHandler(.allow)
+		return .allow
 	}
 
 	func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -170,6 +171,11 @@ extension WebViewController: WKNavigationDelegate {
 
 	func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
 		internalOnLoaded(error)
+	}
+
+	func webView(_ webView: WKWebView, respondTo challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
+		// We're intentionally allowing this in non-browsing mode as loading the URL would fail otherwise.
+		webView.defaultAuthChallengeHandler(challenge: challenge)
 	}
 }
 
@@ -220,47 +226,37 @@ extension WebViewController: WKUIDelegate {
 		return webView
 	}
 
-	func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
+	func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo) async {
 		guard AppState.shared.isBrowsingMode else {
-			completionHandler()
 			return
 		}
 
-		webView.defaultAlertHandler(message: message, completion: completionHandler)
+		webView.defaultAlertHandler(message: message)
 	}
 
-	func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
+	func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo) async -> Bool {
 		guard AppState.shared.isBrowsingMode else {
-			completionHandler(false)
-			return
+			return false
 		}
 
-		webView.defaultConfirmHandler(message: message, completion: completionHandler)
+		return webView.defaultConfirmHandler(message: message)
 	}
 
-	func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
+	func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo) async -> String? {
 		guard AppState.shared.isBrowsingMode else {
-			completionHandler(nil)
-			return
+			return nil
 		}
 
-		webView.defaultPromptHandler(prompt: prompt, defaultText: defaultText, completion: completionHandler)
+		return webView.defaultPromptHandler(prompt: prompt, defaultText: defaultText)
 	}
 
 	// swiftlint:disable:next discouraged_optional_collection
-	func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void) {
+	func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo) async -> [URL]? {
 		guard AppState.shared.isBrowsingMode else {
-			completionHandler(nil)
-			return
+			return nil
 		}
 
-		webView.defaultUploadPanelHandler(parameters: parameters, completion: completionHandler)
-	}
-
-	func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-		// We're intentionally allowing this in non-browsing mode as loading the URL would fail otherwise.
-
-		webView.defaultAuthChallengeHandler(challenge: challenge, completion: completionHandler)
+		return webView.defaultUploadPanelHandler(parameters: parameters)
 	}
 
 	func webViewDidClose(_ webView: WKWebView) {

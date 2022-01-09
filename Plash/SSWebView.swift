@@ -2,6 +2,7 @@ import Combine
 import WebKit
 import Defaults
 
+@MainActor
 final class SSWebView: WKWebView {
 	private var cancellables = Set<AnyCancellable>()
 
@@ -110,7 +111,14 @@ final class SSWebView: WKWebView {
 	func toggleBrowsingModeClass() {
 		let method = Defaults[.isBrowsingMode] ? "add" : "remove"
 		let code = "document.documentElement.classList.\(method)('plash-is-browsing-mode')"
+
 		evaluateJavaScript(code, in: nil, in: .defaultClient) { _ in }
+
+		// TODO: Use this when targeting macOS 12.
+//		let code = "document.documentElement.classList[method]('plash-is-browsing-mode')"
+//		Task {
+//			try? await callAsyncJavaScript("document.documentElement.classList[method]", arguments: ["method": method], contentWorld: .page)
+//		}
 	}
 }
 

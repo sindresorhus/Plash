@@ -21,7 +21,7 @@ extension Defaults.Keys {
 	static let openExternalLinksInBrowser = Key<Bool>("openExternalLinksInBrowser", default: false)
 	static let muteAudio = Key<Bool>("muteAudio", default: true)
 
-	// TODO: Remove at some point in the future. Not before 2022.
+	// TODO: Remove at some point in the future. Not before 2023.
 	// Deprecated
 	static let url = Key<URL?>("url")
 	static let invertColors = Key<Bool>("invertColors", default: false)

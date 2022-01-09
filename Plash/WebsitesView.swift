@@ -1,5 +1,4 @@
 import SwiftUI
-import LinkPresentation
 import Defaults
 
 private struct IconView: View {
@@ -21,51 +20,31 @@ private struct IconView: View {
 			.frame(width: 32, height: 32)
 			.clipShape(.roundedRectangle(cornerRadius: 4, style: .continuous))
 			.onAppear {
-				fetchIcons()
+				Task {
+					guard let image = await fetchIcons() else {
+						return
+					}
+
+					icon = Image(nsImage: image)
+				}
 			}
 	}
 
-	private func fetchIcons() {
+	@MainActor
+	private func fetchIcons() async -> NSImage? {
 		let cache = WebsitesController.shared.thumbnailCache
 
 		if let image = cache[website.thumbnailCacheKey] {
-			icon = Image(nsImage: image)
-			return
+			return image
 		}
 
-		LPMetadataProvider().startFetchingMetadata(for: website.url) { metadata, error in
-			if error != nil {
-				return
-			}
-
-			guard
-				let iconProvider = metadata?.iconProvider,
-				iconProvider.hasItemConformingTo(.image)
-			else {
-				DispatchQueue.main.async {
-					iconFetcher = WebsiteIconFetcher()
-					iconFetcher?.fetch(for: website.url) {
-						guard let image = $0 else {
-							return
-						}
-
-						cache[website.thumbnailCacheKey] = image
-						icon = Image(nsImage: image)
-					}
-				}
-
-				return
-			}
-
-			iconProvider.getImage {
-				guard let image = $0 else {
-					return
-				}
-
-				cache[website.thumbnailCacheKey] = image
-				icon = Image(nsImage: image)
-			}
+		guard let image = try? await WebsiteIconFetcher.fetch(for: website.url) else {
+			return nil
 		}
+
+		cache[website.thumbnailCacheKey] = image
+
+		return image
 	}
 }
 

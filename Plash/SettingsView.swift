@@ -142,13 +142,15 @@ private struct ClearWebsiteDataSetting: View {
 
 	var body: some View {
 		Button("Clear all website data") {
-			hasCleared = true
-			appState.webViewController.webView.clearWebsiteData(completion: nil)
-			WebsitesController.shared.thumbnailCache.removeAllImages()
+			Task {
+				hasCleared = true
+				WebsitesController.shared.thumbnailCache.removeAllImages()
+				await appState.webViewController.webView.clearWebsiteData()
+			}
 		}
 			.disabled(hasCleared)
 			.help("Clears all cookies, local storage, caches, etc.")
-			// TODO: Mark it as destructive when SwiftUI supports that.
+			// TODO: Mark it as destructive when targeting macOS 12.
 	}
 }
 

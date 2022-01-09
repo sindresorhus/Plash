@@ -3,6 +3,7 @@ import Combine
 import Sentry
 import Defaults
 
+@MainActor
 final class AppState: ObservableObject {
 	static let shared = AppState()
 
@@ -226,6 +227,7 @@ final class AppState: ObservableObject {
 	}
 }
 
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
 	func applicationWillFinishLaunching(_ notification: Notification) {
 		// It's important that this is here so it's registered in time.

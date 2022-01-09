@@ -2,6 +2,7 @@ import Cocoa
 import Combine
 import Defaults
 
+@MainActor
 final class DesktopWindow: NSWindow {
 	override var canBecomeMain: Bool { isInteractive }
 	override var canBecomeKey: Bool { isInteractive }

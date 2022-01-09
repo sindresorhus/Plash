@@ -8,6 +8,7 @@ import SystemConfiguration
 import CryptoKit
 import StoreKit
 import UniformTypeIdentifiers
+import LinkPresentation
 import Defaults
 
 
@@ -430,6 +431,14 @@ enum SSApp {
 			.addingDictionaryAsQuery(query)
 			.open()
 	}
+
+	static func activateIfAccessory() {
+		guard NSApp.activationPolicy() == .accessory else {
+			return
+		}
+
+		NSApp.activate(ignoringOtherApps: true)
+	}
 }
 
 extension SSApp {
@@ -437,9 +446,7 @@ extension SSApp {
 	Manually show the SwiftUI settings window.
 	*/
 	static func showSettingsWindow() {
-		if NSApp.activationPolicy() == .accessory {
-			NSApp.activate(ignoringOtherApps: true)
-		}
+		SSApp.activateIfAccessory()
 
 		// Run in the next runloop so it doesn't conflict with SwiftUI if run at startup.
 		DispatchQueue.main.async {
@@ -1432,24 +1439,24 @@ Test it with https://jsfiddle.net/sindresorhus/8moqrudL/
 
 ```
 extension WebViewController: WKUIDelegate {
-	func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
-		webView.defaultAlertHandler(message: message, completion: completionHandler)
+	func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo) async {
+		webView.defaultAlertHandler(message: message)
 	}
 
-	func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
-		webView.defaultConfirmHandler(message: message, completion: completionHandler)
+	func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo) async -> Bool {
+		webView.defaultConfirmHandler(message: message)
 	}
 
-	func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
-		webView.defaultPromptHandler(prompt: prompt, defaultText: defaultText, completion: completionHandler)
+	func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo) async -> String? {
+		webView.defaultPromptHandler(prompt: prompt, defaultText: defaultText)
 	}
 
-	func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void) {
-		webView.defaultUploadPanelHandler(parameters: parameters, completion: completionHandler)
+	func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo) async -> [URL]? {
+		webView.defaultUploadPanelHandler(parameters: parameters)
 	}
 
-	func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
-		webView.defaultAuthChallengeHandler(challenge: challenge, completion: completionHandler)
+	func webView(_ webView: WKWebView, respondTo challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
+		webView.defaultAuthChallengeHandler(challenge: challenge)
 	}
 }
 ```
@@ -1458,31 +1465,28 @@ extension WKWebView {
 	/**
 	Default handler for JavaScript `alert()` to be used in `WKDelegate`.
 	*/
-	func defaultAlertHandler(message: String, completion: @escaping () -> Void) {
+	func defaultAlertHandler(message: String) {
 		let alert = NSAlert()
 		alert.messageText = message
 		alert.runModal()
-		completion()
 	}
 
 	/**
 	Default handler for JavaScript `confirm()` to be used in `WKDelegate`.
 	*/
-	func defaultConfirmHandler(message: String, completion: @escaping (Bool) -> Void) {
+	func defaultConfirmHandler(message: String) -> Bool {
 		let alert = NSAlert()
 		alert.alertStyle = .informational
 		alert.messageText = message
 		alert.addButton(withTitle: "OK")
 		alert.addButton(withTitle: "Cancel")
-
-		let result = alert.runModal() == .alertFirstButtonReturn
-		completion(result)
+		return alert.runModal() == .alertFirstButtonReturn
 	}
 
 	/**
 	Default handler for JavaScript `prompt()` to be used in `WKDelegate`.
 	*/
-	func defaultPromptHandler(prompt: String, defaultText: String?, completion: @escaping (String?) -> Void) {
+	func defaultPromptHandler(prompt: String, defaultText: String?) -> String? {
 		let alert = NSAlert()
 		alert.alertStyle = .informational
 		alert.messageText = prompt
@@ -1493,14 +1497,13 @@ extension WKWebView {
 		textField.stringValue = defaultText ?? ""
 		alert.accessoryView = textField
 
-		let result = alert.runModal() == .alertFirstButtonReturn ? textField.stringValue : nil
-		completion(result)
+		return alert.runModal() == .alertFirstButtonReturn ? textField.stringValue : nil
 	}
 
 	/**
 	Default handler for JavaScript initiated upload panel to be used in `WKDelegate`.
 	*/
-	func defaultUploadPanelHandler(parameters: WKOpenPanelParameters, completion: @escaping ([URL]?) -> Void) { // swiftlint:disable:this discouraged_optional_collection
+	func defaultUploadPanelHandler(parameters: WKOpenPanelParameters) -> [URL]? { // swiftlint:disable:this discouraged_optional_collection
 		let openPanel = NSOpenPanel()
 		openPanel.level = .floating
 		openPanel.prompt = "Choose"
@@ -1509,22 +1512,20 @@ extension WKWebView {
 		openPanel.canChooseDirectories = parameters.allowsDirectories
 
 		// It's intentionally modal as we don't want the user to interact with the website until they're done with the panel.
-		let result = openPanel.runModal() == .OK ? openPanel.urls : nil
-		completion(result)
+		return openPanel.runModal() == .OK ? openPanel.urls : nil
 	}
 
 	// Can be tested at https://jigsaw.w3.org/HTTP/Basic/ with `guest` as username and password.
 	/**
 	Default handler for websites requiring basic authentication. To be used in `WKDelegate`.
 	*/
-	func defaultAuthChallengeHandler(challenge: URLAuthenticationChallenge, completion: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+	func defaultAuthChallengeHandler(challenge: URLAuthenticationChallenge) -> (URLSession.AuthChallengeDisposition, URLCredential?) {
 		guard
 			let host = url?.host,
 			challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodHTTPBasic
 				|| challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodHTTPDigest
 		else {
-			completion(.performDefaultHandling, nil)
-			return
+			return (.performDefaultHandling, nil)
 		}
 
 		let alert = NSAlert()
@@ -1548,14 +1549,10 @@ extension WKWebView {
 		// TODO: It doesn't continue tabbing to the buttons after the password field.
 		username.nextKeyView = password
 
-		// Menu bar apps need to be activated, otherwise, things like input focus doesn't work.
-		if NSApp.activationPolicy() == .accessory {
-			NSApp.activate(ignoringOtherApps: true)
-		}
+		SSApp.activateIfAccessory()
 
 		guard alert.runModal() == .alertFirstButtonReturn else {
-			completion(.rejectProtectionSpace, nil)
-			return
+			return (.rejectProtectionSpace, nil)
 		}
 
 		let credential = URLCredential(
@@ -1564,7 +1561,7 @@ extension WKWebView {
 			persistence: .synchronizable
 		)
 
-		completion(.useCredential, credential)
+		return (.useCredential, credential)
 	}
 }
 
@@ -1761,37 +1758,15 @@ extension WKWebView {
 	/**
 	Clear all website data like cookies, local storage, caches, etc.
 	*/
-	func clearWebsiteData(completion: (() -> Void)?) {
+	func clearWebsiteData() async {
 		HTTPCookieStorage.shared.removeCookies(since: .distantPast)
 
-		let dataStore = WKWebsiteDataStore.default()
+		let store = WKWebsiteDataStore.default()
 		let types = WKWebsiteDataStore.allWebsiteDataTypes()
-
-		dataStore.fetchDataRecords(ofTypes: types) { records in
-			dataStore.removeData(
-				ofTypes: types,
-				for: records,
-				completionHandler: completion ?? {}
-			)
-		}
+		let records = await store.dataRecords(ofTypes: types)
+		await store.removeData(ofTypes: types, for: records)
 	}
 }
-
-// TODO: Enable when using Xcode 13.2.
-//@available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
-//extension WKWebView {
-//	/**
-//	Clear all website data like cookies, local storage, caches, etc.
-//	*/
-//	func clearWebsiteData() async {
-//		HTTPCookieStorage.shared.removeCookies(since: .distantPast)
-//
-//		let store = WKWebsiteDataStore.default()
-//		let types = WKWebsiteDataStore.allWebsiteDataTypes()
-//		let records = await store.dataRecords(ofTypes: types)
-//		await store.removeData(ofTypes: types, for: records)
-//	}
-//}
 
 
 extension WKPreferences {
@@ -2611,29 +2586,6 @@ extension URL {
 
 		return try accessor(self)
 	}
-
-	/**
-	Access a security-scoped resource asynchronously.
-
-	The access will be automatically when the `completion` closure is called.
-
-	```
-	directoryUrl.accessSecurityScopedResourceAsync { completion in
-		startConversion(urls, outputDirectory: directoryUrl) {
-			completion()
-		}
-	}
-	```
-	*/
-	func accessSecurityScopedResourceAsync<Value>(_ accessor: (@escaping () -> Void) throws -> Value) rethrows -> Value {
-		let didStartAccessing = startAccessingSecurityScopedResource()
-
-		return try accessor {
-			if didStartAccessing {
-				stopAccessingSecurityScopedResource()
-			}
-		}
-	}
 }
 
 
@@ -2741,7 +2693,11 @@ enum SecurityScopedBookmarkManager {
 	/**
 	Returns `nil` if the user didn't give permission or if the bookmark couldn't be saved.
 	*/
-	static func promptUserForPermission(atDirectory directoryURL: URL, message: String? = nil) -> URL? {
+	@MainActor
+	static func promptUserForPermission(
+		atDirectory directoryURL: URL,
+		message: String? = nil
+	) -> URL? {
 		lock.lock()
 
 		defer {
@@ -2750,36 +2706,32 @@ enum SecurityScopedBookmarkManager {
 
 		let delegate = NSOpenSavePanelDelegateHandler(url: directoryURL)
 
-		let userChosenURL: URL? = DispatchQueue.mainSafeSync {
-			let openPanel = with(NSOpenPanel()) {
-				$0.delegate = delegate
-				$0.directoryURL = directoryURL
-				$0.allowsMultipleSelection = false
-				$0.canChooseDirectories = true
-				$0.canChooseFiles = false
-				$0.canCreateDirectories = false
-				$0.title = "Permission"
-				$0.message = message ?? "\(SSApp.name) needs access to the “\(directoryURL.lastPathComponent)” directory. Click “Allow” to proceed."
-				$0.prompt = "Allow"
-			}
-
-			NSApp.activate(ignoringOtherApps: true)
-
-			guard openPanel.runModal() == .OK else {
-				return nil
-			}
-
-			return openPanel.url
+		let openPanel = with(NSOpenPanel()) {
+			$0.delegate = delegate
+			$0.directoryURL = directoryURL
+			$0.allowsMultipleSelection = false
+			$0.canChooseDirectories = true
+			$0.canChooseFiles = false
+			$0.canCreateDirectories = false
+			$0.title = "Permission"
+			$0.message = message ?? "\(SSApp.name) needs access to the “\(directoryURL.lastPathComponent)” directory. Click “Allow” to proceed."
+			$0.prompt = "Allow"
 		}
 
-		guard let securityScopedURL = userChosenURL else {
+		NSApp.activate(ignoringOtherApps: true)
+
+		guard openPanel.runModal() == .OK else {
+			return nil
+		}
+
+		guard let securityScopedURL = openPanel.url else {
 			return nil
 		}
 
 		do {
 			try saveBookmark(for: securityScopedURL)
 		} catch {
-			NSApp.presentError(error)
+			error.presentAsModal()
 			return nil
 		}
 
@@ -2806,6 +2758,7 @@ enum SecurityScopedBookmarkManager {
 
 	It handles cleaning up the access to the URL for you.
 	*/
+	@MainActor
 	static func accessURLByPromptingIfNeeded(_ url: URL, accessHandler: () throws -> Void) {
 		let directoryURL = url.directoryURL
 
@@ -2826,6 +2779,7 @@ enum SecurityScopedBookmarkManager {
 
 	You have to manually call the returned method when you no longer need access to the URL.
 	*/
+	@MainActor
 	@discardableResult
 	static func accessURLByPromptingIfNeeded(_ url: URL) -> (() -> Void) {
 		let directoryURL = url.directoryURL
@@ -2848,6 +2802,7 @@ extension URL {
 
 	It handles cleaning up the access to the URL for you.
 	*/
+	@MainActor
 	func accessSandboxedURLByPromptingIfNeeded(accessHandler: () throws -> Void) {
 		SecurityScopedBookmarkManager.accessURLByPromptingIfNeeded(self, accessHandler: accessHandler)
 	}
@@ -2857,6 +2812,7 @@ extension URL {
 
 	You have to manually call the returned method when you no longer need access to the URL.
 	*/
+	@MainActor
 	func accessSandboxedURLByPromptingIfNeeded() -> (() -> Void) {
 		SecurityScopedBookmarkManager.accessURLByPromptingIfNeeded(self)
 	}
@@ -3097,34 +3053,81 @@ extension Error {
 	/**
 	Present the error as an async sheet on the given window.
 
+	The function resumes when the sheet is dismissed.
+
 	- Note: This exists because the built-in `NSResponder#presentError(forModal:)` method requires too many arguments, selector as callback, and it says it's modal but it's not blocking, which is surprising.
 	*/
-	func presentAsSheet(for window: NSWindow, didPresent: (() -> Void)?) {
-		NSApp.presentErrorAsSheet(self, for: window, didPresent: didPresent)
+	@MainActor
+	func presentAsSheet(for window: NSWindow) async {
+		await withCheckedContinuation { continuation in
+			NSApp.presentErrorAsSheet(self, for: window) {
+				continuation.resume()
+			}
+		}
+	}
+
+	/**
+	Present the error as an async sheet on the given window if the window is not `nil`, otherwise as an app-modal dialog.
+
+	The function resumes when the sheet is dismissed.
+	*/
+	@MainActor
+	func presentAsSheetOrModal(for window: NSWindow?) async {
+		guard let window = window else {
+			await Task.yield()
+			SSApp.activateIfAccessory()
+			NSApp.presentError(self)
+			return
+		}
+
+		await presentAsSheet(for: window)
 	}
 
 	/**
 	Present the error as a blocking modal sheet on the given window.
 
 	If the window is nil, the error will be presented in an app-level modal dialog.
+
+	- Important: Prefer `.presentAsSheet()` whenever possible.
+
+	Thread-safe.
 	*/
 	func presentAsModalSheet(for window: NSWindow?) {
 		guard let window = window else {
-			presentAsModal()
+			presentAsModalLegacy()
 			return
 		}
 
-		presentAsSheet(for: window) {
-			NSApp.stopModal()
-		}
+		DispatchQueue.main.async {
+			NSApp.presentErrorAsSheet(self, for: window) {
+				NSApp.stopModal()
+			}
 
-		NSApp.runModal(for: window)
+			// This is requried as otherwise `NSApp.runModal` somtimes causes exceptions.
+			DispatchQueue.main.async {
+				NSApp.runModal(for: window)
+			}
+		}
+	}
+
+	/**
+	Present the error as a blocking app-level modal dialog.
+
+	Tread-safe.
+	*/
+	func presentAsModalLegacy() {
+		DispatchQueue.main.async {
+			SSApp.activateIfAccessory()
+			NSApp.presentError(self)
+		}
 	}
 
 	/**
 	Present the error as a blocking app-level modal dialog.
 	*/
+	@MainActor
 	func presentAsModal() {
+		SSApp.activateIfAccessory()
 		NSApp.presentError(self)
 	}
 }
@@ -3140,7 +3143,7 @@ extension Error {
 
 
 extension Error {
-	var isCancelled: Bool {
+	public var isCancelled: Bool {
 		do {
 			throw self
 		} catch URLError.cancelled, CocoaError.userCancelled {
@@ -3208,11 +3211,7 @@ class SingletonWindowController: NSWindowController, NSWindowDelegate { // swift
 	}
 
 	static func showWindow() {
-		// Menu bar apps need to be activated, otherwise, things like input focus doesn't work.
-		if NSApp.activationPolicy() == .accessory {
-			NSApp.activate(ignoringOtherApps: true)
-		}
-
+		SSApp.activateIfAccessory()
 		window?.makeKeyAndOrderFront(nil)
 	}
 
@@ -3835,19 +3834,31 @@ extension NSImage: NSItemProviderWriting {
 	}
 }
 
-extension NSItemProvider {
-	/**
-	Get an image from the provider if any.
-	*/
-	func getImage(_ completionHandler: @escaping (NSImage?) -> Void) {
-		loadObject(ofClass: NSImage.self) { image, _ in
-			guard let image = image as? NSImage else {
-				completionHandler(nil)
-				return
-			}
 
-			completionHandler(image)
+extension NSItemProvider {
+	func loadObject<T>(ofClass: T.Type) async throws -> T? where T: NSItemProviderReading {
+		try await withCheckedThrowingContinuation { continuation in
+			_ = loadObject(ofClass: ofClass) { data, error in
+				if let error = error {
+					continuation.resume(throwing: error)
+					return
+				}
+
+				guard let image = data as? T else {
+					continuation.resume(returning: nil)
+					return
+				}
+
+				continuation.resume(returning: image)
+			}
 		}
+	}
+}
+
+
+extension NSItemProvider {
+	func getImage() async -> NSImage? {
+		try? await loadObject(ofClass: NSImage.self)
 	}
 }
 
@@ -3860,13 +3871,11 @@ extension NSItemProvider {
 
 	func loadItem(
 		forType contentType: UTType,
-		options: [AnyHashable: Any]? = nil, // swiftlint:disable:this discouraged_optional_collection
-		completionHandler: NSItemProvider.CompletionHandler? = nil
-	) {
-		loadItem(
+		options: [AnyHashable: Any]? = nil // swiftlint:disable:this discouraged_optional_collection
+	) async throws -> NSSecureCoding {
+		try await loadItem(
 			forTypeIdentifier: contentType.identifier,
-			options: options,
-			completionHandler: completionHandler
+			options: options
 		)
 	}
 }
@@ -4019,6 +4028,7 @@ extension URL: SimpleImageCacheKeyable {
 	var cacheKey: String { absoluteString }
 }
 
+// TODO: Rewrite as an actor.
 /**
 Extremely simple and naive image cache.
 
@@ -4477,6 +4487,21 @@ extension OperatingSystem {
 	/**
 	- Note: Only use this when you cannot use an `if #available` check. For example, inline in function calls.
 	*/
+	static let isMacOS13OrLater: Bool = {
+		#if os(macOS)
+		if #available(macOS 13, *) {
+			return true
+		} else {
+			return false
+		}
+		#else
+		return false
+		#endif
+	}()
+
+	/**
+	- Note: Only use this when you cannot use an `if #available` check. For example, inline in function calls.
+	*/
 	static let isMacOS12OrLater: Bool = {
 		#if os(macOS)
 		if #available(macOS 12, *) {
@@ -4560,10 +4585,29 @@ extension CGSize {
 }
 
 
+@available(macOS, obsoleted: 12)
+extension URLSession {
+	func data(from url: URL) async throws -> (Data, URLResponse) {
+		try await withCheckedThrowingContinuation { continuation in
+			let task = self.dataTask(with: url) { data, response, error in
+				guard let data = data, let response = response else {
+					let error = error ?? URLError(.badServerResponse)
+					return continuation.resume(throwing: error)
+				}
+
+				continuation.resume(returning: (data, response))
+			}
+
+			task.resume()
+		}
+	}
+}
+
+
+// TODO: Make it an actor.
+// TODO: Ensure it still works well. Try disabling the LinkPresentation API and caching.
 /*
 TODO when Swift 5.5 is out:
-- Refactor to use async/await.
-- Do proper error handling.
 - Support more ways to get the icon: https://stackoverflow.com/a/22007642/64949
 - Get all icons concurrently.
 - Recreate the webview for each request.
@@ -4574,59 +4618,8 @@ TODO when Swift 5.5 is out:
 - Support specifying target size and have it return the one closest above the target size, if any.
 - Use the icons in the "Switch" menu.
 */
+@MainActor
 final class WebsiteIconFetcher: NSObject {
-	private lazy var webView: WKWebView = {
-		let configuration = WKWebViewConfiguration()
-
-		let userContentController = WKUserContentController()
-		configuration.userContentController = userContentController
-
-		let preferences = WKPreferences()
-		preferences.javaScriptCanOpenWindowsAutomatically = false
-		configuration.preferences = preferences
-
-		let webView = WKWebView(frame: .zero, configuration: configuration)
-		webView.navigationDelegate = self
-		webView.customUserAgent = SSWebView.safariUserAgent
-
-		return webView
-	}()
-
-	private var url: URL?
-	private var completionHandler: ((NSImage?) -> Void)?
-
-	private func getImage(_ url: URL, completionHandler: @escaping (NSImage?) -> Void) {
-		URLSession.shared.dataTask(with: url) { data, _, _ in
-			DispatchQueue.main.async {
-				guard
-					let data = data,
-					let image = NSImage(data: data)
-				else {
-					completionHandler(nil)
-					return
-				}
-
-				completionHandler(image)
-			}
-		}
-			.resume()
-	}
-
-	private func getFavicon(completionHandler: @escaping (NSImage?) -> Void) {
-		DispatchQueue.global().async { [weak self] in
-			guard
-				let self = self,
-				let baseURL = self.url,
-				let faviconURL = URL(string: "favicon.ico", relativeTo: baseURL)
-			else {
-				completionHandler(nil)
-				return
-			}
-
-			self.getImage(faviconURL, completionHandler: completionHandler)
-		}
-	}
-
 	private struct WebAppManifestIcon {
 		let url: URL
 		let size: CGSize?
@@ -4654,63 +4647,102 @@ final class WebsiteIconFetcher: NSObject {
 		}
 	}
 
-	private func getFromManifest(completionHandler: @escaping (NSImage?) -> Void) {
+	@MainActor
+	static func fetch(for url: URL) async throws -> NSImage? {
+		try await self.init().fetch(for: url)
+	}
+
+	@MainActor
+	private lazy var webView: WKWebView = {
+		let configuration = WKWebViewConfiguration()
+
+		let userContentController = WKUserContentController()
+		configuration.userContentController = userContentController
+
+		let preferences = WKPreferences()
+		preferences.javaScriptCanOpenWindowsAutomatically = false
+		configuration.preferences = preferences
+
+		let webView = WKWebView(frame: .zero, configuration: configuration)
+		webView.navigationDelegate = self
+		webView.customUserAgent = SSWebView.safariUserAgent
+
+		return webView
+	}()
+
+	private var url: URL?
+	private var continuation: CheckedContinuation<Void, Error>?
+
+	private func getImage(_ url: URL) async throws -> NSImage? {
+		let (data, _) = try await URLSession.shared.data(from: url)
+		return NSImage(data: data)
+	}
+
+	private func getFavicon() async throws -> NSImage? {
+		guard
+			let faviconURL = URL(string: "favicon.ico", relativeTo: url)
+		else {
+			return nil
+		}
+
+		return try await getImage(faviconURL)
+	}
+
+	private func getFromLPMetadataProvider(url: URL) async throws -> NSImage? {
+		let metadata = try await LPMetadataProvider().startFetchingMetadata(for: url)
+
+		guard
+			let iconProvider = metadata.iconProvider,
+			iconProvider.hasItemConformingTo(.image)
+		else {
+			return nil
+		}
+
+		return await iconProvider.getImage()
+	}
+
+	@MainActor
+	private func getFromManifest() async throws -> NSImage? {
 		let code =
 			"""
 			document.querySelector('link[rel="manifest"]').href
 			"""
 
-		DispatchQueue.main.async { [weak self] in
-			self?.webView.evaluateJavaScript(code, in: nil, in: .defaultClient) { result in
-				guard
-					let urlString = try? result.get() as? String,
-					let url = URL(string: urlString)
-				else {
-					completionHandler(nil)
-					return
-				}
+		let result = try await webView.evaluateJavaScript(code)
 
-				URLSession.shared.dataTask(with: url) { [weak self] data, _, _ in
-					guard
-						let self = self,
-						let data = data
-					else {
-						completionHandler(nil)
-						return
-					}
+		// TODO: When targeting macOS 12:
+		// let result = try await webView.evaluateJavaScript(code, in: nil, in: .defaultClient)
 
-					DispatchQueue.main.async {
-						do {
-							guard
-								let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
-								let icons = json["icons"] as? [[String: String]]
-							else {
-								completionHandler(nil)
-								return
-							}
-
-							let iconStructs = icons.compactMap { WebAppManifestIcon($0) }
-
-							// TODO: Instead of picking the largest one, we should download all and add them as representations to a single `NSImage`.
-							guard
-								let largestIcon = (iconStructs.max { ($0.size?.width ?? 0) < ($1.size?.width ?? 0) })
-							else {
-								completionHandler(nil)
-								return
-							}
-
-							self.getImage(largestIcon.url, completionHandler: completionHandler)
-						} catch {
-							completionHandler(nil)
-						}
-					}
-				}
-					.resume()
-			}
+		guard
+			let urlString = result as? String,
+			let url = URL(string: urlString)
+		else {
+			return nil
 		}
+
+		let (data, _) = try await URLSession.shared.data(from: url)
+
+		guard
+			let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any],
+			let icons = json["icons"] as? [[String: String]]
+		else {
+			return nil
+		}
+
+		let iconStructs = icons.compactMap { WebAppManifestIcon($0) }
+
+		// TODO: Instead of picking the largest one, we should download all and add them as representations to a single `NSImage`.
+		guard
+			let largestIcon = (iconStructs.max { ($0.size?.width ?? 0) < ($1.size?.width ?? 0) })
+		else {
+			return nil
+		}
+
+		return try await getImage(largestIcon.url)
 	}
 
-	private func getFromLinkIcon(completionHandler: @escaping (NSImage?) -> Void) {
+	@MainActor
+	private func getFromLinkIcon() async throws -> NSImage? {
 		// TODO: There can be multiple of this one, some with larger sizes specified in a `sizes` prop.
 		// The `~` is because of the `shortcut` link type, which is often seen before icon, but this link type is non-conforming, ignored and web authors must not use it anymore: https://developer.mozilla.org/en-US/docs/Web/HTML/Link_types
 		let code =
@@ -4718,113 +4750,96 @@ final class WebsiteIconFetcher: NSObject {
 			document.querySelector('link[rel~="icon"]').href
 			"""
 
-		DispatchQueue.main.async { [weak self] in
-			self?.webView.evaluateJavaScript(code, in: nil, in: .defaultClient) { [weak self] result in
-				guard
-					let self = self,
-					let urlString = try? result.get() as? String,
-					let url = URL(string: urlString)
-				else {
-					completionHandler(nil)
-					return
-				}
+		let result = try await webView.evaluateJavaScript(code)
 
-				self.getImage(url, completionHandler: completionHandler)
-			}
+		// TODO: When targeting macOS 12:
+		// let result = try await webView.evaluateJavaScript(code, in: nil, in: .defaultClient)
+
+		guard
+			let urlString = result as? String,
+			let url = URL(string: urlString)
+		else {
+			return nil
 		}
+
+		return try await getImage(url)
 	}
 
-	private func getFromMetaItemPropImage(completionHandler: @escaping (NSImage?) -> Void) {
+	@MainActor
+	private func getFromMetaItemPropImage() async throws -> NSImage? {
 		let code =
 			"""
 			new URL(document.querySelector('meta[itemprop="image"]').content, document.baseURI).toString()
 			"""
 
-		DispatchQueue.main.async { [weak self] in
-			self?.webView.evaluateJavaScript(code, in: nil, in: .defaultClient) { [weak self] result in
-				guard
-					let self = self,
-					let urlString = try? result.get() as? String,
-					let url = URL(string: urlString)
-				else {
-					completionHandler(nil)
-					return
-				}
+		let result = try await webView.evaluateJavaScript(code)
 
-				self.getImage(url, completionHandler: completionHandler)
-			}
+		// TODO: When targeting macOS 12:
+		// let result = try await webView.evaluateJavaScript(code, in: nil, in: .defaultClient)
+
+		guard
+			let urlString = result as? String,
+			let url = URL(string: urlString)
+		else {
+			return nil
 		}
+
+		return try await getImage(url)
 	}
 
-	private func internalOnLoaded(_ error: Error?) {
-		getFromManifest { [weak self] image in
-			guard let self = self else {
-				return
-			}
-
-			if let image = image {
-				self.completionHandler?(image)
-				return
-			}
-
-			self.getFromMetaItemPropImage { image in
-				if let image = image {
-					self.completionHandler?(image)
-					return
-				}
-
-				self.getFromLinkIcon { image in
-					if let image = image {
-						self.completionHandler?(image)
-						return
-					}
-
-					self.getFavicon { image in
-						if let image = image {
-							self.completionHandler?(image)
-							return
-						}
-
-						self.completionHandler?(nil)
-					}
-				}
-			}
-		}
-	}
-
-	func fetch(for url: URL, completionHandler: @escaping (NSImage?) -> Void) {
+	@MainActor
+	private func fetch(for url: URL) async throws -> NSImage? {
 		self.url = url
-		self.completionHandler = completionHandler
 
 		var request = URLRequest(url: url)
 		request.cachePolicy = .reloadIgnoringLocalCacheData
-		webView.load(request)
+
+		try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Void, Error>) in
+			self.continuation = continuation
+			webView.load(request)
+		}
+
+		// TODO: Use `??` for all of these when `??` supports await.
+
+		if let image = try? await getFromLPMetadataProvider(url: url) {
+			return image
+		}
+
+		if let image = try? await getFromManifest() {
+			return image
+		}
+
+		if let image = try? await getFromMetaItemPropImage() {
+			return image
+		}
+
+		if let image = try? await getFromLinkIcon() {
+			return image
+		}
+
+		if let image = try? await getFavicon() {
+			return image
+		}
+
+		return nil
 	}
 }
 
 extension WebsiteIconFetcher: WKNavigationDelegate {
-	func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse, decisionHandler: @escaping (WKNavigationResponsePolicy) -> Void) {
-		decisionHandler(navigationResponse.isForMainFrame ? .allow : .cancel)
+	func webView(_ webView: WKWebView, decidePolicyFor navigationResponse: WKNavigationResponse) async -> WKNavigationResponsePolicy {
+		navigationResponse.isForMainFrame ? .allow : .cancel
 	}
 
 	func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-		internalOnLoaded(nil)
+		continuation?.resume()
 	}
 
 	func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-		let nsError = error as NSError
-
-		// Ignore the request being cancelled which can happen if the user clicks on a link while a website is loading.
-		if nsError.domain == NSURLErrorDomain, nsError.code == NSURLErrorCancelled {
-			internalOnLoaded(nil)
-			return
-		}
-
-		internalOnLoaded(error)
+		continuation?.resume(throwing: error)
 	}
 
 	func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
-		internalOnLoaded(error)
+		continuation?.resume(throwing: error)
 	}
 }
 
