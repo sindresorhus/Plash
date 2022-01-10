@@ -221,7 +221,7 @@ struct AddWebsiteView: View {
 					primaryButton: .default(Text("Keep")) {
 						presentationMode.wrappedValue.dismiss()
 					},
-					secondaryButton: .destructive(Text("Don‘t Keep")) {
+					secondaryButton: .destructive(Text("Don't Keep")) {
 						revert()
 						presentationMode.wrappedValue.dismiss()
 					}

@@ -82,7 +82,7 @@ Use `[[screenWidth]]` and `[[screenHeight]]` in any URL and Plash will substitut
 
 ### Scroll to position
 
-You can scroll a website to a specific position each time it is loaded by putting the following in the website‘s “JavaScript” field. Adjust the “500” to how far down it should scroll.
+You can scroll a website to a specific position each time it is loaded by putting the following in the website's “JavaScript” field. Adjust the “500” to how far down it should scroll.
 
 ```js
 window.scrollTo(0, 500);
@@ -103,6 +103,10 @@ You can use the “CSS” field in the website settings to adjust the padding of
     margin-left: 50% !important;
 }
 ```
+
+### Detect Plash
+
+Plash injects a CSS class named `is-plash-app` on the `<html>` element. You could use this class to customize your website for Plash. For example, if your website has instructions on how to use it in Plash, you could hide those when it's running in Plash.
 
 ## Screenshots
 
@@ -144,7 +148,7 @@ You can optionally specify a title. If no title is given, a title will be automa
 $ open -g 'plash:add?url=https://sindresorhus.com/plash&title=Plash%20website'
 ```
 
-*Don‘t forget to correctly encode query parameters.*
+*Don't forget to correctly encode query parameters.*
 
 **Note:** Local file URLs are not supported.
 

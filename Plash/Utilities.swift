@@ -737,15 +737,15 @@ protocol ControlActionClosureProtocol: NSObjectProtocol {
 }
 
 private final class ActionTrampoline: NSObject {
-	private let action: () -> Void
+	private let action: (NSEvent) -> Void
 
-	init(action: @escaping () -> Void) {
+	init(action: @escaping (NSEvent) -> Void) {
 		self.action = action
 	}
 
 	@objc
 	fileprivate func handleAction(_ sender: AnyObject) {
-		action()
+		action(NSApp.currentEvent!)
 	}
 }
 
@@ -756,12 +756,12 @@ extension ControlActionClosureProtocol {
 	```
 	let button = NSButton(title: "Unicorn", target: nil, action: nil)
 
-	button.onAction {
+	button.onAction { _ in
 		print("Button action")
 	}
 	```
 	*/
-	func onAction(_ action: @escaping () -> Void) {
+	func onAction(_ action: @escaping (NSEvent) -> Void) {
 		let trampoline = ActionTrampoline(action: action)
 		target = trampoline
 		self.action = #selector(ActionTrampoline.handleAction)
@@ -835,7 +835,10 @@ struct CocoaButton: NSViewRepresentable {
 
 		nsView.keyEquivalent = keyEquivalent?.rawValue ?? ""
 		nsView.bezelStyle = bezelStyle
-		nsView.onAction(action)
+
+		nsView.onAction { _ in
+			action()
+		}
 	}
 }
 
@@ -4288,7 +4291,7 @@ extension Collection where Element: Equatable {
 
 extension Collection where Element: Identifiable {
 	/**
-	Returns an array where each element‘s ID in the collection equal to the given ID is modified.
+	Returns an array where each element's ID in the collection equal to the given ID is modified.
 
 	```
 	struct Person: Identifiable {
@@ -5739,13 +5742,9 @@ struct HideableInfoBox: View {
 	var body: some View {
 		PersistentlyHideableView(id: id, idPrefix: "HideableInfoBox") { hide in
 			HStack {
-				Button {
+				CloseOrClearButton("Hide") {
 					hide()
-				} label: {
-					Label("Hide", systemImage: "xmark.circle.fill")
-						.labelStyle(.iconOnly)
 				}
-					.buttonStyle(.borderless)
 				Text(message)
 					.font(.system(size: NSFont.smallSystemFontSize))
 					.multilineTextAlignment(.leading)
@@ -5787,5 +5786,74 @@ extension Shape where Self == RoundedRectangle {
 
 	static func roundedRectangle(cornerSize: CGSize, style: RoundedCornerStyle = .circular) -> Self {
 		.init(cornerSize: cornerSize, style: style)
+	}
+}
+
+
+@available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
+extension Button where Label == SwiftUI.Label<Text, Image> {
+	init(
+		_ title: String,
+		systemImage: String,
+		role: ButtonRole? = nil,
+		action: @escaping () -> Void
+	) {
+		self.init(
+			role: role,
+			action: action
+		) {
+			Label(title, systemImage: systemImage)
+		}
+	}
+}
+
+// TODO: Remove when targeting macOS 12.
+extension Button where Label == SwiftUI.Label<Text, Image> {
+	init(
+		_ title: String,
+		systemImage: String,
+		action: @escaping () -> Void
+	) {
+		self.init(action: action) {
+			Label(title, systemImage: systemImage)
+		}
+	}
+}
+
+
+private struct IconButtonStyle: ViewModifier {
+	func body(content: Content) -> some View {
+		content
+			.buttonStyle(.borderless)
+			.menuStyle(.borderlessButton)
+			.labelStyle(.iconOnly)
+	}
+}
+
+extension View {
+	/**
+	Make `Button` and `Menu` be borderless and only show the icon.
+	*/
+	func iconButtonStyle() -> some View {
+		modifier(IconButtonStyle())
+	}
+}
+
+
+/**
+An icon button used for closing or clearing something.
+*/
+struct CloseOrClearButton: View {
+	private let title: String
+	private let action: () -> Void
+
+	init(_ title: String, action: @escaping () -> Void) {
+		self.title = title
+		self.action = action
+	}
+
+	var body: some View {
+		Button(title, systemImage: "xmark.circle.fill", action: action)
+			.iconButtonStyle()
 	}
 }

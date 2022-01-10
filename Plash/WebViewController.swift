@@ -43,6 +43,8 @@ final class WebViewController: NSViewController {
 		webView.customUserAgent = SSWebView.safariUserAgent
 		webView.drawsBackground = false
 
+		userContentController.addJavaScript("document.documentElement.classList.add('is-plash-app')")
+
 		if let website = WebsitesController.shared.current {
 			if website.invertColors2 != .never {
 				userContentController.invertColors(

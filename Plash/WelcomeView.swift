@@ -35,7 +35,8 @@ extension AppState {
 			]
 		)
 
-		statusItemButton.playRainbowAnimation()
+		// Does not work on macOS 11 or later.
+//		statusItemButton.playRainbowAnimation()
 
 		delay(seconds: 1) { [self] in
 			statusItemButton.performClick(nil)

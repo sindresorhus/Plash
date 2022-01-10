@@ -122,12 +122,10 @@ struct WebsitesView: View {
 		VStack(spacing: 0) {
 			HStack {
 				Spacer()
-				Button {
+				Button("Add Website", systemImage: "plus") {
 					isShowingAddSheet = true
-				} label: {
-					Label("Add Website", systemImage: "plus")
-						.labelStyle(.iconOnly)
 				}
+					.labelStyle(.iconOnly)
 					.keyboardShortcut(.defaultAction)
 			}
 				.padding()
@@ -224,10 +222,8 @@ struct WebsitesView: View {
 			// TODO: When using SwiftUI for the window.
 //			.toolbar {
 //				ToolbarItem(placement: .confirmationAction) {
-//					Button {
+//					Button("Add Website", systemImage: "plus") {
 //						isShowingAddSheet = true
-//					} label: {
-//						Label("Add Website", systemImage: "plus")
 //					}
 //				}
 //			}
