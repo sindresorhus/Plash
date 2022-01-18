@@ -1468,6 +1468,7 @@ extension WKWebView {
 	/**
 	Default handler for JavaScript `alert()` to be used in `WKDelegate`.
 	*/
+	@MainActor
 	func defaultAlertHandler(message: String) {
 		let alert = NSAlert()
 		alert.messageText = message
@@ -1477,6 +1478,7 @@ extension WKWebView {
 	/**
 	Default handler for JavaScript `confirm()` to be used in `WKDelegate`.
 	*/
+	@MainActor
 	func defaultConfirmHandler(message: String) -> Bool {
 		let alert = NSAlert()
 		alert.alertStyle = .informational
@@ -1489,6 +1491,7 @@ extension WKWebView {
 	/**
 	Default handler for JavaScript `prompt()` to be used in `WKDelegate`.
 	*/
+	@MainActor
 	func defaultPromptHandler(prompt: String, defaultText: String?) -> String? {
 		let alert = NSAlert()
 		alert.alertStyle = .informational
@@ -1506,6 +1509,7 @@ extension WKWebView {
 	/**
 	Default handler for JavaScript initiated upload panel to be used in `WKDelegate`.
 	*/
+	@MainActor
 	func defaultUploadPanelHandler(parameters: WKOpenPanelParameters) -> [URL]? { // swiftlint:disable:this discouraged_optional_collection
 		let openPanel = NSOpenPanel()
 		openPanel.level = .floating
@@ -1522,6 +1526,7 @@ extension WKWebView {
 	/**
 	Default handler for websites requiring basic authentication. To be used in `WKDelegate`.
 	*/
+	@MainActor
 	func defaultAuthChallengeHandler(challenge: URLAuthenticationChallenge) -> (URLSession.AuthChallengeDisposition, URLCredential?) {
 		guard
 			let host = url?.host,
@@ -4675,6 +4680,7 @@ final class WebsiteIconFetcher: NSObject {
 
 	private var url: URL?
 	private var continuation: CheckedContinuation<Void, Error>?
+	private var isLoaded = false
 
 	private func getImage(_ url: URL) async throws -> NSImage? {
 		let (data, _) = try await URLSession.shared.data(from: url)
@@ -4834,7 +4840,13 @@ extension WebsiteIconFetcher: WKNavigationDelegate {
 	}
 
 	func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+		// For some reason, this is sometimes called more than once. We have to guard against that as `.resume()` can only be called once. (macOS 11.5)
+		guard !isLoaded else {
+			return
+		}
+
 		continuation?.resume()
+		isLoaded = true
 	}
 
 	func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
@@ -5122,66 +5134,51 @@ extension Defaults {
 
 
 private struct OnChangeDebouncedViewModifier<Value: Equatable>: ViewModifier {
-	private final class Debouncer: ObservableObject {
-		private var cancellable: AnyCancellable?
+	@State private var subject = PassthroughSubject<Void, Never>()
 
-		@Published var debouncedValue: Value
-
-		init(
-			wrappedValue: Value,
-			dueTime: TimeInterval,
-			action: @escaping (Value) -> Void
-		) {
-			self.debouncedValue = wrappedValue
-
-			self.cancellable = $debouncedValue
-				.debounce(for: .seconds(dueTime), scheduler: DispatchQueue.main)
-				.receive(on: DispatchQueue.main)
-				.sink {
-					action($0)
-				}
-		}
-	}
-
-	private let value: Value
-	private let initial: Bool
-	private let action: (Value) -> Void
-	@StateObject private var debouncer: Debouncer
-
-	init(
-		value: Value,
-		dueTime: TimeInterval,
-		initial: Bool,
-		action: @escaping (Value) -> Void
-	) {
-		self.value = value
-		self.initial = initial
-		self.action = action
-
-		self._debouncer = .init(
-			wrappedValue: Debouncer(
-				wrappedValue: value,
-				dueTime: dueTime,
-				action: action
-			)
-		)
-	}
+	let value: Value
+	let dueTime: TimeInterval
+	let initial: Bool
+	let action: (Value) -> Void
 
 	func body(content: Content) -> some View {
-		content
-			.onChange(of: value) {
-				debouncer.debouncedValue = $0
-			}
-			.onAppear {
-				guard initial else {
-					return
+		if #available(macOS 12, iOS 15, tvOS 15, watchOS 8, *) {
+			content
+				.onChange(of: value) { _ in
+					subject.send()
 				}
+				.task {
+					if initial {
+						subject.send()
+					}
 
-				// Try to work around SwiftUI crash. (macOS 12.1)
-				DispatchQueue.main.async {
+					let changes = subject
+						.debounce(for: .seconds(dueTime), scheduler: DispatchQueue.main)
+						.receive(on: DispatchQueue.main)
+						.values
+
+					for await _ in changes {
+						action(value)
+					}
+				}
+		} else {
+			content
+				.onChange(of: value) { _ in
+					subject.send()
+				}
+				.onReceive(
+					subject
+						.debounce(for: .seconds(dueTime), scheduler: DispatchQueue.main)
+						.receive(on: DispatchQueue.main)
+				) { _ in
 					action(value)
 				}
-			}
+				.onAppear {
+					if initial {
+						subject.send()
+					}
+				}
+		}
 	}
 }
 

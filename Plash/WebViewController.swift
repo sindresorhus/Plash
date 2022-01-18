@@ -233,7 +233,9 @@ extension WebViewController: WKUIDelegate {
 			return
 		}
 
-		webView.defaultAlertHandler(message: message)
+		return await MainActor.run { // TODO: Just to be sure. Remove when targeting macOS 13
+			webView.defaultAlertHandler(message: message)
+		}
 	}
 
 	func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo) async -> Bool {
@@ -241,7 +243,9 @@ extension WebViewController: WKUIDelegate {
 			return false
 		}
 
-		return webView.defaultConfirmHandler(message: message)
+		return await MainActor.run { // TODO: Just to be sure. Remove when targeting macOS 13
+			webView.defaultConfirmHandler(message: message)
+		}
 	}
 
 	func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo) async -> String? {
@@ -249,7 +253,9 @@ extension WebViewController: WKUIDelegate {
 			return nil
 		}
 
-		return webView.defaultPromptHandler(prompt: prompt, defaultText: defaultText)
+		return await MainActor.run { // TODO: Just to be sure. Remove when targeting macOS 13
+			webView.defaultPromptHandler(prompt: prompt, defaultText: defaultText)
+		}
 	}
 
 	// swiftlint:disable:next discouraged_optional_collection
@@ -258,7 +264,9 @@ extension WebViewController: WKUIDelegate {
 			return nil
 		}
 
-		return webView.defaultUploadPanelHandler(parameters: parameters)
+		return await MainActor.run { // TODO: Just to be sure. Remove when targeting macOS 13
+			webView.defaultUploadPanelHandler(parameters: parameters)
+		}
 	}
 
 	func webViewDidClose(_ webView: WKWebView) {
