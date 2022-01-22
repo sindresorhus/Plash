@@ -275,9 +275,11 @@ struct AddWebsiteView: View {
 
 		SSApp.runOnce(identifier: "editWebsiteTip") {
 			// TODO: Find a better way to inform the user about this.
-			NSAlert.showModal(
-				title: "Right-click a website in the list to edit it, toggle dark mode, add custom CSS/JavaScript, and more."
-			)
+			DispatchQueue.main.async { // Works around crash. (macOS 12.1)
+				NSAlert.showModal(
+					title: "Right-click a website in the list to edit it, toggle dark mode, add custom CSS/JavaScript, and more."
+				)
+			}
 		}
 	}
 
@@ -319,7 +321,10 @@ struct AddWebsiteView: View {
 		}
 
 		guard url.appendingPathComponent("index.html", isDirectory: false).exists else {
-			NSAlert.showModal(title: "Please choose a directory that contains a “index.html” file.")
+			// This prevents a crash. (macOS 12.1)
+			DispatchQueue.main.async {
+				NSAlert.showModal(title: "Please choose a directory that contains a “index.html” file.")
+			}
 			return await chooseLocalWebsite()
 		}
 
@@ -327,7 +332,10 @@ struct AddWebsiteView: View {
 			try SecurityScopedBookmarkManager.saveBookmark(for: url)
 		} catch {
 			// TODO: Show the error in SwiftUI.
-			NSApp.presentError(error)
+			DispatchQueue.main.async {
+				NSApp.presentError(error)
+			}
+
 			return nil
 		}
 
