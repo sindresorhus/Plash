@@ -175,10 +175,17 @@ extension WebViewController: WKNavigationDelegate {
 		internalOnLoaded(error)
 	}
 
-	func webView(_ webView: WKWebView, respondTo challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
+	func webView(_ webView: WKWebView, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
 		// We're intentionally allowing this in non-browsing mode as loading the URL would fail otherwise.
-		webView.defaultAuthChallengeHandler(challenge: challenge)
+
+		let response = webView.defaultAuthChallengeHandler(challenge: challenge)
+		completionHandler(response.0, response.1)
 	}
+
+//	func webView(_ webView: WKWebView, respondTo challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
+//		// We're intentionally allowing this in non-browsing mode as loading the URL would fail otherwise.
+//		webView.defaultAuthChallengeHandler(challenge: challenge)
+//	}
 }
 
 extension WebViewController: WKUIDelegate {
@@ -228,46 +235,86 @@ extension WebViewController: WKUIDelegate {
 		return webView
 	}
 
-	func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo) async {
+	func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping () -> Void) {
 		guard AppState.shared.isBrowsingMode else {
+			completionHandler()
 			return
 		}
 
-		return await MainActor.run { // TODO: Just to be sure. Remove when targeting macOS 13
-			webView.defaultAlertHandler(message: message)
-		}
+		webView.defaultAlertHandler(message: message)
+		completionHandler()
 	}
 
-	func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo) async -> Bool {
+	func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (Bool) -> Void) {
 		guard AppState.shared.isBrowsingMode else {
-			return false
+			completionHandler(false)
+			return
 		}
 
-		return await MainActor.run { // TODO: Just to be sure. Remove when targeting macOS 13
-			webView.defaultConfirmHandler(message: message)
-		}
+		completionHandler(webView.defaultConfirmHandler(message: message))
 	}
 
-	func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo) async -> String? {
+	func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping (String?) -> Void) {
 		guard AppState.shared.isBrowsingMode else {
-			return nil
+			completionHandler(nil)
+			return
 		}
 
-		return await MainActor.run { // TODO: Just to be sure. Remove when targeting macOS 13
-			webView.defaultPromptHandler(prompt: prompt, defaultText: defaultText)
-		}
+		completionHandler(webView.defaultPromptHandler(prompt: prompt, defaultText: defaultText))
 	}
 
 	// swiftlint:disable:next discouraged_optional_collection
-	func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo) async -> [URL]? {
+	func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo, completionHandler: @escaping ([URL]?) -> Void) {
 		guard AppState.shared.isBrowsingMode else {
-			return nil
+			completionHandler(nil)
+			return
 		}
 
-		return await MainActor.run { // TODO: Just to be sure. Remove when targeting macOS 13
-			webView.defaultUploadPanelHandler(parameters: parameters)
-		}
+		completionHandler(webView.defaultUploadPanelHandler(parameters: parameters))
 	}
+
+	// NOTE: Not using these async handlers as `NSAlert` cannot handle being called inside an async function: https://stackoverflow.com/questions/70358323/nsalert-runmodal-crashed-when-called-from-task-init
+
+//	func webView(_ webView: WKWebView, runJavaScriptAlertPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo) async {
+//		guard AppState.shared.isBrowsingMode else {
+//			return
+//		}
+//
+//		return await MainActor.run { // TODO: Just to be sure. Remove when targeting macOS 13
+//			webView.defaultAlertHandler(message: message)
+//		}
+//	}
+//
+//	func webView(_ webView: WKWebView, runJavaScriptConfirmPanelWithMessage message: String, initiatedByFrame frame: WKFrameInfo) async -> Bool {
+//		guard AppState.shared.isBrowsingMode else {
+//			return false
+//		}
+//
+//		return await MainActor.run { // TODO: Just to be sure. Remove when targeting macOS 13
+//			webView.defaultConfirmHandler(message: message)
+//		}
+//	}
+//
+//	func webView(_ webView: WKWebView, runJavaScriptTextInputPanelWithPrompt prompt: String, defaultText: String?, initiatedByFrame frame: WKFrameInfo) async -> String? {
+//		guard AppState.shared.isBrowsingMode else {
+//			return nil
+//		}
+//
+//		return await MainActor.run { // TODO: Just to be sure. Remove when targeting macOS 13
+//			webView.defaultPromptHandler(prompt: prompt, defaultText: defaultText)
+//		}
+//	}
+//
+//	// s----wiftlint:disable:next discouraged_optional_collection
+//	func webView(_ webView: WKWebView, runOpenPanelWith parameters: WKOpenPanelParameters, initiatedByFrame frame: WKFrameInfo) async -> [URL]? {
+//		guard AppState.shared.isBrowsingMode else {
+//			return nil
+//		}
+//
+//		return await MainActor.run { // TODO: Just to be sure. Remove when targeting macOS 13
+//			webView.defaultUploadPanelHandler(parameters: parameters)
+//		}
+//	}
 
 	func webViewDidClose(_ webView: WKWebView) {
 		if webView.window == popupWindow {
