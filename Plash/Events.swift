@@ -139,5 +139,9 @@ extension AppState {
 		KeyboardShortcuts.onKeyUp(for: .previousWebsite) {
 			WebsitesController.shared.makePreviousCurrent()
 		}
+
+		KeyboardShortcuts.onKeyUp(for: .randomWebsite) {
+			WebsitesController.shared.makeRandomCurrent()
+		}
 	}
 }

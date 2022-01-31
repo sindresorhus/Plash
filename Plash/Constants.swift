@@ -36,6 +36,7 @@ extension KeyboardShortcuts.Name {
 	static let reload = Self("reload")
 	static let nextWebsite = Self("nextWebsite")
 	static let previousWebsite = Self("previousWebsite")
+	static let randomWebsite = Self("randomWebsite")
 }
 
 extension Notification.Name {

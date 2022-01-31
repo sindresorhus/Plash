@@ -67,7 +67,7 @@ final class AppState: ObservableObject {
 					isBrowsingMode,
 					!error.localizedDescription.contains("No internet connection")
 				{
-					NSApp.presentError(error)
+					error.presentAsModal()
 				}
 
 				return

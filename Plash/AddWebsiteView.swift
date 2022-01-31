@@ -331,11 +331,7 @@ struct AddWebsiteView: View {
 		do {
 			try SecurityScopedBookmarkManager.saveBookmark(for: url)
 		} catch {
-			// TODO: Show the error in SwiftUI.
-			DispatchQueue.main.async {
-				NSApp.presentError(error)
-			}
-
+			error.presentAsModal()
 			return nil
 		}
 

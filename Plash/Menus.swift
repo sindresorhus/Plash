@@ -90,24 +90,33 @@ extension AppState {
 
 		menu.addSeparator()
 
+		menu.addCallbackItem(
+			"Reload",
+			isEnabled: WebsitesController.shared.current != nil
+		) { [weak self] in
+			self?.loadUserURL()
+		}
+			.setShortcut(for: .reload)
+
+		// TODO: Add an `Edit…` menu item here.
+
+		menu.addSeparator()
+
 		if WebsitesController.shared.all.count > 1 {
-			menu.addCallbackItem("Next Website") {
+			menu.addCallbackItem("Next") {
 				WebsitesController.shared.makeNextCurrent()
 			}
 				.setShortcut(for: .nextWebsite)
 
-			menu.addCallbackItem("Previous Website") {
+			menu.addCallbackItem("Previous") {
 				WebsitesController.shared.makePreviousCurrent()
 			}
 				.setShortcut(for: .previousWebsite)
 
-			menu.addCallbackItem(
-				"Reload Website",
-				isEnabled: WebsitesController.shared.current != nil
-			) { [weak self] in
-				self?.loadUserURL()
+			menu.addCallbackItem("Random") {
+				WebsitesController.shared.makeRandomCurrent()
 			}
-				.setShortcut(for: .reload)
+				.setShortcut(for: .randomWebsite)
 
 			menu.addItem("Switch")
 				.withSubmenu(createSwitchMenu())

@@ -2777,7 +2777,7 @@ enum SecurityScopedBookmarkManager {
 		do {
 			try accessURL(securityScopedURL, accessHandler: accessHandler)
 		} catch {
-			NSApp.presentError(error)
+			error.presentAsModal()
 			return
 		}
 	}
@@ -3075,23 +3075,6 @@ extension Error {
 	}
 
 	/**
-	Present the error as an async sheet on the given window if the window is not `nil`, otherwise as an app-modal dialog.
-
-	The function resumes when the sheet is dismissed.
-	*/
-	@MainActor
-	func presentAsSheetOrModal(for window: NSWindow?) async {
-		guard let window = window else {
-			await Task.yield()
-			SSApp.activateIfAccessory()
-			NSApp.presentError(self)
-			return
-		}
-
-		await presentAsSheet(for: window)
-	}
-
-	/**
 	Present the error as a blocking modal sheet on the given window.
 
 	If the window is nil, the error will be presented in an app-level modal dialog.
@@ -3135,8 +3118,26 @@ extension Error {
 	*/
 	@MainActor
 	func presentAsModal() {
-		SSApp.activateIfAccessory()
-		NSApp.presentError(self)
+		// It seems this is not yet working correctly: https://github.com/feedback-assistant/reports/issues/288
+//		SSApp.activateIfAccessory()
+//		NSApp.presentError(self)
+
+		presentAsModalLegacy()
+	}
+
+	/**
+	Present the error as an async sheet on the given window if the window is not `nil`, otherwise as an app-modal dialog.
+
+	The function resumes when the dialog is dismissed.
+	*/
+	@MainActor
+	func present(in window: NSWindow? = nil) async {
+		guard let window = window else {
+			presentAsModal()
+			return
+		}
+
+		await presentAsSheet(for: window)
 	}
 }
 

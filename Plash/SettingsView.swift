@@ -209,6 +209,12 @@ private struct ShortcutsSettings: View {
 					KeyboardShortcuts.Recorder(for: .previousWebsite)
 				}
 					.accessibilityElement(children: .combine)
+				HStack(alignment: .firstTextBaseline) {
+					Text("Random website:")
+						.frame(width: maxWidth, alignment: .trailing)
+					KeyboardShortcuts.Recorder(for: .randomWebsite)
+				}
+					.accessibilityElement(children: .combine)
 			}
 		}
 			.padding()
