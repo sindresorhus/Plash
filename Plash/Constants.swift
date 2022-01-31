@@ -41,4 +41,5 @@ extension KeyboardShortcuts.Name {
 
 extension Notification.Name {
 	static let showAddWebsiteDialog = Self("showAddWebsiteDialog")
+	static let showEditWebsiteDialog = Self("showEditWebsiteDialog")
 }

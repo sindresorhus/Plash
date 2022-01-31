@@ -90,6 +90,13 @@ private struct RowView: View {
 					website: $website
 				)
 			}
+			.onNotification(.showEditWebsiteDialog) { _ in
+				guard website.isCurrent else {
+					return
+				}
+
+				isShowingEditSheet = true
+			}
 			.contextMenu {
 				Button("Set as Current") {
 					website.makeCurrent()

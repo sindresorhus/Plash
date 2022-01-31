@@ -98,7 +98,33 @@ extension AppState {
 		}
 			.setShortcut(for: .reload)
 
-		// TODO: Add an `Edit…` menu item here.
+		menu.addCallbackItem(
+			"Browsing Mode",
+			isEnabled: WebsitesController.shared.current != nil,
+			isChecked: Defaults[.isBrowsingMode]
+		) {
+			Defaults[.isBrowsingMode].toggle()
+
+			SSApp.runOnce(identifier: "activatedBrowsingMode") {
+				DispatchQueue.main.async {
+					NSAlert.showModal(
+						title: "Browsing Mode lets you temporarily interact with the website. For example, to log into an account or scroll to a specific position on the website.",
+						message: "If you don't currently see the website, you might need to hide some windows to reveal the desktop."
+					)
+				}
+			}
+		}
+			.setShortcut(for: .toggleBrowsingMode)
+
+		menu.addCallbackItem(
+			"Edit…",
+			isEnabled: WebsitesController.shared.current != nil
+		) {
+			WebsitesWindowController.showWindow()
+
+			// TODO: Find a better way to do this.
+			NotificationCenter.default.post(name: .showEditWebsiteDialog, object: nil)
+		}
 
 		menu.addSeparator()
 
@@ -134,26 +160,6 @@ extension AppState {
 		menu.addCallbackItem("Websites…") {
 			WebsitesWindowController.showWindow()
 		}
-
-		menu.addSeparator()
-
-		menu.addCallbackItem(
-			"Browsing Mode",
-			isEnabled: WebsitesController.shared.current != nil,
-			isChecked: Defaults[.isBrowsingMode]
-		) {
-			Defaults[.isBrowsingMode].toggle()
-
-			SSApp.runOnce(identifier: "activatedBrowsingMode") {
-				DispatchQueue.main.async {
-					NSAlert.showModal(
-						title: "Browsing Mode lets you temporarily interact with the website. For example, to log into an account or scroll to a specific position on the website.",
-						message: "If you don't currently see the website, you might need to hide some windows to reveal the desktop."
-					)
-				}
-			}
-		}
-			.setShortcut(for: .toggleBrowsingMode)
 	}
 
 	func updateMenu() {
