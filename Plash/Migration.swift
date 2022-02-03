@@ -15,8 +15,7 @@ extension AppState {
 				isCurrent: true,
 				url: url.normalized(),
 				usePrintStyles: false,
-				css: Defaults[.customCSS],
-				invertColors: Defaults[.invertColors]
+				css: Defaults[.customCSS]
 			)
 		)
 	}
@@ -27,15 +26,11 @@ extension AppState {
 		}
 	}
 
-	private func migrateToWebsiteWithInvertColorsEnum() {
-		for website in WebsitesController.shared.allBinding {
-			website.wrappedValue.invertColors2 = website.wrappedValue.invertColors ? .always : .never
-		}
-	}
-
 	func migrate() {
-		migrateToWebsiteStruct()
-		migrateToAddTitle()
-		migrateToWebsiteWithInvertColorsEnum()
+		// Remove in 2023.
+		SSApp.runOnce(identifier: "migrateWebsiteStructAndAddTitle") {
+			migrateToWebsiteStruct()
+			migrateToAddTitle()
+		}
 	}
 }

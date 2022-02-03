@@ -24,7 +24,6 @@ extension Defaults.Keys {
 	// TODO: Remove at some point in the future. Not before 2023.
 	// Deprecated
 	static let url = Key<URL?>("url")
-	static let invertColors = Key<Bool>("invertColors", default: false)
 	static let customCSS = Key<String>("customCSS", default: "")
 }
 

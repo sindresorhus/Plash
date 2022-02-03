@@ -15,8 +15,7 @@ struct AddWebsiteView: View {
 		id: UUID(),
 		isCurrent: true,
 		url: ".",
-		usePrintStyles: false,
-		invertColors: false
+		usePrintStyles: false
 	)
 
 	private var isURLValid: Bool {

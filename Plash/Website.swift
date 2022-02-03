@@ -11,9 +11,6 @@ struct Website: Hashable, Codable, Identifiable {
 	var css = ""
 	var javaScript = ""
 
-	// Deprecated
-	var invertColors: Bool
-
 	var subtitle: String { url.humanString }
 
 	var menuTitle: String { title.isEmpty ? subtitle : title }
@@ -33,7 +30,7 @@ struct Website: Hashable, Codable, Identifiable {
 }
 
 extension Website {
-	enum InvertColors: String, CaseIterable, Codable, Defaults.Serializable {
+	enum InvertColors: String, CaseIterable, Codable {
 		case never
 		case always
 		case darkMode

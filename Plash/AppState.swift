@@ -114,7 +114,10 @@ final class AppState: ObservableObject {
 		}
 		#endif
 
-		Defaults.migrate(.websites, to: .v5)
+		// TODO: Remove in 2023.
+		SSApp.runOnce(identifier: "migrateToDefaultav5") {
+			Defaults.migrate(.websites, to: .v5)
+		}
 	}
 
 	func handleMenuBarIcon() {
