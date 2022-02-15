@@ -91,11 +91,13 @@ private struct RowView: View {
 				)
 			}
 			.onNotification(.showEditWebsiteDialog) { _ in
-				guard website.isCurrent else {
-					return
-				}
+				DispatchQueue.main.async { // Attempt at working around SwiftUI crash.
+					guard website.isCurrent else {
+						return
+					}
 
-				isShowingEditSheet = true
+					isShowingEditSheet = true
+				}
 			}
 			.contextMenu {
 				Button("Set as Current") {
