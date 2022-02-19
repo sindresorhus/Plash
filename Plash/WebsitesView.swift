@@ -210,7 +210,9 @@ struct WebsitesView: View {
 						}
 
 						return $0
-							.listStyle(.inset(alternatesRowBackgrounds: true))
+							.if(!websites.isEmpty) {
+								$0.listStyle(.inset(alternatesRowBackgrounds: true))
+							}
 							.eraseToAnyView()
 					}
 			}

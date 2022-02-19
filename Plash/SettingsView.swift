@@ -184,38 +184,17 @@ private struct ShortcutsSettings: View {
 
 	var body: some View {
 		Form {
-			VStack {
-				HStack(alignment: .firstTextBaseline) {
-					Text("Toggle browsing mode:")
-						.frame(width: maxWidth, alignment: .trailing)
-					KeyboardShortcuts.Recorder(for: .toggleBrowsingMode)
-				}
-					.accessibilityElement(children: .combine)
-				HStack(alignment: .firstTextBaseline) {
-					Text("Reload website:")
-						.frame(width: maxWidth, alignment: .trailing)
-					KeyboardShortcuts.Recorder(for: .reload)
-				}
-					.accessibilityElement(children: .combine)
-				HStack(alignment: .firstTextBaseline) {
-					Text("Next website:")
-						.frame(width: maxWidth, alignment: .trailing)
-					KeyboardShortcuts.Recorder(for: .nextWebsite)
-				}
-					.accessibilityElement(children: .combine)
-				HStack(alignment: .firstTextBaseline) {
-					Text("Previous website:")
-						.frame(width: maxWidth, alignment: .trailing)
-					KeyboardShortcuts.Recorder(for: .previousWebsite)
-				}
-					.accessibilityElement(children: .combine)
-				HStack(alignment: .firstTextBaseline) {
-					Text("Random website:")
-						.frame(width: maxWidth, alignment: .trailing)
-					KeyboardShortcuts.Recorder(for: .randomWebsite)
-				}
-					.accessibilityElement(children: .combine)
-			}
+			KeyboardShortcuts.Recorder(for: .toggleBrowsingMode)
+				.formLabel("Toggle browsing mode:")
+				.fixedSize()
+			KeyboardShortcuts.Recorder(for: .reload)
+				.formLabel("Reload website:")
+			KeyboardShortcuts.Recorder(for: .nextWebsite)
+				.formLabel("Next website:")
+			KeyboardShortcuts.Recorder(for: .previousWebsite)
+				.formLabel("Previous website:")
+			KeyboardShortcuts.Recorder(for: .randomWebsite)
+				.formLabel("Random website:")
 		}
 			.padding()
 			.padding()

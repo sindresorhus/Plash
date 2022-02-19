@@ -5855,3 +5855,35 @@ struct CloseOrClearButton: View {
 			.iconButtonStyle()
 	}
 }
+
+
+extension HorizontalAlignment {
+	private enum ControlAlignment: AlignmentID {
+		static func defaultValue(in context: ViewDimensions) -> CGFloat { // swiftlint:disable:this no_cgfloat
+			context[HorizontalAlignment.center]
+		}
+	}
+
+	static let controlAlignment = Self(ControlAlignment.self)
+}
+
+extension View {
+	/*
+	Attaches a label to this view for laying out in a `Form`.
+
+	When controls are directly inside a `Form`, they get properly aligned.
+	*/
+	func formLabel<Label: View>(@ViewBuilder _ label: () -> Label) -> some View {
+		HStack {
+			label()
+			alignmentGuide(.controlAlignment) { $0[.leading] }
+		}
+			.alignmentGuide(.leading) { $0[.controlAlignment] }
+	}
+
+	func formLabel(_ title: String) -> some View {
+		formLabel {
+			Text(title)
+		}
+	}
+}
