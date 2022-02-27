@@ -4,6 +4,8 @@ import Defaults
 
 @MainActor
 final class SSWebView: WKWebView {
+	override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
 	private var cancellables = Set<AnyCancellable>()
 
 	private var excludedMenuItems: Set<MenuItemIdentifier> = [
