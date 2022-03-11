@@ -23,7 +23,7 @@ final class ShareViewController: NSViewController {
 		Task { @MainActor in // Not sure if this is needed, but added just in case.
 			let url: URL?
 			do {
-				url = try await attachment.loadObject(ofClass: NSURL.self) as URL?
+				url = try await attachment.loadObject(ofClass: URL.self)
 			} catch {
 				extensionContext!.cancelRequest(withError: error)
 				return

@@ -37,6 +37,24 @@ extension NSItemProvider {
 			}
 		}
 	}
+
+	func loadObject<T>(ofClass: T.Type) async throws -> T? where T: _ObjectiveCBridgeable, T._ObjectiveCType: NSItemProviderReading {
+		try await withCheckedThrowingContinuation { continuation in
+			_ = loadObject(ofClass: ofClass) { data, error in
+				if let error = error {
+					continuation.resume(throwing: error)
+					return
+				}
+
+				guard let image = data else {
+					continuation.resume(returning: nil)
+					return
+				}
+
+				continuation.resume(returning: image)
+			}
+		}
+	}
 }
 
 

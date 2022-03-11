@@ -1300,6 +1300,24 @@ extension NSAlert {
 }
 
 
+extension NSAlert {
+	/**
+	Workaround to allow using `NSAlert` in a `Task`.
+
+	[FB9857161](https://github.com/feedback-assistant/reports/issues/288)
+	*/
+	@MainActor
+	@discardableResult
+	func run() async -> NSApplication.ModalResponse {
+		await withCheckedContinuation { continuation in
+			DispatchQueue.main.async { [self] in
+				continuation.resume(returning: runModal())
+			}
+		}
+	}
+}
+
+
 extension NSEvent {
 	static var modifiers: ModifierFlags {
 		modifierFlags
@@ -1469,30 +1487,30 @@ extension WKWebView {
 	Default handler for JavaScript `alert()` to be used in `WKDelegate`.
 	*/
 	@MainActor
-	func defaultAlertHandler(message: String) {
+	func defaultAlertHandler(message: String) async {
 		let alert = NSAlert()
 		alert.messageText = message
-		alert.runModal()
+		await alert.run()
 	}
 
 	/**
 	Default handler for JavaScript `confirm()` to be used in `WKDelegate`.
 	*/
 	@MainActor
-	func defaultConfirmHandler(message: String) -> Bool {
+	func defaultConfirmHandler(message: String) async -> Bool {
 		let alert = NSAlert()
 		alert.alertStyle = .informational
 		alert.messageText = message
 		alert.addButton(withTitle: "OK")
 		alert.addButton(withTitle: "Cancel")
-		return alert.runModal() == .alertFirstButtonReturn
+		return await alert.run() == .alertFirstButtonReturn
 	}
 
 	/**
 	Default handler for JavaScript `prompt()` to be used in `WKDelegate`.
 	*/
 	@MainActor
-	func defaultPromptHandler(prompt: String, defaultText: String?) -> String? {
+	func defaultPromptHandler(prompt: String, defaultText: String?) async -> String? {
 		let alert = NSAlert()
 		alert.alertStyle = .informational
 		alert.messageText = prompt
@@ -1503,14 +1521,14 @@ extension WKWebView {
 		textField.stringValue = defaultText ?? ""
 		alert.accessoryView = textField
 
-		return alert.runModal() == .alertFirstButtonReturn ? textField.stringValue : nil
+		return await alert.run() == .alertFirstButtonReturn ? textField.stringValue : nil
 	}
 
 	/**
 	Default handler for JavaScript initiated upload panel to be used in `WKDelegate`.
 	*/
 	@MainActor
-	func defaultUploadPanelHandler(parameters: WKOpenPanelParameters) -> [URL]? { // swiftlint:disable:this discouraged_optional_collection
+	func defaultUploadPanelHandler(parameters: WKOpenPanelParameters) async -> [URL]? { // swiftlint:disable:this discouraged_optional_collection
 		let openPanel = NSOpenPanel()
 		openPanel.level = .floating
 		openPanel.prompt = "Choose"
@@ -1519,7 +1537,7 @@ extension WKWebView {
 		openPanel.canChooseDirectories = parameters.allowsDirectories
 
 		// It's intentionally modal as we don't want the user to interact with the website until they're done with the panel.
-		return openPanel.runModal() == .OK ? openPanel.urls : nil
+		return await openPanel.begin() == .OK ? openPanel.urls : nil
 	}
 
 	// Can be tested at https://jigsaw.w3.org/HTTP/Basic/ with `guest` as username and password.
@@ -1527,7 +1545,7 @@ extension WKWebView {
 	Default handler for websites requiring basic authentication. To be used in `WKDelegate`.
 	*/
 	@MainActor
-	func defaultAuthChallengeHandler(challenge: URLAuthenticationChallenge) -> (URLSession.AuthChallengeDisposition, URLCredential?) {
+	func defaultAuthChallengeHandler(challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
 		guard
 			let host = url?.host,
 			challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodHTTPBasic
@@ -1559,7 +1577,7 @@ extension WKWebView {
 
 		SSApp.activateIfAccessory()
 
-		guard alert.runModal() == .alertFirstButtonReturn else {
+		guard await alert.run() == .alertFirstButtonReturn else {
 			return (.rejectProtectionSpace, nil)
 		}
 
@@ -1904,7 +1922,7 @@ extension NSScreen {
 	This can be useful if you store a reference to a `NSScreen` instance as it may have been disconnected.
 	*/
 	var isConnected: Bool {
-		Self.screens.contains { $0 == self }
+		Self.screens.contains { $0.id == id }
 	}
 
 	/**
@@ -2840,7 +2858,8 @@ extension URL {
 	*/
 	func normalized(
 		removeFragment: Bool = false,
-		removeQuery: Bool = false
+		removeQuery: Bool = false,
+		removeDefaultPort: Bool = true
 	) -> Self {
 		let url = absoluteURL.standardized
 
@@ -2853,7 +2872,7 @@ extension URL {
 		}
 
 		// Remove port 80 if it's there as it's the default.
-		if components.port == 80 {
+		if removeDefaultPort, components.port == 80 {
 			components.port = nil
 		}
 
@@ -3155,7 +3174,7 @@ extension Error {
 	public var isCancelled: Bool {
 		do {
 			throw self
-		} catch URLError.cancelled, CocoaError.userCancelled {
+		} catch is CancellationError, URLError.cancelled, CocoaError.userCancelled {
 			return true
 		} catch {
 			return false
@@ -3854,6 +3873,24 @@ extension NSItemProvider {
 				}
 
 				guard let image = data as? T else {
+					continuation.resume(returning: nil)
+					return
+				}
+
+				continuation.resume(returning: image)
+			}
+		}
+	}
+
+	func loadObject<T>(ofClass: T.Type) async throws -> T? where T: _ObjectiveCBridgeable, T._ObjectiveCType: NSItemProviderReading {
+		try await withCheckedThrowingContinuation { continuation in
+			_ = loadObject(ofClass: ofClass) { data, error in
+				if let error = error {
+					continuation.resume(throwing: error)
+					return
+				}
+
+				guard let image = data else {
 					continuation.resume(returning: nil)
 					return
 				}

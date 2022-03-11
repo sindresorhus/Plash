@@ -10,7 +10,7 @@ final class DesktopWindow: NSWindow {
 
 	private var cancellables = Set<AnyCancellable>()
 
-	var targetScreen: NSScreen? {
+	var targetDisplay: Display? {
 		didSet {
 			setFrame()
 		}
@@ -32,7 +32,7 @@ final class DesktopWindow: NSWindow {
 		}
 	}
 
-	convenience init(screen: NSScreen?) {
+	convenience init(display: Display?) {
 		self.init(
 			contentRect: .zero,
 			styleMask: [
@@ -42,7 +42,7 @@ final class DesktopWindow: NSWindow {
 			defer: false
 		)
 
-		self.targetScreen = screen
+		self.targetDisplay = display
 
 		self.isOpaque = false
 		self.backgroundColor = .clear
@@ -68,7 +68,7 @@ final class DesktopWindow: NSWindow {
 
 	private func setFrame() {
 		// Ensure the screen still exists.
-		guard let screen = targetScreen?.withFallbackToMain ?? .main else {
+		guard let screen = targetDisplay?.screen ?? .main else {
 			return
 		}
 

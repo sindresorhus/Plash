@@ -92,7 +92,7 @@ struct AddWebsiteView: View {
 						urlString = $0.absoluteString
 					}
 					.onChange(of: urlString) {
-						guard let url = URL(humanString: $0)?.normalized() else {
+						guard let url = URL(humanString: $0) else {
 							// Makes the “Revert” button work if the user clears the URL field.
 							if urlString.trimmed.isEmpty {
 								website.wrappedValue.url = "-"
@@ -102,6 +102,10 @@ struct AddWebsiteView: View {
 						}
 
 						website.wrappedValue.url = url
+							.normalized(
+								// We need to allow typing `http://172.16.0.100:8080`.
+								removeDefaultPort: false
+							)
 					}
 					.onChangeDebounced(of: urlString, dueTime: 0.5) { _ in
 						Task {
@@ -366,6 +370,7 @@ struct AddWebsiteView: View {
 
 		let metadataProvider = LPMetadataProvider()
 		metadataProvider.shouldFetchSubresources = false
+		metadataProvider.timeout = 5
 
 		guard
 			let metadata = try? await metadataProvider.startFetchingMetadata(for: url),

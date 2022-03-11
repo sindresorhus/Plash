@@ -23,7 +23,7 @@ final class AppState: ObservableObject {
 
 	private(set) lazy var webViewController = WebViewController()
 
-	private(set) lazy var desktopWindow = with(DesktopWindow(screen: Defaults[.display].screen)) {
+	private(set) lazy var desktopWindow = with(DesktopWindow(display: Defaults[.display])) {
 		$0.contentView = webViewController.webView
 		$0.contentView?.isHidden = true
 	}
@@ -220,7 +220,7 @@ final class AppState: ObservableObject {
 	func replacePlaceholders(of url: URL) throws -> URL? {
 		// Here we swap out `[[screenWidth]]` and `[[screenHeight]]` for their actual values.
 		// We proceed only if we have an `NSScreen` to work with.
-		guard let screen = desktopWindow.targetScreen?.withFallbackToMain ?? .main else {
+		guard let screen = desktopWindow.targetDisplay?.screen ?? .main else {
 			return nil
 		}
 

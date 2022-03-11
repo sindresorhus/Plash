@@ -100,7 +100,7 @@ extension AppState {
 
 		Defaults.publisher(.display, options: [])
 			.sink { [self] change in
-				desktopWindow.targetScreen = change.newValue.screen
+				desktopWindow.targetDisplay = change.newValue
 			}
 			.store(in: &cancellables)
 
