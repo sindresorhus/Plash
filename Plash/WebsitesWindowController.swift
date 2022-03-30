@@ -8,7 +8,7 @@ final class WebsitesWindowController: SingletonWindowController {
 		let window = SwiftUIWindowForMenuBarApp()
 		self.init(window: window)
 
-		let view = WebsitesView()
+		let view = WebsitesScreen()
 
 		window.title = "Websites"
 		window.styleMask = [
@@ -17,7 +17,7 @@ final class WebsitesWindowController: SingletonWindowController {
 			.closable
 		]
 		window.level = .modalPanel
-		window.contentView = NSHostingView(rootView: view)
+		window.contentViewController = NSHostingController(rootView: view)
 		window.center()
 	}
 }

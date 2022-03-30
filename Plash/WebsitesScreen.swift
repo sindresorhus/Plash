@@ -85,7 +85,7 @@ private struct RowView: View {
 //			}
 			.help(website.tooltip)
 			.sheet(isPresented: $isShowingEditSheet) {
-				AddWebsiteView(
+				AddWebsiteScreen(
 					isEditing: true,
 					website: $website
 				)
@@ -122,7 +122,7 @@ private struct RowView: View {
 	}
 }
 
-struct WebsitesView: View {
+struct WebsitesScreen: View {
 	@Default(.websites) private var websites
 	@State private var isShowingAddSheet = false
 	@Namespace private var bottomScrollID
@@ -222,7 +222,7 @@ struct WebsitesView: View {
 				height: 520
 			)
 			.sheet(isPresented: $isShowingAddSheet) {
-				AddWebsiteView(
+				AddWebsiteScreen(
 					isEditing: false,
 					website: nil
 				)
@@ -249,8 +249,8 @@ struct WebsitesView: View {
 	}
 }
 
-struct ManageWebsitesView_Previews: PreviewProvider {
+struct WebsitesScreen_Previews: PreviewProvider {
 	static var previews: some View {
-		WebsitesView()
+		WebsitesScreen()
 	}
 }

@@ -184,17 +184,12 @@ private struct ShortcutsSettings: View {
 
 	var body: some View {
 		Form {
-			KeyboardShortcuts.Recorder(for: .toggleBrowsingMode)
-				.formLabel("Toggle browsing mode:")
+			KeyboardShortcuts.Recorder("Toggle browsing mode:", name: .toggleBrowsingMode)
 				.fixedSize()
-			KeyboardShortcuts.Recorder(for: .reload)
-				.formLabel("Reload website:")
-			KeyboardShortcuts.Recorder(for: .nextWebsite)
-				.formLabel("Next website:")
-			KeyboardShortcuts.Recorder(for: .previousWebsite)
-				.formLabel("Previous website:")
-			KeyboardShortcuts.Recorder(for: .randomWebsite)
-				.formLabel("Random website:")
+			KeyboardShortcuts.Recorder("Reload website:", name: .reload)
+			KeyboardShortcuts.Recorder("Next website:", name: .nextWebsite)
+			KeyboardShortcuts.Recorder("Previous website:", name: .previousWebsite)
+			KeyboardShortcuts.Recorder("Random website:", name: .randomWebsite)
 		}
 			.padding()
 			.padding()
@@ -228,7 +223,7 @@ private struct AdvancedSettings: View {
 	}
 }
 
-struct SettingsView: View {
+struct SettingsScreen: View {
 	var body: some View {
 		TabView {
 			GeneralSettings()
@@ -243,8 +238,8 @@ struct SettingsView: View {
 	}
 }
 
-struct SettingsView_Previews: PreviewProvider {
+struct SettingsScreen_Previews: PreviewProvider {
 	static var previews: some View {
-		SettingsView()
+		SettingsScreen()
 	}
 }

@@ -2015,11 +2015,11 @@ struct Display: Hashable, Codable, Identifiable {
 }
 
 
-extension String {
+extension StringProtocol {
 	/**
 	Word wrap the string at the given length.
 	*/
-	func wrapped(atLength length: Int) -> Self {
+	func wordWrapped(atLength length: Int) -> String {
 		var string = ""
 		var currentLineLength = 0
 
@@ -4660,7 +4660,7 @@ TODO when Swift 5.5 is out:
 - Use only a single `evaluateJavaScript` call.
 - Run on DOM-ready instad of when the whole page has loaded.
 	- If not possible, block all subresources: https://stackoverflow.com/questions/32119975/how-to-block-external-resources-to-load-on-a-wkwebview
-- Make the thumbnail in WebsitesView not upscale when using 32x32 favicon.
+- Make the thumbnail in WebsitesScreen not upscale when using 32x32 favicon.
 - Support specifying target size and have it return the one closest above the target size, if any.
 - Use the icons in the "Switch" menu.
 */
@@ -5890,37 +5890,5 @@ struct CloseOrClearButton: View {
 	var body: some View {
 		Button(title, systemImage: "xmark.circle.fill", action: action)
 			.iconButtonStyle()
-	}
-}
-
-
-extension HorizontalAlignment {
-	private enum ControlAlignment: AlignmentID {
-		static func defaultValue(in context: ViewDimensions) -> CGFloat { // swiftlint:disable:this no_cgfloat
-			context[HorizontalAlignment.center]
-		}
-	}
-
-	static let controlAlignment = Self(ControlAlignment.self)
-}
-
-extension View {
-	/*
-	Attaches a label to this view for laying out in a `Form`.
-
-	When controls are directly inside a `Form`, they get properly aligned.
-	*/
-	func formLabel<Label: View>(@ViewBuilder _ label: () -> Label) -> some View {
-		HStack {
-			label()
-			alignmentGuide(.controlAlignment) { $0[.leading] }
-		}
-			.alignmentGuide(.leading) { $0[.controlAlignment] }
-	}
-
-	func formLabel(_ title: String) -> some View {
-		formLabel {
-			Text(title)
-		}
 	}
 }

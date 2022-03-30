@@ -3,7 +3,7 @@ import Combine
 import LinkPresentation
 import Defaults
 
-struct AddWebsiteView: View {
+struct AddWebsiteScreen: View {
 	@Environment(\.presentationMode) private var presentationMode
 	@State private var nativeWindow: NSWindow?
 	@State private var isFetchingTitle = false
@@ -387,9 +387,9 @@ struct AddWebsiteView: View {
 	}
 }
 
-struct AddWebsiteView_Previews: PreviewProvider {
+struct AddWebsiteScreen_Previews: PreviewProvider {
 	static var previews: some View {
-		AddWebsiteView(
+		AddWebsiteScreen(
 			isEditing: false,
 			website: nil
 		)

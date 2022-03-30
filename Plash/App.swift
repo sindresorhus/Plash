@@ -20,7 +20,7 @@ struct AppMain: App {
 			if false {}
 		}
 		Settings {
-			SettingsView()
+			SettingsScreen()
 				.environmentObject(appState)
 		}
 	}
