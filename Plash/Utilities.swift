@@ -391,7 +391,7 @@ extension NSMenu {
 
 
 enum SSApp {
-	static let id = Bundle.main.bundleIdentifier!
+	static let idString = Bundle.main.bundleIdentifier!
 	static let name = Bundle.main.object(forInfoDictionaryKey: kCFBundleNameKey as String) as! String
 	static let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as! String
 	static let build = Bundle.main.object(forInfoDictionaryKey: kCFBundleVersionKey as String) as! String
@@ -417,7 +417,7 @@ enum SSApp {
 	static func openSendFeedbackPage() {
 		let metadata =
 			"""
-			\(SSApp.name) \(SSApp.versionWithBuild) - \(SSApp.id)
+			\(SSApp.name) \(SSApp.versionWithBuild) - \(SSApp.idString)
 			macOS \(Device.osVersion)
 			\(Device.hardwareModel)
 			"""
@@ -1808,6 +1808,18 @@ extension WKPreferences {
 }
 
 
+extension WKPreferences {
+	var isFullscreenEnabled: Bool {
+		get {
+			value(forKey: "fullScreenEnabled") as? Bool ?? false
+		}
+		set {
+			setValue(newValue, forKey: "fullScreenEnabled")
+		}
+	}
+}
+
+
 extension WKWindowFeatures {
 	/**
 	The size of the window.
@@ -3003,7 +3015,7 @@ extension NSError {
 		}
 
 		return .init(
-			domain: domainPostfix.map { "\(SSApp.id) - \($0)" } ?? SSApp.id,
+			domain: domainPostfix.map { "\(SSApp.idString) - \($0)" } ?? SSApp.idString,
 			code: 1, // This is what Swift errors end up as.
 			userInfo: userInfo
 		)
@@ -5890,5 +5902,52 @@ struct CloseOrClearButton: View {
 	var body: some View {
 		Button(title, systemImage: "xmark.circle.fill", action: action)
 			.iconButtonStyle()
+	}
+}
+
+
+extension URL {
+	/**
+	Get various common system directories.
+	*/
+	static func systemDirectory(_ directory: FileManager.SearchPathDirectory) -> Self {
+		// I don't think this can fail, but just in case, we have a sensible fallback.
+		let url = (try? FileManager.default.url(for: directory, in: .userDomainMask, appropriateFor: nil, create: false)) ?? FileManager.default.temporaryDirectory
+
+		// This is needed as in sanboxed app's, the returned URL is sometimes a symlink inside the sandbox container.
+		return url.resolvingSymlinksInPath()
+	}
+
+	static let downloadsDirectory = systemDirectory(.downloadsDirectory)
+}
+
+
+extension NSWorkspace {
+	/**
+	Bounces the Downloads folder in the Dock if present.
+
+	Specify the URL to a file in the Downloads folder.
+	*/
+	func bounceDownloadsFolderInDock(for url: URL) {
+		DistributedNotificationCenter.default().post(name: .init("com.apple.DownloadFileFinished"), object: url.path)
+	}
+}
+
+
+extension URL {
+	func incrementalFilename() -> Self {
+		let pathExtension = pathExtension
+		let filename = deletingPathExtension().lastPathComponent
+		var url = self
+		var counter = 0
+
+		while FileManager.default.fileExists(atPath: url.path) {
+			counter += 1
+			url.deleteLastPathComponent()
+			url.appendPathComponent("\(filename) (\(counter))", isDirectory: false)
+			url.appendPathExtension(pathExtension)
+		}
+
+		return url
 	}
 }

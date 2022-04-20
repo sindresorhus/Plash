@@ -7,6 +7,7 @@ import Defaults
 final class WebViewController: NSViewController {
 	private var popupWindow: NSWindow?
 	private let didLoadSubject = PassthroughSubject<Void, Error>()
+	private var currentDownloadFile: URL?
 
 	/**
 	Publishes when the web view finishes loading a page.
@@ -33,6 +34,7 @@ final class WebViewController: NSViewController {
 		let preferences = WKPreferences()
 		preferences.javaScriptCanOpenWindowsAutomatically = false
 		preferences.isDeveloperExtrasEnabled = true
+		preferences.isFullscreenEnabled = true
 		configuration.preferences = preferences
 
 		let webView = SSWebView(frame: .zero, configuration: configuration)
@@ -147,6 +149,10 @@ extension WebViewController: WKNavigationDelegate {
 			return .cancel
 		}
 
+		if navigationAction.shouldPerformDownload {
+			return .download
+		}
+
 		return .allow
 	}
 
@@ -158,7 +164,7 @@ extension WebViewController: WKNavigationDelegate {
 			self.response = response
 		}
 
-		return .allow
+		return navigationResponse.canShowMIMEType ? .allow : .download
 	}
 
 	func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
@@ -178,6 +184,14 @@ extension WebViewController: WKNavigationDelegate {
 	func webView(_ webView: WKWebView, respondTo challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
 		// We're intentionally allowing this in non-browsing mode as loading the URL would fail otherwise.
 		await webView.defaultAuthChallengeHandler(challenge: challenge)
+	}
+
+	func webView(_ webView: WKWebView, navigationAction: WKNavigationAction, didBecome download: WKDownload) {
+		download.delegate = self
+	}
+
+	func webView(_ webView: WKWebView, navigationResponse: WKNavigationResponse, didBecome download: WKDownload) {
+		download.delegate = self
 	}
 }
 
@@ -259,5 +273,25 @@ extension WebViewController: WKUIDelegate {
 			popupWindow?.close()
 			popupWindow = nil
 		}
+	}
+}
+
+extension WebViewController: WKDownloadDelegate {
+	func download(_ download: WKDownload, decideDestinationUsing response: URLResponse, suggestedFilename: String) async -> URL? {
+		let url = URL.downloadsDirectory.appendingPathComponent(suggestedFilename).incrementalFilename()
+		currentDownloadFile = url
+		return url
+	}
+
+	func downloadDidFinish(_ download: WKDownload) {
+		guard let currentDownloadFile = currentDownloadFile else {
+			return
+		}
+
+		NSWorkspace.shared.bounceDownloadsFolderInDock(for: currentDownloadFile)
+	}
+
+	func download(_ download: WKDownload, didFailWithError error: Error, resumeData: Data?) {
+		error.presentAsModal()
 	}
 }

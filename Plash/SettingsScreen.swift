@@ -56,7 +56,7 @@ private struct ReloadIntervalSetting: View {
 	private static let reloadIntervalFormatter: NumberFormatter = {
 		let formatter = NumberFormatter()
 		formatter.formattingContext = .standalone
-		formatter.locale = Locale.autoupdatingCurrent
+		formatter.locale = .autoupdatingCurrent
 		formatter.numberStyle = .decimal
 		formatter.minimum = minimumReloadInterval as NSNumber
 		formatter.minimumFractionDigits = 1
@@ -234,7 +234,7 @@ struct SettingsScreen: View {
 				.settingsTabItem(.advanced)
 		}
 			.frame(width: 340)
-			.windowLevel(.modalPanel)
+			.windowLevel(.floating)
 	}
 }
 
