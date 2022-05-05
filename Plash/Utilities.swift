@@ -3394,6 +3394,8 @@ extension URL {
 
 		let isValid = string.contains(".")
 			|| string.hasPrefix("localhost")
+			|| string.hasPrefix("http://localhost")
+			|| string.hasPrefix("https://localhost")
 			|| string.hasPrefix("file://")
 
 		guard

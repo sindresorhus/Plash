@@ -96,6 +96,8 @@ struct AddWebsiteScreen: View {
 							// Makes the “Revert” button work if the user clears the URL field.
 							if urlString.trimmed.isEmpty {
 								website.wrappedValue.url = "-"
+							} else if let url = URL(string: $0) {
+								website.wrappedValue.url = url
 							}
 
 							return
@@ -259,7 +261,7 @@ struct AddWebsiteScreen: View {
 							}
 						}
 					}
-						.disabled(!isURLValid || isFetchingTitle)
+						.disabled(!isURLValid)
 				}
 			}
 	}

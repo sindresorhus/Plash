@@ -60,7 +60,9 @@ final class AppState: ObservableObject {
 		didSet {
 			if let error = webViewError {
 				statusItemButton.toolTip = "Error: \(error.localizedDescription)"
-				statusItemButton.contentTintColor = .systemRed
+
+				// TODO: There's a macOS bug that makes it black instead of a color.
+//				statusItemButton.contentTintColor = .systemRed
 
 				// TODO: Also present the error when the user just added it from the input box as then it's also "interactive".
 				if
