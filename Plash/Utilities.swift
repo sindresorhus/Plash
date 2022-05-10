@@ -417,13 +417,13 @@ enum SSApp {
 	static func openSendFeedbackPage() {
 		let metadata =
 			"""
-			\(SSApp.name) \(SSApp.versionWithBuild) - \(SSApp.idString)
+			\(name) \(versionWithBuild) - \(idString)
 			macOS \(Device.osVersion)
 			\(Device.hardwareModel)
 			"""
 
 		let query: [String: String] = [
-			"product": SSApp.name,
+			"product": name,
 			"metadata": metadata
 		]
 
@@ -575,7 +575,7 @@ extension Sequence {
 
 extension Dictionary {
 	func compactValues<T>() -> [Key: T] where Value == T? {
-		// TODO: Make this `compactMapValues(\.self)` when https://bugs.swift.org/browse/SR-12897 is fixed.
+		// TODO: Make this `compactMapValues(\.self)` when https://github.com/apple/swift/issues/55343 is fixed.
 		compactMapValues { $0 }
 	}
 }
@@ -4732,7 +4732,6 @@ final class WebsiteIconFetcher: NSObject {
 
 	private var url: URL?
 	private var continuation: CheckedContinuation<Void, Error>?
-	private var isLoaded = false
 
 	private func getImage(_ url: URL) async throws -> NSImage? {
 		let (data, _) = try await URLSession.shared.data(from: url)
@@ -4892,21 +4891,18 @@ extension WebsiteIconFetcher: WKNavigationDelegate {
 	}
 
 	func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
-		// For some reason, this is sometimes called more than once. We have to guard against that as `.resume()` can only be called once. (macOS 11.5)
-		guard !isLoaded else {
-			return
-		}
-
 		continuation?.resume()
-		isLoaded = true
+		continuation = nil // These delegate methods can be called multiple times.
 	}
 
 	func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
 		continuation?.resume(throwing: error)
+		continuation = nil
 	}
 
 	func webView(_ webView: WKWebView, didFailProvisionalNavigation navigation: WKNavigation!, withError error: Error) {
 		continuation?.resume(throwing: error)
+		continuation = nil
 	}
 }
 
@@ -5701,7 +5697,7 @@ struct EnumPicker<Enum, Label, Content>: View where Enum: CaseIterable & Equatab
 	@ViewBuilder let label: () -> Label
 
 	var body: some View {
-		Picker(selection: enumBinding.caseIndex) {
+		Picker(selection: enumBinding.caseIndex) { // swiftlint:disable:this multiline_arguments
 			ForEach(Array(Enum.allCases).indexed(), id: \.0) { index, element in
 				// TODO: Is `isSelected` really useful? If not, remove it.
 				content(element, element == enumBinding.wrappedValue)

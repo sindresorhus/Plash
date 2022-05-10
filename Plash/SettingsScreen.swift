@@ -156,24 +156,22 @@ private struct ClearWebsiteDataSetting: View {
 
 private struct GeneralSettings: View {
 	var body: some View {
-		Form {
-			VStack {
-				VStack(alignment: .leading) {
-					LaunchAtLogin.Toggle()
-					ShowOnAllSpacesSetting()
-					Defaults.Toggle("Deactivate while on battery", key: .deactivateOnBattery)
-				}
-					.padding()
-					.padding(.horizontal)
-				Divider()
-				OpacitySetting()
-					.padding()
-					.padding(.horizontal)
-				Divider()
-				ReloadIntervalSetting()
-					.padding()
-					.padding(.horizontal)
+		VStack {
+			VStack(alignment: .leading) {
+				LaunchAtLogin.Toggle()
+				ShowOnAllSpacesSetting()
+				Defaults.Toggle("Deactivate while on battery", key: .deactivateOnBattery)
 			}
+				.padding()
+				.padding(.horizontal)
+			Divider()
+			OpacitySetting()
+				.padding()
+				.padding(.horizontal)
+			Divider()
+			ReloadIntervalSetting()
+				.padding()
+				.padding(.horizontal)
 		}
 			.padding(.vertical)
 	}
@@ -199,25 +197,23 @@ private struct ShortcutsSettings: View {
 
 private struct AdvancedSettings: View {
 	var body: some View {
-		Form {
-			VStack {
-				VStack(alignment: .leading) {
-					BringBrowsingModeToFrontSetting()
-					OpenExternalLinksInBrowserSetting()
-					HideMenuBarIconSetting()
-					Defaults.Toggle("Mute audio", key: .muteAudio)
-				}
-					.padding()
-					.padding(.horizontal)
-				Divider()
-				DisplaySetting()
-					.padding()
-					.padding(.horizontal)
-				Divider()
-				ClearWebsiteDataSetting()
-					.padding()
-					.padding(.horizontal)
+		VStack {
+			VStack(alignment: .leading) {
+				BringBrowsingModeToFrontSetting()
+				OpenExternalLinksInBrowserSetting()
+				HideMenuBarIconSetting()
+				Defaults.Toggle("Mute audio", key: .muteAudio)
 			}
+				.padding()
+				.padding(.horizontal)
+			Divider()
+			DisplaySetting()
+				.padding()
+				.padding(.horizontal)
+			Divider()
+			ClearWebsiteDataSetting()
+				.padding()
+				.padding(.horizontal)
 		}
 			.padding(.vertical)
 	}
