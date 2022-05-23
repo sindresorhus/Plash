@@ -31,7 +31,6 @@ extension Website_ {
 	}
 }
 
-@available(macOS 12, *)
 @MainActor
 final class AddWebsiteIntentHandler: NSObject, AddWebsiteIntentHandling {
 	func resolveUrl(for intent: AddWebsiteIntent) async -> INURLResolutionResult {
@@ -59,7 +58,6 @@ final class AddWebsiteIntentHandler: NSObject, AddWebsiteIntentHandling {
 	}
 }
 
-@available(macOS 12, *)
 @MainActor
 final class ReloadWebsiteIntentHandler: NSObject, ReloadWebsiteIntentHandling {
 	func handle(intent: ReloadWebsiteIntent) async -> ReloadWebsiteIntentResponse {
@@ -68,7 +66,6 @@ final class ReloadWebsiteIntentHandler: NSObject, ReloadWebsiteIntentHandling {
 	}
 }
 
-@available(macOS 12, *)
 @MainActor
 final class NextWebsiteIntentHandler: NSObject, NextWebsiteIntentHandling {
 	func handle(intent: NextWebsiteIntent) async -> NextWebsiteIntentResponse {
@@ -77,7 +74,6 @@ final class NextWebsiteIntentHandler: NSObject, NextWebsiteIntentHandling {
 	}
 }
 
-@available(macOS 12, *)
 @MainActor
 final class PreviousWebsiteIntentHandler: NSObject, PreviousWebsiteIntentHandling {
 	func handle(intent: PreviousWebsiteIntent) async -> PreviousWebsiteIntentResponse {
@@ -86,7 +82,6 @@ final class PreviousWebsiteIntentHandler: NSObject, PreviousWebsiteIntentHandlin
 	}
 }
 
-@available(macOS 12, *)
 @MainActor
 final class RandomWebsiteIntentHandler: NSObject, RandomWebsiteIntentHandling {
 	func handle(intent: RandomWebsiteIntent) async -> RandomWebsiteIntentResponse {
@@ -95,7 +90,6 @@ final class RandomWebsiteIntentHandler: NSObject, RandomWebsiteIntentHandling {
 	}
 }
 
-@available(macOS 12, *)
 @MainActor
 final class ToggleBrowsingModeIntentHandler: NSObject, ToggleBrowsingModeIntentHandling {
 	func handle(intent: ToggleBrowsingModeIntent) async -> ToggleBrowsingModeIntentResponse {
@@ -104,7 +98,6 @@ final class ToggleBrowsingModeIntentHandler: NSObject, ToggleBrowsingModeIntentH
 	}
 }
 
-@available(macOS 12, *)
 @MainActor
 final class GetCurrentWebsiteIntentHandler: NSObject, GetCurrentWebsiteIntentHandling {
 	func handle(intent: GetCurrentWebsiteIntent) async -> GetCurrentWebsiteIntentResponse {
@@ -120,7 +113,6 @@ final class GetCurrentWebsiteIntentHandler: NSObject, GetCurrentWebsiteIntentHan
 	}
 }
 
-@available(macOS 12, *)
 @MainActor
 final class GetWebsitesIntentHandler: NSObject, GetWebsitesIntentHandling {
 	func handle(intent: GetWebsitesIntent) async -> GetWebsitesIntentResponse {
@@ -172,7 +164,6 @@ final class GetWebsitesIntentHandler: NSObject, GetWebsitesIntentHandling {
 	}
 }
 
-@available(macOS 12, *)
 @MainActor
 final class SetCurrentWebsiteIntentHandler: NSObject, SetCurrentWebsiteIntentHandling {
 	func provideWebsiteOptionsCollection(for intent: SetCurrentWebsiteIntent) async throws -> INObjectCollection<Website_> {
@@ -190,7 +181,6 @@ final class SetCurrentWebsiteIntentHandler: NSObject, SetCurrentWebsiteIntentHan
 	}
 }
 
-@available(macOS 12, *)
 @MainActor
 final class RemoveWebsitesIntentHandler: NSObject, RemoveWebsitesIntentHandling {
 	func provideWebsitesOptionsCollection(for intent: RemoveWebsitesIntent) async throws -> INObjectCollection<Website_> {
@@ -214,7 +204,6 @@ final class RemoveWebsitesIntentHandler: NSObject, RemoveWebsitesIntentHandling 
 	}
 }
 
-@available(macOS 12, *)
 extension AppDelegate {
 	@MainActor
 	func application(_ application: NSApplication, handlerFor intent: INIntent) -> Any? {

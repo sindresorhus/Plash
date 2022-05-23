@@ -204,3 +204,6 @@ custom_rules:
   final_class:
     regex: '^class [a-zA-Z\d]+[^{]+\{'
     message: 'Classes should be marked as final whenever possible. If you actually need it to be subclassable, just add `// swiftlint:disable:next final_class`.'
+  no_alignment_center:
+    regex: '\b\(alignment: .center\b'
+    message: 'This alignment is the default.'

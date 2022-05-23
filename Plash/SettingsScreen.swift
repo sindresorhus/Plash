@@ -49,58 +49,59 @@ private struct OpacitySetting: View {
 	}
 }
 
+
 private struct ReloadIntervalSetting: View {
 	private static let defaultReloadInterval = 60.0
 	private static let minimumReloadInterval = 0.1
 
-	private static let reloadIntervalFormatter: NumberFormatter = {
-		let formatter = NumberFormatter()
-		formatter.formattingContext = .standalone
-		formatter.locale = .autoupdatingCurrent
-		formatter.numberStyle = .decimal
-		formatter.minimum = minimumReloadInterval as NSNumber
-		formatter.minimumFractionDigits = 1
-		formatter.maximumFractionDigits = 1
-		formatter.isLenient = true
-		return formatter
-	}()
-
 	@Default(.reloadInterval) private var reloadInterval
+	@FocusState private var isTextFieldFocused: Bool
+	@State private var isEnabled = Defaults[.reloadInterval] != nil
+
+	// TODO: Improve VoiceOver accessibility for this control.
+	var body: some View {
+		HStack {
+			Toggle("Reload every", isOn: $isEnabled)
+			Stepper(
+				value: reloadIntervalInMinutes.didSet { _ in
+					// We have to unfocus the text field because sometimes it's in a state where it does not update the value. Some kind of bug with the formatter. (macOS 12.4)
+					isTextFieldFocused = false
+				},
+				in: Self.minimumReloadInterval...(.greatestFiniteMagnitude),
+				step: 1
+			) {
+				TextField(
+					"",
+					value: reloadIntervalInMinutes,
+					format: .number.grouping(.never).precision(.fractionLength(1))
+				)
+					.focused($isTextFieldFocused)
+					.frame(width: 40)
+					.labelsHidden()
+					.padding(.trailing, -6)
+			}
+				.disabled(!isEnabled)
+				.contentShape(.rectangle)
+				.onTapGesture {
+					isEnabled = true
+				}
+			Text("minutes")
+		}
+			.accessibilityLabel("Reload interval in minutes")
+			.contentShape(.rectangle)
+			.onChange(of: isEnabled) {
+				reloadInterval = $0 ? Self.defaultReloadInterval : nil
+			}
+	}
 
 	private var reloadIntervalInMinutes: Binding<Double> {
 		$reloadInterval.withDefaultValue(Self.defaultReloadInterval).secondsToMinutes
 	}
 
-	private var hasInterval: Binding<Bool> {
-		$reloadInterval.isNotNil(trueSetValue: Self.defaultReloadInterval)
-	}
-
-	// TODO: Improve VoiceOver accessibility for this control.
-	var body: some View {
-		HStack(alignment: .firstTextBaseline) {
-			Text("Reload interval:")
-				.fixedSize(horizontal: true, vertical: false)
-			Toggle(isOn: hasInterval) {
-				Stepper(
-					value: reloadIntervalInMinutes,
-					in: Self.minimumReloadInterval...(.greatestFiniteMagnitude),
-					step: 1
-				) {
-					TextField(
-						"",
-						value: reloadIntervalInMinutes,
-						formatter: Self.reloadIntervalFormatter
-					)
-						.frame(width: 70)
-						.labelsHidden()
-				}
-					.disabled(!hasInterval.wrappedValue)
-				Text("minutes")
-					.padding(.leading, 4)
-			}
-				.accessibilityLabel("Reload interval in minutes")
-		}
-	}
+	// TODO: We don't use this binding as it causes the toggle to not always work because of some weirdities with the formatter. (macOS 12.4)
+//	private var hasInterval: Binding<Bool> {
+//		$reloadInterval.isNotNil(trueSetValue: Self.defaultReloadInterval)
+//	}
 }
 
 private struct HideMenuBarIconSetting: View {
@@ -111,11 +112,10 @@ private struct HideMenuBarIconSetting: View {
 			.onChange {
 				isShowingAlert = $0
 			}
-			.alert2(isPresented: $isShowingAlert) {
-				Alert(
-					title: Text("If you need to access the Plash menu, launch the app again to reveal the menu bar icon for 5 seconds.")
-				)
-			}
+			.alert2(
+				"If you need to access the Plash menu, launch the app again to reveal the menu bar icon for 5 seconds.",
+				isPresented: $isShowingAlert
+			)
 	}
 }
 
@@ -128,7 +128,7 @@ private struct DisplaySetting: View {
 			"Show on display:",
 			selection: $chosenDisplay.getMap(\.withFallbackToMain)
 		) {
-			ForEach(displayWrapper.wrappedValue.all, id: \.self) { display in
+			ForEach(displayWrapper.wrappedValue.all) { display in
 				Text(display.localizedName)
 					.tag(display)
 			}
@@ -141,35 +141,31 @@ private struct ClearWebsiteDataSetting: View {
 	@State private var hasCleared = false
 
 	var body: some View {
-		Button("Clear all website data") {
+		Button("Clear all website data", role: .destructive) {
 			Task {
 				hasCleared = true
 				WebsitesController.shared.thumbnailCache.removeAllImages()
 				await appState.webViewController.webView.clearWebsiteData()
 			}
 		}
-			.disabled(hasCleared)
 			.help("Clears all cookies, local storage, caches, etc.")
-			// TODO: Mark it as destructive when targeting macOS 12.
+			.disabled(hasCleared)
 	}
 }
 
 private struct GeneralSettings: View {
 	var body: some View {
-		VStack {
+		VStack(alignment: .leading) {
 			VStack(alignment: .leading) {
 				LaunchAtLogin.Toggle()
 				ShowOnAllSpacesSetting()
 				Defaults.Toggle("Deactivate while on battery", key: .deactivateOnBattery)
+				ReloadIntervalSetting()
 			}
 				.padding()
 				.padding(.horizontal)
 			Divider()
 			OpacitySetting()
-				.padding()
-				.padding(.horizontal)
-			Divider()
-			ReloadIntervalSetting()
 				.padding()
 				.padding(.horizontal)
 		}
@@ -198,7 +194,7 @@ private struct ShortcutsSettings: View {
 private struct AdvancedSettings: View {
 	var body: some View {
 		VStack {
-			VStack(alignment: .leading) {
+			Form {
 				BringBrowsingModeToFrontSetting()
 				OpenExternalLinksInBrowserSetting()
 				HideMenuBarIconSetting()
@@ -206,6 +202,7 @@ private struct AdvancedSettings: View {
 			}
 				.padding()
 				.padding(.horizontal)
+				.fillFrame(.horizontal, alignment: .leading)
 			Divider()
 			DisplaySetting()
 				.padding()

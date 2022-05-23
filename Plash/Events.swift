@@ -4,11 +4,9 @@ import KeyboardShortcuts
 
 extension AppState {
 	func setUpEvents() {
-		menu.needsUpdatePublisher
-			.sink { [self] _ in
-				updateMenu()
-			}
-			.store(in: &cancellables)
+		menu.onUpdate = { [self] in
+			updateMenu()
+		}
 
 		webViewController.didLoadPublisher
 			.convertToResult()

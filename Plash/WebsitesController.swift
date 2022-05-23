@@ -12,7 +12,8 @@ final class WebsitesController {
 	private var previousCurrent: Website? { all.elementBeforeOrLast(_current) }
 
 	var randomWebsiteIterator = Defaults[.websites].infiniteUniformRandomSequence().makeIterator()
-	let thumbnailCache = SimpleImageCache<String>(diskCacheName: "websiteThumbnailCache")
+
+	@MainActor let thumbnailCache = SimpleImageCache<String>(diskCacheName: "websiteThumbnailCache")
 
 	/**
 	The current website.

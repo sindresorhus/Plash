@@ -20,11 +20,6 @@ extension Defaults.Keys {
 	static let bringBrowsingModeToFront = Key<Bool>("bringBrowsingModeToFront", default: false)
 	static let openExternalLinksInBrowser = Key<Bool>("openExternalLinksInBrowser", default: false)
 	static let muteAudio = Key<Bool>("muteAudio", default: true)
-
-	// TODO: Remove at some point in the future. Not before 2023.
-	// Deprecated
-	static let url = Key<URL?>("url")
-	static let customCSS = Key<String>("customCSS", default: "")
 }
 
 extension Website: Defaults.Serializable {}

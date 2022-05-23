@@ -4,12 +4,13 @@ import LinkPresentation
 import Defaults
 
 struct AddWebsiteScreen: View {
-	@Environment(\.presentationMode) private var presentationMode
-	@State private var nativeWindow: NSWindow?
+	@Environment(\.dismiss) private var dismiss
+	@State private var hostingWindow: NSWindow?
 	@State private var isFetchingTitle = false
+	@State private var isApplyConfirmationPresented = false
 	@State private var originalWebsite: Website?
 	@State private var urlString = ""
-	@State private var isShowingApplyConfirmation = false
+	@Namespace private var mainNamespace
 
 	@State private var newWebsite = Website(
 		id: UUID(),
@@ -45,6 +46,71 @@ struct AddWebsiteScreen: View {
 		}
 	}
 
+	var body: some View {
+		VStack(alignment: .leading) {
+			if SSApp.isFirstLaunch {
+				firstLaunchView
+			}
+			VStack(alignment: .leading) {
+				topView
+				if isEditing {
+					editingView
+				}
+			}
+		}
+			.frame(width: 500)
+			.bindNativeWindow($hostingWindow)
+			// Note: Current only works when a text field is focused. (macOS 11.3)
+			.onExitCommand {
+				guard isEditing, hasChanges else {
+					dismiss()
+					return
+				}
+
+				isApplyConfirmationPresented = true
+			}
+			.onSubmit {
+				submit()
+			}
+			.confirmationDialog2(
+				"Keep changes?",
+				isPresented: $isApplyConfirmationPresented
+			) {
+				Button("Keep") {
+					dismiss()
+				}
+				Button("Don't Keep", role: .destructive) {
+					revert()
+					dismiss()
+				}
+				Button("Cancel", role: .cancel) {}
+			}
+			.toolbar {
+				// TODO: This can be simplified when `.toolbar` supports conditionals.
+				ToolbarItem {
+					if isEditing {
+						Button("Revert") {
+							revert()
+						}
+							.disabled(!hasChanges)
+					}
+				}
+				ToolbarItem(placement: .cancellationAction) {
+					if !isEditing {
+						Button("Cancel") {
+							dismiss()
+						}
+					}
+				}
+				ToolbarItem(placement: .confirmationAction) {
+					Button(isEditing ? "Done" : "Add") {
+						submit()
+					}
+						.disabled(!isURLValid)
+				}
+			}
+	}
+
 	private var firstLaunchView: some View {
 		HStack {
 			HStack(spacing: 3) {
@@ -64,21 +130,15 @@ struct AddWebsiteScreen: View {
 	private var topView: some View {
 		VStack(alignment: .leading) {
 			HStack {
-//				TextField(
-//					"twitter.com",
-//					// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines. (macOS 12.0)
-//					// TODO: Report to Apple. Still an issue on macOS 12.
-//					text: $urlString.setMap(\.removingNewlines)
-//				)
-				NativeTextField(
-					text: $urlString.setMap(\.removingNewlines),
-					placeholder: "twitter.com",
-					isFirstResponder: !isEditing,
-					roundedStyle: true,
-					isSingleLine: true
+				TextField(
+					"twitter.com",
+					// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines. (macOS 12.0)
+					// TODO: Report to Apple. Still an issue on macOS 13.
+					text: $urlString.setMap(\.removingNewlines)
 				)
 					.textFieldStyle(.roundedBorder)
 					.lineLimit(1)
+					.prefersDefaultFocus(!isEditing, in: mainNamespace)
 					.padding(.vertical)
 					// This change listener is used to respond to URL changes from the outside, like the "Revert" button or the Shortcuts actions.
 					.onChange(of: website.wrappedValue.url) {
@@ -132,7 +192,7 @@ struct AddWebsiteScreen: View {
 				.textFieldStyle(.roundedBorder)
 				.lineLimit(1)
 				.disabled(isFetchingTitle)
-				.overlay2(alignment: .trailing) {
+				.overlay(alignment: .trailing) {
 					if isFetchingTitle {
 						ProgressView()
 							.controlSize(.small)
@@ -155,7 +215,7 @@ struct AddWebsiteScreen: View {
 				.help("Creates a fake dark mode for websites without a native dark mode by inverting all the colors on the website.")
 			Toggle("Use print styles", isOn: website.usePrintStyles)
 				.help("Forces the website to use its print styles (“@media print”) if any. Some websites have a simpler presentation for printing, for example, Google Calendar.")
-			// TODO: Put these inside a `DisclosureGroup` called `Advanced` when macOS 12 is out. It's too buggy on macOS 11.
+			// TODO: Put these inside a `DisclosureGroup` called `Advanced` when macOS 13 is out. It's too buggy on macOS 12.
 			VStack(alignment: .leading) {
 				HStack {
 					Text("CSS:")
@@ -196,74 +256,12 @@ struct AddWebsiteScreen: View {
 			.padding()
 	}
 
-	var body: some View {
-		VStack(alignment: .leading) {
-			if SSApp.isFirstLaunch {
-				firstLaunchView
-			}
-			VStack(alignment: .leading) {
-				topView
-				if isEditing {
-					editingView
-				}
-			}
+	private func submit() {
+		if isEditing {
+			dismiss()
+		} else {
+			add()
 		}
-			.frame(width: 500)
-			.bindNativeWindow($nativeWindow)
-			// Note: Current only works when a text field is focused. (macOS 11.3)
-			.onExitCommand {
-				guard isEditing, hasChanges else {
-					presentationMode.wrappedValue.dismiss()
-					return
-				}
-
-				isShowingApplyConfirmation = true
-			}
-			.alert(isPresented: $isShowingApplyConfirmation) {
-				// TODO: Add a "Cancel" button when SwiftUI supports more than 2 buttons.
-				Alert(
-					title: Text("Keep changes?"),
-					primaryButton: .default(Text("Keep")) {
-						presentationMode.wrappedValue.dismiss()
-					},
-					secondaryButton: .destructive(Text("Don't Keep")) {
-						revert()
-						presentationMode.wrappedValue.dismiss()
-					}
-				)
-			}
-			.toolbar {
-				// TODO: This can be simplified when `.toolbar` supports conditionals.
-				ToolbarItem {
-					if isEditing {
-						Button("Revert") {
-							revert()
-						}
-							.disabled(!hasChanges)
-					}
-				}
-				ToolbarItem(placement: .cancellationAction) {
-					if !isEditing {
-						Button("Cancel") {
-							presentationMode.wrappedValue.dismiss()
-						}
-					}
-				}
-				ToolbarItem(placement: .confirmationAction) {
-					Group {
-						if isEditing {
-							Button("Done") {
-								presentationMode.wrappedValue.dismiss()
-							}
-						} else {
-							Button("Add") {
-								add()
-							}
-						}
-					}
-						.disabled(!isURLValid)
-				}
-			}
 	}
 
 	private func revert() {
@@ -276,12 +274,12 @@ struct AddWebsiteScreen: View {
 
 	private func add() {
 		WebsitesController.shared.add(website.wrappedValue)
-		presentationMode.wrappedValue.dismiss()
+		dismiss()
 
 		SSApp.runOnce(identifier: "editWebsiteTip") {
 			// TODO: Find a better way to inform the user about this.
-			DispatchQueue.main.async { // Works around crash. (macOS 12.1)
-				NSAlert.showModal(
+			Task {
+				await NSAlert.show(
 					title: "Right-click a website in the list to edit it, toggle dark mode, add custom CSS/JavaScript, and more."
 				)
 			}
@@ -290,8 +288,8 @@ struct AddWebsiteScreen: View {
 
 	@MainActor
 	private func chooseLocalWebsite() async -> URL? {
-//		guard let window = nativeWindow else {
-//			return
+//		guard let window = hostingWIndow else {
+//			return nil
 //		}
 
 		let panel = NSOpenPanel()
@@ -314,8 +312,8 @@ struct AddWebsiteScreen: View {
 			panel.directoryURL = url
 		}
 
-		// TODO: Make it a sheet instead when targeting macOS 12. On macOS 11, it doesn't work to open a sheet inside another sheet.
-		// panel.beginSheet(window) {
+		// TODO: Make it a sheet instead when targeting macOS 13. On macOS 12.4, it doesn't work to open a sheet inside another sheet.
+//		let result = await panel.beginSheet(window)
 		let result = await panel.begin()
 
 		guard
@@ -326,17 +324,14 @@ struct AddWebsiteScreen: View {
 		}
 
 		guard url.appendingPathComponent("index.html", isDirectory: false).exists else {
-			// This prevents a crash. (macOS 12.1)
-			DispatchQueue.main.async {
-				NSAlert.showModal(title: "Please choose a directory that contains a “index.html” file.")
-			}
+			await NSAlert.show(title: "Please choose a directory that contains a “index.html” file.")
 			return await chooseLocalWebsite()
 		}
 
 		do {
 			try SecurityScopedBookmarkManager.saveBookmark(for: url)
 		} catch {
-			error.presentAsModal()
+			await error.present()
 			return nil
 		}
 

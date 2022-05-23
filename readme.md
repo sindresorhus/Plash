@@ -56,11 +56,12 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 
 [![](https://tools.applemediaservices.com/api/badges/download-on-the-mac-app-store/black/en-us?size=250x83&releaseDate=1615852800)](https://apps.apple.com/app/id1494023538)
 
-Requires macOS 11 or later.
+Requires macOS 12 or later.
 
-*[Last macOS 10.15 compatible version.](https://github.com/sindresorhus/Plash/releases/tag/v2.1.0) (2.1.0)*
+**Older versions**
 
-<!-- You can try out the bleeding edge [here](https://install.appcenter.ms/users/sindresorhus/apps/plash/distribution_groups/public) (latest commit). -->
+- [Last macOS 11 compatible version](https://github.com/sindresorhus/Plash/releases/tag/v2.10.1) *(2.10.1)*
+- [Last macOS 10.15 compatible version](https://github.com/sindresorhus/Plash/releases/tag/v2.1.0) *(2.1.0)*
 
 ## Tips
 
@@ -232,6 +233,10 @@ subprocess.run(['open', '--background', 'plash:reload'])
 
 ## FAQ
 
+#### The app does not show up in the menu bar
+
+macOS hides menu bar apps when there is no space left in the menu bar. This is a common problem on MacBooks with a notch. Try quitting some menu bar apps to free up space. If this does not solve it, try quitting Bartender if you have it installed.
+
 #### Can it automatically switch websites every 10 minutes?
 
 Plash can be automated with the built-in Shortcuts app, for example, using the “Switch to Next Website” action. Shortcuts on macOS 12 does not yet support automations, but for now, you can use the [Shortery app](https://apps.apple.com/app/id1594183810).
@@ -247,10 +252,6 @@ I don't have any immediate plans to localize the app.
 #### What does “Plash” mean?
 
 [Click here.](http://letmegooglethat.com/?q=define+plash)
-
-#### Can you add support for macOS 10.15 or older?
-
-No, this app depends on features only available on macOS 11.
 
 #### How can I switch to a specific website with a keyboard shortcut?
 

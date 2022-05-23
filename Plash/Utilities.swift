@@ -66,16 +66,11 @@ extension NSWindow.Level {
 
 
 final class SSMenu: NSMenu, NSMenuDelegate {
-	private let isOpenSubject = CurrentValueSubject<Bool, Never>(false)
-	private let needsUpdateSubject = PassthroughSubject<Void, Never>()
+	var onUpdate: (() -> Void)?
 
 	private(set) var isOpen = false
-	let isOpenPublisher: AnyPublisher<Bool, Never>
-	let needsUpdatePublisher: AnyPublisher<Void, Never>
 
 	override init(title: String) {
-		self.isOpenPublisher = isOpenSubject.eraseToAnyPublisher()
-		self.needsUpdatePublisher = needsUpdateSubject.eraseToAnyPublisher()
 		super.init(title: title)
 		self.delegate = self
 		self.autoenablesItems = false
@@ -88,16 +83,14 @@ final class SSMenu: NSMenu, NSMenuDelegate {
 
 	func menuWillOpen(_ menu: NSMenu) {
 		isOpen = true
-		isOpenSubject.send(true)
 	}
 
 	func menuDidClose(_ menu: NSMenu) {
 		isOpen = false
-		isOpenSubject.send(false)
 	}
 
 	func menuNeedsUpdate(_ menu: NSMenu) {
-		needsUpdateSubject.send()
+		onUpdate?()
 	}
 }
 
@@ -129,7 +122,6 @@ public func fatalError(
 }
 
 
-
 final class CallbackMenuItem: NSMenuItem {
 	private static var validateCallback: ((NSMenuItem) -> Bool)?
 
@@ -143,7 +135,6 @@ final class CallbackMenuItem: NSMenuItem {
 		_ title: String,
 		key: String = "",
 		keyModifiers: NSEvent.ModifierFlags? = nil,
-		data: Any? = nil,
 		isEnabled: Bool = true,
 		isChecked: Bool = false,
 		isHidden: Bool = false,
@@ -399,6 +390,7 @@ enum SSApp {
 	static let icon = NSApp.applicationIconImage!
 	static let url = Bundle.main.bundleURL
 
+//	@MainActor // TODO: When targeting macOS 13.
 	static func quit() {
 		NSApp.terminate(nil)
 	}
@@ -432,6 +424,7 @@ enum SSApp {
 			.open()
 	}
 
+//	@MainActor // TODO: When targeting macOS 13.
 	static func activateIfAccessory() {
 		guard NSApp.activationPolicy() == .accessory else {
 			return
@@ -445,6 +438,7 @@ extension SSApp {
 	/**
 	Manually show the SwiftUI settings window.
 	*/
+//	@MainActor // TODO: When targeting macOS 13.
 	static func showSettingsWindow() {
 		SSApp.activateIfAccessory()
 
@@ -683,61 +677,23 @@ extension URLComponents {
 }
 
 
-extension NSEdgeInsets {
-	static let zero = NSEdgeInsetsZero
-
-	init(
-		top: Double = 0,
-		left: Double = 0,
-		bottom: Double = 0,
-		right: Double = 0
-	) {
-		self.init()
-		self.top = top
-		self.left = left
-		self.bottom = bottom
-		self.right = right
-	}
-
-	init(all: Double) {
-		self.init(
-			top: all,
-			left: all,
-			bottom: all,
-			right: all
-		)
-	}
-
-	init(horizontal: Double, vertical: Double) {
-		self.init(
-			top: vertical,
-			left: horizontal,
-			bottom: vertical,
-			right: horizontal
-		)
-	}
-
-	var horizontal: Double { left + right }
-	var vertical: Double { top + bottom }
-}
-
-
 extension String {
-	var nsString: NSString { self as NSString } // swiftlint:disable:this legacy_objc_type
-
-	var nsAttributedString: NSAttributedString { .init(string: self) }
+	var toNSAttributedString: NSAttributedString { .init(string: self) }
 }
 
 
 private var controlActionClosureProtocolAssociatedObjectKey: UInt8 = 0
 
+// TODO: When NSMenu conforms, otherwise it's too annoying.
+//@MainActor
 protocol ControlActionClosureProtocol: NSObjectProtocol {
 	var target: AnyObject? { get set }
 	var action: Selector? { get set }
 }
 
-private final class ActionTrampoline: NSObject {
-	private let action: (NSEvent) -> Void
+//@MainActor
+private final class ActionTrampoline {
+	fileprivate let action: (NSEvent) -> Void
 
 	init(action: @escaping (NSEvent) -> Void) {
 		self.action = action
@@ -750,22 +706,27 @@ private final class ActionTrampoline: NSObject {
 }
 
 extension ControlActionClosureProtocol {
-	/**
-	Closure version of `.action`
+	var onAction: ((NSEvent) -> Void)? {
+		get {
+			guard
+				let trampoline = objc_getAssociatedObject(self, &controlActionClosureProtocolAssociatedObjectKey) as? ActionTrampoline
+			else {
+				return nil
+			}
 
-	```
-	let button = NSButton(title: "Unicorn", target: nil, action: nil)
+			return trampoline.action
+		}
+		set {
+			guard let action = newValue else {
+				objc_setAssociatedObject(self, &controlActionClosureProtocolAssociatedObjectKey, nil, .OBJC_ASSOCIATION_RETAIN)
+				return
+			}
 
-	button.onAction { _ in
-		print("Button action")
-	}
-	```
-	*/
-	func onAction(_ action: @escaping (NSEvent) -> Void) {
-		let trampoline = ActionTrampoline(action: action)
-		target = trampoline
-		self.action = #selector(ActionTrampoline.handleAction)
-		objc_setAssociatedObject(self, &controlActionClosureProtocolAssociatedObjectKey, trampoline, .OBJC_ASSOCIATION_RETAIN)
+			let trampoline = ActionTrampoline(action: action)
+			target = trampoline
+			self.action = #selector(ActionTrampoline.handleAction)
+			objc_setAssociatedObject(self, &controlActionClosureProtocolAssociatedObjectKey, trampoline, .OBJC_ASSOCIATION_RETAIN)
+		}
 	}
 }
 
@@ -781,8 +742,6 @@ struct CocoaButton: NSViewRepresentable {
 	enum KeyEquivalent: String {
 		case escape = "\u{1b}"
 		case `return` = "\r"
-
-		// More here: https://cool8jay.github.io/shortcut-nemenuitem-nsbutton/
 	}
 
 	var title: String?
@@ -830,13 +789,13 @@ struct CocoaButton: NSViewRepresentable {
 		}
 
 		if title == nil {
-			nsView.attributedTitle = attributedTitle ?? "".nsAttributedString
+			nsView.attributedTitle = attributedTitle ?? "".toNSAttributedString
 		}
 
 		nsView.keyEquivalent = keyEquivalent?.rawValue ?? ""
 		nsView.bezelStyle = bezelStyle
 
-		nsView.onAction { _ in
+		nsView.onAction = { _ in
 			action()
 		}
 	}
@@ -999,6 +958,23 @@ extension Binding {
 }
 
 
+extension Binding {
+	/**
+	Listen to `didSet` of a Binding.
+	*/
+	func didSet(_ didSet: @escaping ((newValue: Value, oldValue: Value)) -> Void) -> Self {
+		.init(
+			get: { wrappedValue },
+			set: { newValue in
+				let oldValue = wrappedValue
+				wrappedValue = newValue
+				didSet((newValue, oldValue))
+			}
+		)
+	}
+}
+
+
 extension Binding where Value == Double {
 	// TODO: Maybe make a general `Binding#convert()` function that accepts a converter. Something like `binding.convert(.secondsToMinutes)`?
 	var secondsToMinutes: Self {
@@ -1007,11 +983,6 @@ extension Binding where Value == Double {
 			set: { $0 * 60 }
 		)
 	}
-}
-
-
-extension Binding: Identifiable where Value: Identifiable {
-	public var id: Value.ID { wrappedValue.id }
 }
 
 
@@ -1044,6 +1015,7 @@ extension String {
 		return Self(dropFirst(prefix.count))
 	}
 
+	// TODO: Remove this when targeting a Swift version with native regex support.
 	/**
 	Returns a string with the matches of the given regex replaced with the given replacement string.
 	*/
@@ -1208,6 +1180,34 @@ extension WKWebView {
 
 
 extension NSAlert {
+	/**
+	Show an async alert sheet on a window.
+	*/
+	@MainActor
+	@discardableResult
+	static func show(
+		in window: NSWindow? = nil,
+		title: String,
+		message: String? = nil,
+		style: Style = .warning,
+		buttonTitles: [String] = [],
+		defaultButtonIndex: Int? = nil
+	) async -> NSApplication.ModalResponse {
+		let alert = NSAlert(
+			title: title,
+			message: message,
+			style: style,
+			buttonTitles: buttonTitles,
+			defaultButtonIndex: defaultButtonIndex
+		)
+
+		guard let window = window else {
+			return await alert.run()
+		}
+
+		return await alert.beginSheetModal(for: window)
+	}
+
 	/**
 	Show an alert as a window-modal sheet, or as an app-modal (window-indepedendent) alert if the window is `nil` or not given.
 	*/
@@ -2427,18 +2427,17 @@ extension Collection {
 
 extension NSColor {
 	static let systemColors: Set<NSColor> = [
-		// TODO: Add the new colors wen targeting macOS 12.
 		.systemBlue,
 		.systemBrown,
 		.systemGray,
 		.systemGreen,
+		.systemIndigo,
 		.systemOrange,
 		.systemPink,
 		.systemPurple,
 		.systemRed,
-		.systemYellow,
 		.systemTeal,
-		.systemIndigo
+		.systemYellow
 	]
 
 	private static let uniqueRandomSystemColors = systemColors.infiniteUniformRandomSequence().makeIterator()
@@ -2463,7 +2462,7 @@ extension Timer {
 		let startDate = Date()
 
 		return Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
-			guard Date() <= startDate.addingTimeInterval(duration) else {
+			guard .now <= startDate.addingTimeInterval(duration) else {
 				timer.invalidate()
 				onFinish()
 				return
@@ -2587,21 +2586,6 @@ extension URL {
 	}
 
 	var exists: Bool { FileManager.default.fileExists(atPath: path) }
-}
-
-
-extension DispatchQueue {
-	/**
-	Performs the `execute` closure immediately if we're on the main thread or synchronously puts it on the main thread otherwise.
-	*/
-	@discardableResult
-	static func mainSafeSync<T>(execute work: () throws -> T) rethrows -> T {
-		if Thread.isMainThread {
-			return try work()
-		} else {
-			return try main.sync(execute: work)
-		}
-	}
 }
 
 
@@ -3677,7 +3661,7 @@ extension View {
 						$0.toolbar {
 							ToolbarItem(placement: .confirmationAction) {
 								Button("Done") {
-									presentationMode.wrappedValue.dismiss()
+									dismiss()
 								}
 							}
 						}
@@ -3700,7 +3684,7 @@ private struct EmptyStateTextModifier: ViewModifier {
 	func body(content: Content) -> some View {
 		content
 			.font(.title2)
-			.foregroundColor(.tertiary)
+			.foregroundStyle(.tertiary)
 	}
 }
 
@@ -3714,24 +3698,198 @@ extension View {
 }
 
 
+// Multiple `.alert` are stil broken in macOS 12.
 extension View {
-	// Note: macOS 11.3 fixed support for multiple `.sheet`. Unclear, when it will be fixed for other methods though.
+	/**
+	This allows multiple alerts on a single view, which `.alert()` doesn't.
+	*/
+	func alert2<A, M>(
+		_ title: Text,
+		isPresented: Binding<Bool>,
+		@ViewBuilder actions: () -> A,
+		@ViewBuilder message: () -> M
+	) -> some View where A: View, M: View {
+		background(
+			EmptyView()
+				.alert(
+					title,
+					isPresented: isPresented,
+					actions: actions,
+					message: message
+				)
+		)
+	}
+
+	/**
+	This allows multiple alerts on a single view, which `.alert()` doesn't.
+	*/
+	func alert2<A, M>(
+		_ title: String,
+		isPresented: Binding<Bool>,
+		@ViewBuilder actions: () -> A,
+		@ViewBuilder message: () -> M
+	) -> some View where A: View, M: View {
+		alert2(
+			Text(title),
+			isPresented: isPresented,
+			actions: actions,
+			message: message
+		)
+	}
+
+	/**
+	This allows multiple alerts on a single view, which `.alert()` doesn't.
+	*/
+	func alert2<A>(
+		_ title: Text,
+		message: String? = nil,
+		isPresented: Binding<Bool>,
+		@ViewBuilder actions: () -> A
+	) -> some View where A: View {
+		// swiftlint:disable:next trailing_closure
+		alert2(
+			title,
+			isPresented: isPresented,
+			actions: actions,
+			message: {
+				if let message = message {
+					Text(message)
+				}
+			}
+		)
+	}
+
+	// This is a convenience method and does not exist natively.
+	/**
+	This allows multiple alerts on a single view, which `.alert()` doesn't.
+	*/
+	func alert2<A>(
+		_ title: String,
+		message: String? = nil,
+		isPresented: Binding<Bool>,
+		@ViewBuilder actions: () -> A
+	) -> some View where A: View {
+		// swiftlint:disable:next trailing_closure
+		alert2(
+			title,
+			isPresented: isPresented,
+			actions: actions,
+			message: {
+				if let message = message {
+					Text(message)
+				}
+			}
+		)
+	}
 
 	/**
 	This allows multiple alerts on a single view, which `.alert()` doesn't.
 	*/
 	func alert2(
-		isPresented: Binding<Bool>,
-		content: @escaping () -> Alert
+		_ title: Text,
+		message: String? = nil,
+		isPresented: Binding<Bool>
 	) -> some View {
-		background(
-			EmptyView().alert(
-				isPresented: isPresented,
-				content: content
-			)
+		// swiftlint:disable:next trailing_closure
+		alert2(
+			title,
+			message: message,
+			isPresented: isPresented,
+			actions: {}
 		)
 	}
 
+	// This is a convenience method and does not exist natively.
+	/**
+	This allows multiple alerts on a single view, which `.alert()` doesn't.
+	*/
+	func alert2(
+		_ title: String,
+		message: String? = nil,
+		isPresented: Binding<Bool>
+	) -> some View {
+		// swiftlint:disable:next trailing_closure
+		alert2(
+			title,
+			message: message,
+			isPresented: isPresented,
+			actions: {}
+		)
+	}
+}
+
+
+// Multiple `.confirmationDialog` are broken in macOS 12.
+extension View {
+	/**
+	This allows multiple confirmation dialogs on a single view, which `.confirmationDialog()` doesn't.
+	*/
+	func confirmationDialog2<A, M>(
+		_ title: Text,
+		isPresented: Binding<Bool>,
+		titleVisibility: Visibility = .automatic,
+		@ViewBuilder actions: () -> A,
+		@ViewBuilder message: () -> M
+	) -> some View where A: View, M: View {
+		background(
+			EmptyView()
+				.confirmationDialog(
+					title,
+					isPresented: isPresented,
+					titleVisibility: titleVisibility,
+					actions: actions,
+					message: message
+				)
+		)
+	}
+
+	/**
+	This allows multiple confirmation dialogs on a single view, which `.confirmationDialog()` doesn't.
+	*/
+	func confirmationDialog2<A>(
+		_ title: Text,
+		message: String? = nil,
+		isPresented: Binding<Bool>,
+		titleVisibility: Visibility = .automatic,
+		@ViewBuilder actions: () -> A
+	) -> some View where A: View {
+		// swiftlint:disable:next trailing_closure
+		confirmationDialog2(
+			title,
+			isPresented: isPresented,
+			titleVisibility: titleVisibility,
+			actions: actions,
+			message: {
+				if let message = message {
+					Text(message)
+				}
+			}
+		)
+	}
+
+	/**
+	This allows multiple confirmation dialogs on a single view, which `.confirmationDialog()` doesn't.
+	*/
+	func confirmationDialog2<A>(
+		_ title: String,
+		message: String? = nil,
+		isPresented: Binding<Bool>,
+		titleVisibility: Visibility = .automatic,
+		@ViewBuilder actions: () -> A
+	) -> some View where A: View {
+		confirmationDialog2(
+			Text(title),
+			message: message,
+			isPresented: isPresented,
+			titleVisibility: titleVisibility,
+			actions: actions
+		)
+	}
+}
+
+
+
+extension View {
 	/**
 	This allows multiple popovers on a single view, which `.popover()` doesn't.
 	*/
@@ -3749,61 +3907,6 @@ extension View {
 				content: content
 			)
 		)
-	}
-}
-
-
-struct IdentifiableIndices<Base: RandomAccessCollection> where Base.Element: Identifiable {
-	typealias Index = Base.Index
-
-	struct Element: Identifiable {
-		let id: Base.Element.ID
-		let rawValue: Index
-	}
-
-	fileprivate var base: Base
-}
-
-extension IdentifiableIndices: RandomAccessCollection {
-	var startIndex: Index { base.startIndex }
-	var endIndex: Index { base.endIndex }
-
-	subscript(position: Index) -> Element {
-	Element(id: base[position].id, rawValue: position)
-}
-
-	func index(before index: Index) -> Index {
-		base.index(before: index)
-	}
-
-	func index(after index: Index) -> Index {
-		base.index(after: index)
-	}
-}
-
-extension RandomAccessCollection where Element: Identifiable {
-	var identifiableIndices: IdentifiableIndices<Self> {
-		IdentifiableIndices(base: self)
-	}
-}
-
-// TODO: Remove this and the above when targeting macOS 12.
-extension ForEach where ID == Data.Element.ID, Data.Element: Identifiable, Content: View {
-	init<T>(
-		_ data: Binding<T>,
-		@ViewBuilder content: @escaping (T.Index, Binding<T.Element>) -> Content
-	) where Data == IdentifiableIndices<T>, T: MutableCollection {
-		self.init(data.wrappedValue.identifiableIndices) { index in
-			content(
-				index.rawValue,
-				Binding(
-					get: { data.wrappedValue[index.rawValue] },
-					set: {
-						data.wrappedValue[index.rawValue] = $0
-					}
-				)
-			)
-		}
 	}
 }
 
@@ -3925,12 +4028,12 @@ extension NSItemProvider {
 
 // Strongly-typed versions of some of the methods.
 extension NSItemProvider {
-	func hasItemConformingTo(_ contentType: UTType) -> Bool {
+	func hasItemConforming(to contentType: UTType) -> Bool {
 		hasItemConformingToTypeIdentifier(contentType.identifier)
 	}
 
 	func loadItem(
-		forType contentType: UTType,
+		for contentType: UTType,
 		options: [AnyHashable: Any]? = nil // swiftlint:disable:this discouraged_optional_collection
 	) async throws -> NSSecureCoding {
 		try await loadItem(
@@ -3958,11 +4061,11 @@ extension String {
 	/**
 	Get the string as UTF-8 data.
 	*/
-	var data: Data { Data(utf8) }
+	var toData: Data { Data(utf8) }
 }
 
 extension Data {
-	var string: String? { String(data: self, encoding: .utf8) }
+	var toString: String? { String(data: self, encoding: .utf8) }
 }
 
 
@@ -4009,11 +4112,11 @@ extension String {
 	```
 	*/
 	func sha256() -> Self {
-		data.sha256().hexEncodedString()
+		toData.sha256().hexEncodedString()
 	}
 
 	func sha512() -> Self {
-		data.sha512().hexEncodedString()
+		toData.sha512().hexEncodedString()
 	}
 }
 
@@ -4547,9 +4650,9 @@ extension OperatingSystem {
 	/**
 	- Note: Only use this when you cannot use an `if #available` check. For example, inline in function calls.
 	*/
-	static let isMacOS13OrLater: Bool = {
+	static let isMacOS14OrLater: Bool = {
 		#if os(macOS)
-		if #available(macOS 13, *) {
+		if #available(macOS 14, *) {
 			return true
 		} else {
 			return false
@@ -4562,9 +4665,9 @@ extension OperatingSystem {
 	/**
 	- Note: Only use this when you cannot use an `if #available` check. For example, inline in function calls.
 	*/
-	static let isMacOS12OrLater: Bool = {
+	static let isMacOS13OrLater: Bool = {
 		#if os(macOS)
-		if #available(macOS 12, *) {
+		if #available(macOS 13, *) {
 			return true
 		} else {
 			return false
@@ -4641,25 +4744,6 @@ extension CGSize {
 		}
 
 		return self.init(width: parts[0], height: parts[1])
-	}
-}
-
-
-@available(macOS, obsoleted: 12)
-extension URLSession {
-	func data(from url: URL) async throws -> (Data, URLResponse) {
-		try await withCheckedThrowingContinuation { continuation in
-			let task = self.dataTask(with: url) { data, response, error in
-				guard let data = data, let response = response else {
-					let error = error ?? URLError(.badServerResponse)
-					return continuation.resume(throwing: error)
-				}
-
-				continuation.resume(returning: (data, response))
-			}
-
-			task.resume()
-		}
 	}
 }
 
@@ -4753,7 +4837,7 @@ final class WebsiteIconFetcher: NSObject {
 
 		guard
 			let iconProvider = metadata.iconProvider,
-			iconProvider.hasItemConformingTo(.image)
+			iconProvider.hasItemConforming(to: .image)
 		else {
 			return nil
 		}
@@ -4761,6 +4845,7 @@ final class WebsiteIconFetcher: NSObject {
 		return await iconProvider.getImage()
 	}
 
+	// TODO: This is moot as the class is marked as `@MainActor`, but we keep it for now just in case.
 	@MainActor
 	private func getFromManifest() async throws -> NSImage? {
 		let code =
@@ -4768,10 +4853,7 @@ final class WebsiteIconFetcher: NSObject {
 			document.querySelector('link[rel="manifest"]').href
 			"""
 
-		let result = try await webView.evaluateJavaScript(code)
-
-		// TODO: When targeting macOS 12:
-		// let result = try await webView.evaluateJavaScript(code, in: nil, in: .defaultClient)
+		let result = try await webView.evaluateJavaScript(code, contentWorld: .defaultClient)
 
 		guard
 			let urlString = result as? String,
@@ -4810,10 +4892,7 @@ final class WebsiteIconFetcher: NSObject {
 			document.querySelector('link[rel~="icon"]').href
 			"""
 
-		let result = try await webView.evaluateJavaScript(code)
-
-		// TODO: When targeting macOS 12:
-		// let result = try await webView.evaluateJavaScript(code, in: nil, in: .defaultClient)
+		let result = try await webView.evaluateJavaScript(code, contentWorld: .defaultClient)
 
 		guard
 			let urlString = result as? String,
@@ -4832,10 +4911,7 @@ final class WebsiteIconFetcher: NSObject {
 			new URL(document.querySelector('meta[itemprop="image"]').content, document.baseURI).toString()
 			"""
 
-		let result = try await webView.evaluateJavaScript(code)
-
-		// TODO: When targeting macOS 12:
-		// let result = try await webView.evaluateJavaScript(code, in: nil, in: .defaultClient)
+		let result = try await webView.evaluateJavaScript(code, contentWorld: .defaultClient)
 
 		guard
 			let urlString = result as? String,
@@ -4926,7 +5002,7 @@ extension View {
 		cornerStyle: RoundedCornerStyle = .circular
 	) -> some View {
 		self.cornerRadius(cornerRadius, style: cornerStyle)
-			.overlay2 {
+			.overlay {
 				RoundedRectangle(cornerRadius: cornerRadius, style: cornerStyle)
 					.strokeBorder(content, lineWidth: lineWidth)
 			}
@@ -4942,7 +5018,7 @@ extension View {
 		cornerStyle: RoundedCornerStyle = .circular
 	) -> some View {
 		self.cornerRadius(cornerRadius, style: cornerStyle)
-			.overlay2 {
+			.overlay {
 				RoundedRectangle(cornerRadius: cornerRadius, style: cornerStyle)
 					.strokeBorder(color, lineWidth: lineWidth)
 			}
@@ -5094,9 +5170,27 @@ extension View {
 		object: AnyObject? = nil,
 		perform action: @escaping (Notification) -> Void
 	) -> some View {
+		// TODO: Use AsyncSequence when targeting macOS 13.
 		onReceive(NotificationCenter.default.publisher(for: name, object: object)) {
 			action($0)
 		}
+	}
+}
+
+
+extension View {
+	/**
+	Fills the frame.
+	*/
+	func fillFrame(
+		_ axis: Axis.Set = [.horizontal, .vertical],
+		alignment: Alignment = .center
+	) -> some View {
+		frame(
+			maxWidth: axis.contains(.horizontal) ? .infinity : nil,
+			maxHeight: axis.contains(.vertical) ? .infinity : nil,
+			alignment: alignment
+		)
 	}
 }
 
@@ -5190,43 +5284,24 @@ private struct OnChangeDebouncedViewModifier<Value: Equatable>: ViewModifier {
 	let action: (Value) -> Void
 
 	func body(content: Content) -> some View {
-		if #available(macOS 12, iOS 15, tvOS 15, watchOS 8, *) {
-			content
-				.onChange(of: value) { _ in
+		content
+			.onChange(of: value) { _ in
+				subject.send()
+			}
+			.task { @MainActor in
+				if initial {
 					subject.send()
 				}
-				.task {
-					if initial {
-						subject.send()
-					}
 
-					let changes = subject
-						.debounce(for: .seconds(dueTime), scheduler: DispatchQueue.main)
-						.receive(on: DispatchQueue.main)
-						.values
+				let changes = subject
+					.debounce(for: .seconds(dueTime), scheduler: DispatchQueue.main)
+					.receive(on: DispatchQueue.main)
+					.values
 
-					for await _ in changes {
-						action(value)
-					}
-				}
-		} else {
-			content
-				.onChange(of: value) { _ in
-					subject.send()
-				}
-				.onReceive(
-					subject
-						.debounce(for: .seconds(dueTime), scheduler: DispatchQueue.main)
-						.receive(on: DispatchQueue.main)
-				) { _ in
+				for await _ in changes {
 					action(value)
 				}
-				.onAppear {
-					if initial {
-						subject.send()
-					}
-				}
-		}
+			}
 	}
 }
 
@@ -5254,6 +5329,7 @@ extension View {
 }
 
 
+// TODO: Remove when targeting macOS 13.
 extension Publisher {
 	/**
 	Convert a publisher to a `Result`.
@@ -5363,81 +5439,6 @@ extension View {
 	*/
 	func settingsTabItem(_ type: SettingsTabType) -> some View {
 		tabItem { type.label }
-	}
-}
-
-
-/**
-- Important: The `font` option have no effect...
-
-- Note: It respects `View#controlSize` if `roundedStyle: true`. Not without. (macOS 11.3)
-*/
-struct NativeTextField: NSViewRepresentable {
-	typealias NSViewType = NSTextField
-
-	@Binding var text: String
-	var placeholder: String?
-	var font: NSFont?
-	var isFirstResponder = false
-	var roundedStyle = false
-	var isSingleLine = true
-
-	final class Coordinator: NSObject, NSTextFieldDelegate {
-		var parent: NativeTextField
-		var didBecomeFirstResponder = false
-
-		init(_ autoFocusTextField: NativeTextField) {
-			self.parent = autoFocusTextField
-		}
-
-		func controlTextDidChange(_ notification: Notification) {
-			parent.text = (notification.object as? NSTextField)?.stringValue ?? ""
-		}
-	}
-
-	func makeCoordinator() -> Coordinator {
-		Coordinator(self)
-	}
-
-	func makeNSView(context: Context) -> NSViewType {
-		let nsView = NSTextField()
-		nsView.delegate = context.coordinator
-
-		// This makes it scroll horizontally when text overflows instead of moving to a new line.
-		if isSingleLine {
-			nsView.cell?.usesSingleLineMode = true
-			nsView.cell?.wraps = false
-			nsView.cell?.isScrollable = true
-			nsView.maximumNumberOfLines = 1
-		}
-
-		return nsView
-	}
-
-	func updateNSView(_ nsView: NSViewType, context: Context) {
-		nsView.stringValue = text
-		nsView.placeholderString = placeholder
-
-		if let font = font {
-			nsView.font = font
-		}
-
-		if roundedStyle {
-			nsView.bezelStyle = .roundedBezel
-		}
-
-		// Note: Does not work without the dispatch call.
-		DispatchQueue.main.async {
-			if
-				isFirstResponder,
-				!context.coordinator.didBecomeFirstResponder,
-				let window = nsView.window,
-				window.firstResponder != nsView
-			{
-				window.makeFirstResponder(nsView)
-				context.coordinator.didBecomeFirstResponder = true
-			}
-		}
 	}
 }
 
@@ -5722,24 +5723,6 @@ extension EnumPicker where Label == Text {
 }
 
 
-// TODO: Remove when targeting macOS 12.
-extension View {
-	func overlay2<Overlay: View>(
-		alignment: Alignment = .center,
-		@ViewBuilder content: () -> Overlay
-	) -> some View {
-		overlay(ZStack(content: content), alignment: alignment)
-	}
-
-	func background2<V: View>(
-		alignment: Alignment = .center,
-		@ViewBuilder content: () -> V
-	) -> some View {
-		background(ZStack(content: content), alignment: alignment)
-	}
-}
-
-
 /**
 A view, which when set to hidden, will never show again.
 
@@ -5793,7 +5776,7 @@ struct HideableInfoBox: View {
 				Text(message)
 					.font(.system(size: NSFont.smallSystemFontSize))
 					.multilineTextAlignment(.leading)
-					.foregroundColor(.secondary)
+					.foregroundStyle(.secondary)
 			}
 				.padding(.vertical, 6)
 				.padding(.horizontal, 8)
@@ -5835,7 +5818,6 @@ extension Shape where Self == RoundedRectangle {
 }
 
 
-@available(macOS 12, iOS 15, tvOS 15, watchOS 8, *)
 extension Button where Label == SwiftUI.Label<Text, Image> {
 	init(
 		_ title: String,
@@ -5847,19 +5829,6 @@ extension Button where Label == SwiftUI.Label<Text, Image> {
 			role: role,
 			action: action
 		) {
-			Label(title, systemImage: systemImage)
-		}
-	}
-}
-
-// TODO: Remove when targeting macOS 12.
-extension Button where Label == SwiftUI.Label<Text, Image> {
-	init(
-		_ title: String,
-		systemImage: String,
-		action: @escaping () -> Void
-	) {
-		self.init(action: action) {
 			Label(title, systemImage: systemImage)
 		}
 	}
@@ -5947,5 +5916,23 @@ extension URL {
 		}
 
 		return url
+	}
+}
+
+
+extension URL {
+	/**
+	Whether the domain of the URL matches the given domain, with any or no subdomain.
+	*/
+	func hasDomain(_ domain: String) -> Bool {
+		assert(!domain.hasPrefix("."))
+		assert(domain.contains("."))
+
+		guard let host = host else {
+			return false
+		}
+
+		// `URL` does not have a way to get the domain without subdomains, so we fake it.
+		return host == domain || host.hasSuffix(".\(domain)")
 	}
 }

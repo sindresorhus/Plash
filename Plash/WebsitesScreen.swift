@@ -2,13 +2,12 @@ import SwiftUI
 import Defaults
 
 private struct IconView: View {
-	@State private var iconFetcher: WebsiteIconFetcher?
 	@State private var icon: Image?
 
 	let website: Website
 
 	var body: some View {
-		Group {
+		VStack {
 			if let icon = icon {
 				icon
 					.resizable()
@@ -19,14 +18,12 @@ private struct IconView: View {
 		}
 			.frame(width: 32, height: 32)
 			.clipShape(.roundedRectangle(cornerRadius: 4, style: .continuous))
-			.onAppear {
-				Task {
-					guard let image = await fetchIcons() else {
-						return
-					}
-
-					icon = Image(nsImage: image)
+			.task {
+				guard let image = await fetchIcons() else {
+					return
 				}
+
+				icon = Image(nsImage: image)
 			}
 	}
 
@@ -49,7 +46,7 @@ private struct IconView: View {
 }
 
 private struct RowView: View {
-	@State private var isShowingEditSheet = false
+	@State private var isEditScreenPresented = false
 
 	@Binding var website: Website
 
@@ -65,7 +62,7 @@ private struct RowView: View {
 					.lineLimit(1)
 				Text(website.subtitle)
 					.font(.subheadline)
-					.foregroundColor(.secondary)
+					.foregroundStyle(.secondary)
 					.lineLimit(1)
 			}
 			Spacer()
@@ -84,7 +81,7 @@ private struct RowView: View {
 //				edit()
 //			}
 			.help(website.tooltip)
-			.sheet(isPresented: $isShowingEditSheet) {
+			.sheet(isPresented: $isEditScreenPresented) {
 				AddWebsiteScreen(
 					isEditing: true,
 					website: $website
@@ -96,7 +93,7 @@ private struct RowView: View {
 						return
 					}
 
-					isShowingEditSheet = true
+					isEditScreenPresented = true
 				}
 			}
 			.contextMenu {
@@ -109,8 +106,7 @@ private struct RowView: View {
 					edit()
 				}
 				Divider()
-				// TODO: Mark as destructive when targeting macOS 12.
-				Button("Delete") {
+				Button("Delete", role: .destructive) {
 					website.remove()
 				}
 			}
@@ -118,13 +114,13 @@ private struct RowView: View {
 
 	private func edit() {
 		website.makeCurrent()
-		isShowingEditSheet = true
+		isEditScreenPresented = true
 	}
 }
 
 struct WebsitesScreen: View {
 	@Default(.websites) private var websites
-	@State private var isShowingAddSheet = false
+	@State private var isEditScreenPresented = false
 	@Namespace private var bottomScrollID
 
 	var body: some View {
@@ -132,13 +128,13 @@ struct WebsitesScreen: View {
 			HStack {
 				Spacer()
 				Button("Add Website", systemImage: "plus") {
-					isShowingAddSheet = true
+					isEditScreenPresented = true
 				}
 					.labelStyle(.iconOnly)
 					.keyboardShortcut(.defaultAction)
 			}
 				.padding()
-				.overlay2(alignment: .leading) {
+				.overlay(alignment: .leading) {
 					if !websites.isEmpty {
 						HideableInfoBox(
 							id: "websitesListTips",
@@ -149,41 +145,15 @@ struct WebsitesScreen: View {
 				}
 			ScrollViewReader { scrollViewProxy in
 				List {
-					if #available(macOS 12, *) {
-						ForEach($websites) { website in
-							RowView(website: website)
-						}
-							.onMove(perform: move)
-							.onDelete(perform: delete)
-						Color.clear
-							.frame(height: 1)
-							.padding(.bottom, 30) // Ensures it scrolls fully to the bottom when adding new websites.
-							.id(bottomScrollID)
-					} else {
-						ForEach($websites) { index, website in
-							RowView(website: website)
-
-							// Workaround for bug where new entries have almost no height. (macOS 11.3)
-							if index == websites.count - 1 {
-								Color.clear
-									.frame(height: 1)
-									.overlay(
-										Color(NSColor.alternatingContentBackgroundColors[0])
-											.frame(maxWidth: .infinity, maxHeight: .infinity)
-											.padding(-6)
-									)
-									.id(bottomScrollID)
-							}
-						}
-							.onMove(perform: move)
-							.onDelete(perform: delete)
-							.listRowBackground(
-								Color.primary
-									.opacity(0.04)
-									.border(.primary.opacity(0.07), width: 1, cornerRadius: 6, cornerStyle: .continuous)
-									.padding(.vertical, 6)
-							)
+					ForEach($websites) { website in
+						RowView(website: website)
 					}
+						.onMove(perform: move)
+						.onDelete(perform: delete)
+					Color.clear
+						.frame(height: 1)
+						.padding(.bottom, 30) // Ensures it scrolls fully to the bottom when adding new websites.
+						.id(bottomScrollID)
 				}
 					.onChange(of: websites) { [oldWebsites = websites] websites in
 						// Check that a website was added.
@@ -195,25 +165,17 @@ struct WebsitesScreen: View {
 							scrollViewProxy.scrollTo(bottomScrollID, anchor: .top)
 						}
 					}
-					.overlay2(alignment: .center) {
+					.overlay {
 						if websites.isEmpty {
 							Text("No Websites")
 								.emptyStateTextStyle()
 						}
 					}
-					.overlay2(alignment: .top) {
+					.overlay(alignment: .top) {
 						Divider()
 					}
-					.modify {
-						guard #available(macOS 12, *) else {
-							return nil
-						}
-
-						return $0
-							.if(!websites.isEmpty) {
-								$0.listStyle(.inset(alternatesRowBackgrounds: true))
-							}
-							.eraseToAnyView()
+					.if(!websites.isEmpty) {
+						$0.listStyle(.inset(alternatesRowBackgrounds: true))
 					}
 			}
 		}
@@ -221,14 +183,14 @@ struct WebsitesScreen: View {
 				width: 420,
 				height: 520
 			)
-			.sheet(isPresented: $isShowingAddSheet) {
+			.sheet(isPresented: $isEditScreenPresented) {
 				AddWebsiteScreen(
 					isEditing: false,
 					website: nil
 				)
 			}
 			.onNotification(.showAddWebsiteDialog) { _ in
-				isShowingAddSheet = true
+				isEditScreenPresented = true
 			}
 			// TODO: When using SwiftUI for the window.
 //			.toolbar {
@@ -246,6 +208,27 @@ struct WebsitesScreen: View {
 
 	private func delete(at offsets: IndexSet) {
 		websites = websites.removing(atOffsets: offsets)
+	}
+}
+
+// TODO
+//@MainActor
+final class WebsitesWindowController: SingletonWindowController {
+	private convenience init() {
+		let window = SwiftUIWindowForMenuBarApp()
+		self.init(window: window)
+
+		let view = WebsitesScreen()
+
+		window.title = "Websites"
+		window.styleMask = [
+			.titled,
+			.fullSizeContentView,
+			.closable
+		]
+		window.level = .floating
+		window.contentViewController = NSHostingController(rootView: view)
+		window.center()
 	}
 }
 
