@@ -335,7 +335,7 @@ extension NSMenu {
 
 	@discardableResult
 	func addSettingsItem() -> NSMenuItem {
-		addCallbackItem("Preferences…", key: ",") {
+		addCallbackItem(OS.isMacOS13OrLater ? "Settings…" : "Preferences…", key: ",") {
 			SSApp.showSettingsWindow()
 		}
 	}
@@ -440,11 +440,14 @@ extension SSApp {
 	*/
 //	@MainActor // TODO: When targeting macOS 13.
 	static func showSettingsWindow() {
-		SSApp.activateIfAccessory()
-
 		// Run in the next runloop so it doesn't conflict with SwiftUI if run at startup.
 		DispatchQueue.main.async {
-			NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+			activateIfAccessory()
+			if #available(macOS 13, *) {
+				NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+			} else {
+				NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
+			}
 		}
 	}
 }
@@ -1968,6 +1971,17 @@ extension NSScreen {
 
 		return screenFrame
 	}
+
+	/**
+	Whether the screen has a notch.
+	*/
+	var hasNotch: Bool {
+		guard let width = auxiliaryTopRightArea?.width else {
+			return false
+		}
+
+		return width < frame.width
+	}
 }
 
 
@@ -2103,7 +2117,7 @@ extension NSWorkspace {
 	}
 
 	/**
-	Whether the user has "Turn Hiding On" enabled in the Dock preferences.
+	Whether the user has "Turn Hiding On" enabled in the Dock settings.
 	*/
 	var isDockAutomaticallyToggled: Bool {
 		guard NSScreen.primary != nil else {
@@ -2121,10 +2135,18 @@ extension NSStatusBar {
 
 	Keep in mind for screen calculations that the status bar has an additional 1 point padding below it (between it and windows).
 	*/
-	static let actualThickness = 24.0
+	static var actualThickness: Double {
+		let legacyHeight = 24.0
+
+		guard let screen = NSScreen.primary else {
+			return legacyHeight
+		}
+
+		return screen.hasNotch ? 33 : legacyHeight
+	}
 
 	/**
-	Whether the user has "Automatically hide and show the menu bar" enabled in system preferences.
+	Whether the user has "Automatically hide and show the menu bar" enabled in system settings.
 	*/
 	static var isAutomaticallyToggled: Bool {
 		guard let screen = NSScreen.primary else {
@@ -2453,22 +2475,22 @@ extension Timer {
 	Creates a repeating timer that runs for the given `duration`.
 	*/
 	@discardableResult
-	open class func scheduledRepeatingTimer(
+	static func scheduledRepeatingTimer(
 		withTimeInterval interval: TimeInterval,
-		duration: TimeInterval,
-		onRepeat: @escaping (Timer) -> Void,
-		onFinish: @escaping () -> Void
+		totalDuration: TimeInterval,
+		onRepeat: ((Timer) -> Void)? = nil,
+		onFinish: (() -> Void)? = nil
 	) -> Timer {
 		let startDate = Date()
 
-		return Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
-			guard .now <= startDate.addingTimeInterval(duration) else {
+		return scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
+			guard Date() <= startDate.addingTimeInterval(totalDuration) else {
 				timer.invalidate()
-				onFinish()
+				onFinish?()
 				return
 			}
 
-			onRepeat(timer)
+			onRepeat?(timer)
 		}
 	}
 }
@@ -2478,7 +2500,7 @@ extension NSStatusBarButton {
 	/**
 	Quickly cycles through random colors to make a rainbow animation so the user will notice it.
 
-	- Note: It will do nothing if the user has enabled the “Reduce motion” accessibility preference.
+	- Note: It will do nothing if the user has enabled the “Reduce motion” accessibility settings.
 	*/
 	func playRainbowAnimation(duration: TimeInterval = 5) {
 		guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
@@ -2489,7 +2511,7 @@ extension NSStatusBarButton {
 
 		Timer.scheduledRepeatingTimer(
 			withTimeInterval: 0.1,
-			duration: duration,
+			totalDuration: duration,
 			onRepeat: { [weak self] _ in
 				self?.contentTintColor = .uniqueRandomSystemColor()
 			},
@@ -5055,7 +5077,7 @@ extension SSApp {
 	*/
 	static func requestReviewAfterBeingCalledThisManyTimes(_ counts: [Int]) {
 		guard
-			!SSApp.isFirstLaunch,
+			!isFirstLaunch,
 			counts.contains(Defaults[key].increment())
 		else {
 			return
