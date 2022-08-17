@@ -639,7 +639,7 @@
 			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 7.16.0;
+				minimumVersion = 7.24.0;
 			};
 		};
 		E32421482384ED8300D28A91 /* XCRemoteSwiftPackageReference "Defaults" */ = {
@@ -655,7 +655,7 @@
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.6.0;
+				minimumVersion = 1.7.2;
 			};
 		};
 		E3C4E27F251540F7007A6078 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */ = {

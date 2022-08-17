@@ -49,7 +49,6 @@ private struct OpacitySetting: View {
 	}
 }
 
-
 private struct ReloadIntervalSetting: View {
 	private static let defaultReloadInterval = 60.0
 	private static let minimumReloadInterval = 0.1

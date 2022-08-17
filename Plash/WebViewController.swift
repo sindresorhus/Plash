@@ -20,6 +20,7 @@ final class WebViewController: NSViewController {
 		let configuration = WKWebViewConfiguration()
 		configuration.mediaTypesRequiringUserActionForPlayback = .audio
 		configuration.allowsAirPlayForMediaPlayback = false
+		configuration.applicationNameForUserAgent = "\(SSApp.name)/\(SSApp.version)"
 
 		// TODO: Enable this again when https://github.com/sindresorhus/Plash/issues/9 is fixed.
 //		configuration.suppressesIncrementalRendering = true

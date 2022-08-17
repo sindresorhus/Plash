@@ -7,6 +7,8 @@ TODO:
 
 TODO when targeting macOS 13:
 - Use SwiftUI for the websites window. We cannot do it until the window can be manually toggled.
+
+TODO when Swift 6 is out:
 - Convert all Combine usage to AsyncSequence.
 */
 
