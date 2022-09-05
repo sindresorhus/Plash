@@ -72,6 +72,9 @@ final class DesktopWindow: NSWindow {
 			return
 		}
 
-		setFrame(screen.visibleFrameWithoutStatusBar, display: true)
+		var frame = screen.visibleFrameWithoutStatusBar
+		frame.size.height += 1 // Probably not needed, but just to ensure it covers all the way up to the menu bar on older Macs (I can only test on M1 Mac)
+
+		setFrame(frame, display: true)
 	}
 }

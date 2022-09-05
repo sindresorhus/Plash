@@ -1963,10 +1963,7 @@ extension NSScreen {
 
 		// Account for the status bar if the window is on the main screen and the status bar is permanently visible, or if on a secondary screen and secondary screens are set to show the status bar.
 		if hasStatusBar {
-			// Without this, the website would show through the 1 point padding between the menu bar and the window.
-			let statusBarBottomPadding = 1.0
-
-			screenFrame.size.height -= NSStatusBar.actualThickness + statusBarBottomPadding
+			screenFrame.size.height -= NSStatusBar.actualThickness
 		}
 
 		return screenFrame
