@@ -2895,6 +2895,8 @@ extension URL {
 		components.host = components.host?.lowercased()
 		components.scheme = components.scheme?.lowercased()
 
+		components.host = components.host?.removingPrefix("www.")
+
 		// Remove empty fragment.
 		// - `https://sindresorhus.com/#`
 		if components.fragment?.isEmpty == true {

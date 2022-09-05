@@ -92,15 +92,30 @@ final class SSWebView: WKWebView {
 			self?.zoomLevelWrapper -= 0.2
 		}
 
+		menu.addSeparator()
+
+		if
+			let website = WebsitesController.shared.current,
+			let url = url?.normalized(),
+			website.url.normalized() != url
+		{
+			let menuItem = menu.addCallbackItem("Update Website to Current") {
+				WebsitesController.shared.all = WebsitesController.shared.all.modifying(elementWithID: website.id) {
+					$0.url = url
+				}
+			}
+
+			menuItem.toolTip = "Updates the URL for the stored website in Plash to the current URL"
+		}
+
+		menu.addSeparator()
+
 		// Move the “Inspect Element” menu item to the end.
 		if let menuItem = (menu.items.first { MenuItemIdentifier($0) == .inspectElement }) {
-			menu.addSeparator()
 			menu.items = menu.items.movingToEnd(menuItem)
 		}
 
 		if Defaults[.hideMenuBarIcon] {
-			menu.addSeparator()
-
 			menu.addCallbackItem("Show Menu Bar Icon") {
 				AppState.shared.handleMenuBarIcon()
 			}
