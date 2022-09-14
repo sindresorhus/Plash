@@ -147,7 +147,7 @@ final class CallbackMenuItem: NSMenuItem {
 		self.isChecked = isChecked
 		self.isHidden = isHidden
 
-		if let keyModifiers = keyModifiers {
+		if let keyModifiers {
 			self.keyEquivalentModifierMask = keyModifiers
 		}
 	}
@@ -184,7 +184,7 @@ extension NSMenuItem {
 		self.isChecked = isChecked
 		self.isHidden = isHidden
 
-		if let keyModifiers = keyModifiers {
+		if let keyModifiers {
 			self.keyEquivalentModifierMask = keyModifiers
 		}
 	}
@@ -419,7 +419,7 @@ enum SSApp {
 			"metadata": metadata
 		]
 
-		URL("https://sindresorhus.com/feedback/")
+		URL("https://sindresorhus.com/feedback")
 			.addingDictionaryAsQuery(query)
 			.open()
 	}
@@ -720,12 +720,12 @@ extension ControlActionClosureProtocol {
 			return trampoline.action
 		}
 		set {
-			guard let action = newValue else {
+			guard let newValue else {
 				objc_setAssociatedObject(self, &controlActionClosureProtocolAssociatedObjectKey, nil, .OBJC_ASSOCIATION_RETAIN)
 				return
 			}
 
-			let trampoline = ActionTrampoline(action: action)
+			let trampoline = ActionTrampoline(action: newValue)
 			target = trampoline
 			self.action = #selector(ActionTrampoline.handleAction)
 			objc_setAssociatedObject(self, &controlActionClosureProtocolAssociatedObjectKey, trampoline, .OBJC_ASSOCIATION_RETAIN)
@@ -838,7 +838,7 @@ extension URL {
 	Check if the `host` part of a URL is an IP address.
 	*/
 	var isHostAnIPAddress: Bool {
-		guard let host = host else {
+		guard let host else {
 			return false
 		}
 
@@ -860,7 +860,7 @@ extension URL {
 
 		guard
 			scheme != nil,
-			let host = host
+			let host
 		else {
 			return false
 		}
@@ -978,7 +978,7 @@ extension Binding {
 }
 
 
-extension Binding where Value == Double {
+extension Binding<Double> {
 	// TODO: Maybe make a general `Binding#convert()` function that accepts a converter. Something like `binding.convert(.secondsToMinutes)`?
 	var secondsToMinutes: Self {
 		map(
@@ -1204,7 +1204,7 @@ extension NSAlert {
 			defaultButtonIndex: defaultButtonIndex
 		)
 
-		guard let window = window else {
+		guard let window else {
 			return await alert.run()
 		}
 
@@ -1265,13 +1265,13 @@ extension NSAlert {
 		self.messageText = title
 		self.alertStyle = style
 
-		if let message = message {
+		if let message {
 			self.informativeText = message
 		}
 
 		addButtons(withTitles: buttonTitles)
 
-		if let defaultButtonIndex = defaultButtonIndex {
+		if let defaultButtonIndex {
 			self.defaultButtonIndex = defaultButtonIndex
 		}
 	}
@@ -1281,7 +1281,7 @@ extension NSAlert {
 	*/
 	@discardableResult
 	func runModal(for window: NSWindow? = nil) -> NSApplication.ModalResponse {
-		guard let window = window else {
+		guard let window else {
 			return runModal()
 		}
 
@@ -1435,8 +1435,8 @@ extension WKWebView {
 			RunLoop.current.run(mode: .default, before: .distantFuture)
 		}
 
-		if let error = returnError {
-			throw error
+		if let returnError {
+			throw returnError
 		}
 
 		return returnResult
@@ -1883,7 +1883,7 @@ final class ObservableValue<Value>: ObservableObject {
 	private var publisher: AnyCancellable?
 	private(set) var wrappedValue: Value
 
-	init<P: Publisher>(value: Value, publisher: P) {
+	init(value: Value, publisher: some Publisher) {
 		self.wrappedValue = value
 
 		self.publisher = publisher.sink(
@@ -3015,7 +3015,7 @@ extension NSError {
 		var userInfo = userInfo
 		userInfo[NSLocalizedDescriptionKey] = description
 
-		if let recoverySuggestion = recoverySuggestion {
+		if let recoverySuggestion {
 			userInfo[NSLocalizedRecoverySuggestionErrorKey] = recoverySuggestion
 		}
 
@@ -3120,7 +3120,7 @@ extension Error {
 	Thread-safe.
 	*/
 	func presentAsModalSheet(for window: NSWindow?) {
-		guard let window = window else {
+		guard let window else {
 			presentAsModalLegacy()
 			return
 		}
@@ -3168,7 +3168,7 @@ extension Error {
 	*/
 	@MainActor
 	func present(in window: NSWindow? = nil) async {
-		guard let window = window else {
+		guard let window else {
 			presentAsModal()
 			return
 		}
@@ -3500,9 +3500,9 @@ extension View {
 	```
 	*/
 	@ViewBuilder
-	func `if`<Content: View>(
+	func `if`(
 		_ condition: @autoclosure () -> Bool,
-		modify: (Self) -> Content
+		modify: (Self) -> some View
 	) -> some View {
 		if condition() {
 			modify(self)
@@ -3536,10 +3536,10 @@ extension View {
 	Conditionally modify the view. For example, apply modifiers, wrap the view, etc.
 	*/
 	@ViewBuilder
-	func `if`<IfContent: View, ElseContent: View>(
+	func `if`(
 		_ condition: @autoclosure () -> Bool,
-		if modifyIf: (Self) -> IfContent,
-		else modifyElse: (Self) -> ElseContent
+		if modifyIf: (Self) -> some View,
+		else modifyElse: (Self) -> some View
 	) -> some View {
 		if condition() {
 			modifyIf(self)
@@ -3695,7 +3695,7 @@ extension View {
 	```
 	*/
 	@inlinable
-	func modifyWithViewBuilder<T: View>(@ViewBuilder modifier: (Self) -> T) -> T {
+	func modifyWithViewBuilder(@ViewBuilder modifier: (Self) -> some View) -> some View {
 		modifier(self)
 	}
 }
@@ -3724,12 +3724,12 @@ extension View {
 	/**
 	This allows multiple alerts on a single view, which `.alert()` doesn't.
 	*/
-	func alert2<A, M>(
+	func alert2(
 		_ title: Text,
 		isPresented: Binding<Bool>,
-		@ViewBuilder actions: () -> A,
-		@ViewBuilder message: () -> M
-	) -> some View where A: View, M: View {
+		@ViewBuilder actions: () -> some View,
+		@ViewBuilder message: () -> some View
+	) -> some View {
 		background(
 			EmptyView()
 				.alert(
@@ -3744,12 +3744,12 @@ extension View {
 	/**
 	This allows multiple alerts on a single view, which `.alert()` doesn't.
 	*/
-	func alert2<A, M>(
+	func alert2(
 		_ title: String,
 		isPresented: Binding<Bool>,
-		@ViewBuilder actions: () -> A,
-		@ViewBuilder message: () -> M
-	) -> some View where A: View, M: View {
+		@ViewBuilder actions: () -> some View,
+		@ViewBuilder message: () -> some View
+	) -> some View {
 		alert2(
 			Text(title),
 			isPresented: isPresented,
@@ -3761,19 +3761,19 @@ extension View {
 	/**
 	This allows multiple alerts on a single view, which `.alert()` doesn't.
 	*/
-	func alert2<A>(
+	func alert2(
 		_ title: Text,
 		message: String? = nil,
 		isPresented: Binding<Bool>,
-		@ViewBuilder actions: () -> A
-	) -> some View where A: View {
+		@ViewBuilder actions: () -> some View
+	) -> some View {
 		// swiftlint:disable:next trailing_closure
 		alert2(
 			title,
 			isPresented: isPresented,
 			actions: actions,
 			message: {
-				if let message = message {
+				if let message {
 					Text(message)
 				}
 			}
@@ -3784,19 +3784,19 @@ extension View {
 	/**
 	This allows multiple alerts on a single view, which `.alert()` doesn't.
 	*/
-	func alert2<A>(
+	func alert2(
 		_ title: String,
 		message: String? = nil,
 		isPresented: Binding<Bool>,
-		@ViewBuilder actions: () -> A
-	) -> some View where A: View {
+		@ViewBuilder actions: () -> some View
+	) -> some View {
 		// swiftlint:disable:next trailing_closure
 		alert2(
 			title,
 			isPresented: isPresented,
 			actions: actions,
 			message: {
-				if let message = message {
+				if let message {
 					Text(message)
 				}
 			}
@@ -3845,13 +3845,13 @@ extension View {
 	/**
 	This allows multiple confirmation dialogs on a single view, which `.confirmationDialog()` doesn't.
 	*/
-	func confirmationDialog2<A, M>(
+	func confirmationDialog2(
 		_ title: Text,
 		isPresented: Binding<Bool>,
 		titleVisibility: Visibility = .automatic,
-		@ViewBuilder actions: () -> A,
-		@ViewBuilder message: () -> M
-	) -> some View where A: View, M: View {
+		@ViewBuilder actions: () -> some View,
+		@ViewBuilder message: () -> some View
+	) -> some View {
 		background(
 			EmptyView()
 				.confirmationDialog(
@@ -3867,13 +3867,13 @@ extension View {
 	/**
 	This allows multiple confirmation dialogs on a single view, which `.confirmationDialog()` doesn't.
 	*/
-	func confirmationDialog2<A>(
+	func confirmationDialog2(
 		_ title: Text,
 		message: String? = nil,
 		isPresented: Binding<Bool>,
 		titleVisibility: Visibility = .automatic,
-		@ViewBuilder actions: () -> A
-	) -> some View where A: View {
+		@ViewBuilder actions: () -> some View
+	) -> some View {
 		// swiftlint:disable:next trailing_closure
 		confirmationDialog2(
 			title,
@@ -3881,7 +3881,7 @@ extension View {
 			titleVisibility: titleVisibility,
 			actions: actions,
 			message: {
-				if let message = message {
+				if let message {
 					Text(message)
 				}
 			}
@@ -3891,13 +3891,13 @@ extension View {
 	/**
 	This allows multiple confirmation dialogs on a single view, which `.confirmationDialog()` doesn't.
 	*/
-	func confirmationDialog2<A>(
+	func confirmationDialog2(
 		_ title: String,
 		message: String? = nil,
 		isPresented: Binding<Bool>,
 		titleVisibility: Visibility = .automatic,
-		@ViewBuilder actions: () -> A
-	) -> some View where A: View {
+		@ViewBuilder actions: () -> some View
+	) -> some View {
 		confirmationDialog2(
 			Text(title),
 			message: message,
@@ -3914,11 +3914,11 @@ extension View {
 	/**
 	This allows multiple popovers on a single view, which `.popover()` doesn't.
 	*/
-	func popover2<Content: View>(
+	func popover2(
 		isPresented: Binding<Bool>,
 		attachmentAnchor: PopoverAttachmentAnchor = .rect(.bounds),
 		arrowEdge: Edge = .top,
-		@ViewBuilder content: @escaping () -> Content
+		@ViewBuilder content: @escaping () -> some View
 	) -> some View {
 		background(
 			EmptyView().popover(
@@ -4005,7 +4005,7 @@ extension NSItemProvider {
 	func loadObject<T>(ofClass: T.Type) async throws -> T? where T: NSItemProviderReading {
 		try await withCheckedThrowingContinuation { continuation in
 			_ = loadObject(ofClass: ofClass) { data, error in
-				if let error = error {
+				if let error {
 					continuation.resume(throwing: error)
 					return
 				}
@@ -4023,17 +4023,17 @@ extension NSItemProvider {
 	func loadObject<T>(ofClass: T.Type) async throws -> T? where T: _ObjectiveCBridgeable, T._ObjectiveCType: NSItemProviderReading {
 		try await withCheckedThrowingContinuation { continuation in
 			_ = loadObject(ofClass: ofClass) { data, error in
-				if let error = error {
+				if let error {
 					continuation.resume(throwing: error)
 					return
 				}
 
-				guard let image = data else {
+				guard let data else {
 					continuation.resume(returning: nil)
 					return
 				}
 
-				continuation.resume(returning: image)
+				continuation.resume(returning: data)
 			}
 		}
 	}
@@ -4100,7 +4100,7 @@ extension Data {
 		let hexDigits = options.contains(.upperCase) ? "0123456789ABCDEF" : "0123456789abcdef"
 		let utf8Digits = Array(hexDigits.utf8)
 
-		return String(unsafeUninitializedCapacity: count * 2) { pointer -> Int in
+		return String(unsafeUninitializedCapacity: count * 2) { pointer in
 			var string = pointer.baseAddress!
 
 			for byte in self {
@@ -4180,14 +4180,14 @@ final class Cache<Key: Hashable, Value> {
 	subscript(key: Key) -> Value? {
 		get { cache.object(forKey: .init(key: key))?.value }
 		set {
-			guard let value = newValue else {
+			guard let newValue else {
 				// If the value is `nil`, remove the entry from the cache.
 				cache.removeObject(forKey: .init(key: key))
 
 				return
 			}
 
-			cache.setObject(.init(value: value), forKey: .init(key: key))
+			cache.setObject(.init(value: newValue), forKey: .init(key: key))
 		}
 	}
 
@@ -4232,7 +4232,7 @@ final class SimpleImageCache<Key: SimpleImageCacheKeyable> {
 	- Parameter diskCacheName: If you want to cache to disk, pass a name. The name should be a valid directory name.
 	*/
 	init(diskCacheName: String? = nil) {
-		if let diskCacheName = diskCacheName {
+		if let diskCacheName {
 			do {
 				self.cacheDirectory = try createCacheDirectory(name: diskCacheName)
 			} catch {
@@ -4254,7 +4254,7 @@ final class SimpleImageCache<Key: SimpleImageCacheKeyable> {
 	}
 
 	private func createCacheDirectoryIfNeeded() {
-		guard let cacheDirectory = cacheDirectory else {
+		guard let cacheDirectory else {
 			return
 		}
 
@@ -4285,7 +4285,7 @@ final class SimpleImageCache<Key: SimpleImageCacheKeyable> {
 		}
 
 		diskQueue.async { [weak self] in
-			guard let self = self else {
+			guard let self else {
 				return
 			}
 
@@ -4321,7 +4321,7 @@ final class SimpleImageCache<Key: SimpleImageCacheKeyable> {
 	private func removeAllImagesFromDiskIfNeeded() {
 		guard
 			shouldUseDisk,
-			let cacheDirectory = cacheDirectory
+			let cacheDirectory
 		else {
 			return
 		}
@@ -4357,7 +4357,7 @@ final class SimpleImageCache<Key: SimpleImageCacheKeyable> {
 	Insert an image into the cache for the given key.
 	*/
 	private func insertImage(_ image: NSImage?, for key: Key) {
-		guard let image = image else {
+		guard let image else {
 			removeImage(for: key)
 			return
 		}
@@ -4416,12 +4416,12 @@ final class SimpleImageCache<Key: SimpleImageCacheKeyable> {
 	subscript(_ key: Key) -> NSImage? {
 		get { image(for: key) }
 		set {
-			guard let value = newValue else {
+			guard let newValue else {
 				removeImage(for: key)
 				return
 			}
 
-			insertImage(value, for: key)
+			insertImage(newValue, for: key)
 		}
 	}
 }
@@ -4458,7 +4458,7 @@ extension Collection where Element: Equatable {
 		_ target: Element,
 		update: (inout Element) throws -> Void
 	) rethrows -> [Element] {
-		try map { element -> Element in
+		try map { element in
 			guard element == target else {
 				return element
 			}
@@ -4502,7 +4502,7 @@ extension Collection where Element: Identifiable {
 		elementWithID id: Element.ID,
 		update: (inout Element) throws -> Void
 	) rethrows -> [Element] {
-		try map { element -> Element in
+		try map { element in
 			guard element.id == id else {
 				return element
 			}
@@ -4586,7 +4586,7 @@ extension BidirectionalCollection where Element: Equatable {
 	*/
 	func elementBeforeOrLast(_ element: Element?) -> Element? {
 		guard
-			let element = element,
+			let element,
 			let previousElement = self.element(before: element)
 		else {
 			return last
@@ -4604,7 +4604,7 @@ extension Collection where Element: Equatable {
 	*/
 	func elementAfterOrFirst(_ element: Element?) -> Element? {
 		guard
-			let element = element,
+			let element,
 			let nextElement = self.element(after: element)
 		else {
 			return first
@@ -4704,11 +4704,11 @@ typealias OS = OperatingSystem
 
 extension View {
 	@ViewBuilder
-	func ifLet<Value, TrueContent: View>(
+	func ifLet<Value>(
 		_ value: Value?,
-		modifier: (Self, Value) -> TrueContent
+		modifier: (Self, Value) -> some View
 	) -> some View {
-		if let value = value {
+		if let value {
 			modifier(self, value)
 		} else {
 			self
@@ -4745,8 +4745,8 @@ struct InfoPopoverButton<Content: View>: View {
 	}
 }
 
-extension InfoPopoverButton where Content == Text {
-	init<S>(_ text: S, maxWidth: Double = 240) where S: StringProtocol {
+extension InfoPopoverButton<Text> {
+	init(_ text: some StringProtocol, maxWidth: Double = 240) {
 		self.content = Text(text)
 		self.maxWidth = maxWidth
 	}
@@ -5016,8 +5016,8 @@ extension View {
 	Draws a border inside the view.
 	*/
 	@_disfavoredOverload
-	func border<S: ShapeStyle>(
-		_ content: S,
+	func border(
+		_ content: some ShapeStyle,
 		width lineWidth: Double = 1,
 		cornerRadius: Double,
 		cornerStyle: RoundedCornerStyle = .circular
@@ -5276,7 +5276,7 @@ extension Defaults {
 	/**
 	Get a `Binding` for a `Defaults` key.
 	*/
-	static func binding<Value: Codable>(for key: Key<Value>) -> Binding<Value> {
+	static func binding<Value>(for key: Key<Value>) -> Binding<Value> {
 		.init(
 			get: { self[key] },
 			set: {
@@ -5290,7 +5290,7 @@ extension Defaults {
 	/**
 	Get a `BindingCollection` for a `Defaults` key.
 	*/
-	static func bindingCollection<Value: Codable>(for key: Key<Value>) -> BindingCollection<Value> where Value: MutableCollection & RandomAccessCollection {
+	static func bindingCollection<Value>(for key: Key<Value>) -> BindingCollection<Value> where Value: MutableCollection & RandomAccessCollection {
 		.init(base: binding(for: key))
 	}
 }
@@ -5560,7 +5560,7 @@ extension SSPublishers {
 			}
 
 			deinit {
-				if let id = id {
+				if let id {
 					EventManager.shared.remove(id)
 				}
 			}
@@ -5575,6 +5575,7 @@ extension SSPublishers {
 		typealias Output = URLComponents
 		typealias Failure = Never
 
+		// TODO: Make this `some Subscriber` when targeting macOS 13.
 		func receive<S: Subscriber>(subscriber: S) where S.Input == Output, S.Failure == Failure {
 			let subscription = InternalSubscription<S>()
 			subscription.subscriber = subscriber
@@ -5732,11 +5733,11 @@ struct EnumPicker<Enum, Label, Content>: View where Enum: CaseIterable & Equatab
 }
 
 extension EnumPicker where Label == Text {
-	init<S>(
-		_ title: S,
+	init(
+		_ title: some StringProtocol,
 		enumBinding: Binding<Enum>,
 		@ViewBuilder content: @escaping (Enum, Bool) -> Content
-	) where S: StringProtocol {
+	) {
 		self.enumBinding = enumBinding
 		self.content = content
 		self.label = { Text(title) }
@@ -5839,7 +5840,7 @@ extension Shape where Self == RoundedRectangle {
 }
 
 
-extension Button where Label == SwiftUI.Label<Text, Image> {
+extension Button<Label<Text, Image>> {
 	init(
 		_ title: String,
 		systemImage: String,
@@ -5949,7 +5950,7 @@ extension URL {
 		assert(!domain.hasPrefix("."))
 		assert(domain.contains("."))
 
-		guard let host = host else {
+		guard let host else {
 			return false
 		}
 

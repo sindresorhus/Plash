@@ -20,7 +20,7 @@ extension Website_ {
 
 	var toPlashWebsite: Website? {
 		guard
-			let identifier = identifier,
+			let identifier,
 			let uuid = UUID(uuidString: identifier),
 			let website = WebsitesController.shared.all[id: uuid]
 		else {

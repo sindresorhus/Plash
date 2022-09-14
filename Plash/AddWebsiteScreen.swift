@@ -265,7 +265,7 @@ struct AddWebsiteScreen: View {
 	}
 
 	private func revert() {
-		guard let originalWebsite = originalWebsite else {
+		guard let originalWebsite else {
 			return
 		}
 
@@ -288,7 +288,7 @@ struct AddWebsiteScreen: View {
 
 	@MainActor
 	private func chooseLocalWebsite() async -> URL? {
-//		guard let window = hostingWIndow else {
+//		guard let hostingWIndow else {
 //			return nil
 //		}
 
@@ -313,7 +313,7 @@ struct AddWebsiteScreen: View {
 		}
 
 		// TODO: Make it a sheet instead when targeting macOS 13. On macOS 12.4, it doesn't work to open a sheet inside another sheet.
-//		let result = await panel.beginSheet(window)
+//		let result = await panel.beginSheet(hostingWIndow)
 		let result = await panel.begin()
 
 		guard

@@ -58,8 +58,8 @@ final class AppState: ObservableObject {
 
 	var webViewError: Error? {
 		didSet {
-			if let error = webViewError {
-				statusItemButton.toolTip = "Error: \(error.localizedDescription)"
+			if let webViewError {
+				statusItemButton.toolTip = "Error: \(webViewError.localizedDescription)"
 
 				// TODO: There's a macOS bug that makes it black instead of a color.
 //				statusItemButton.contentTintColor = .systemRed
@@ -67,9 +67,9 @@ final class AppState: ObservableObject {
 				// TODO: Also present the error when the user just added it from the input box as then it's also "interactive".
 				if
 					isBrowsingMode,
-					!error.localizedDescription.contains("No internet connection")
+					!webViewError.localizedDescription.contains("No internet connection")
 				{
-					error.presentAsModal()
+					webViewError.presentAsModal()
 				}
 
 				return
@@ -184,7 +184,7 @@ final class AppState: ObservableObject {
 	func loadURL(_ url: URL?) {
 		webViewError = nil
 
-		guard var url = url else {
+		guard var url else {
 			return
 		}
 

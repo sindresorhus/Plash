@@ -149,7 +149,7 @@ extension SSWebView {
 
 	var zoomLevelDefaultsValue: Double? {
 		guard
-			let zoomLevelDefaultsKey = zoomLevelDefaultsKey,
+			let zoomLevelDefaultsKey,
 			let zoomLevel = Defaults[zoomLevelDefaultsKey]
 		else {
 			return nil
@@ -163,8 +163,8 @@ extension SSWebView {
 		set {
 			pageZoom = newValue
 
-			if let zoomDefaultsKey = zoomLevelDefaultsKey {
-				Defaults[zoomDefaultsKey] = newValue
+			if let zoomLevelDefaultsKey {
+				Defaults[zoomLevelDefaultsKey] = newValue
 			}
 		}
 	}

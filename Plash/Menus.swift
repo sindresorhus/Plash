@@ -81,8 +81,8 @@ extension AppState {
 	}
 
 	private func addWebsiteItems() {
-		if let error = webViewError {
-			menu.addDisabled("Error: \(error.localizedDescription)".wordWrapped(atLength: 36).toNSAttributedString)
+		if let webViewError {
+			menu.addDisabled("Error: \(webViewError.localizedDescription)".wordWrapped(atLength: 36).toNSAttributedString)
 			menu.addSeparator()
 		}
 

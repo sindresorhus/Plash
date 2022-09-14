@@ -8,7 +8,7 @@ private struct IconView: View {
 
 	var body: some View {
 		VStack {
-			if let icon = icon {
+			if let icon {
 				icon
 					.resizable()
 					.aspectRatio(contentMode: .fit)

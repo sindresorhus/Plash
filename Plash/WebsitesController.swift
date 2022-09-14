@@ -21,7 +21,7 @@ final class WebsitesController {
 	var current: Website? {
 		get { _current ?? all.first }
 		set {
-			guard let website = newValue else {
+			guard let newValue else {
 				all = all.modifying {
 					$0.isCurrent = false
 				}
@@ -29,7 +29,7 @@ final class WebsitesController {
 				return
 			}
 
-			makeCurrent(website)
+			makeCurrent(newValue)
 		}
 	}
 
@@ -53,7 +53,7 @@ final class WebsitesController {
 	private func setUpEvents() {
 		Defaults.publisher(.websites)
 			.sink { [weak self] change in
-				guard let self = self else {
+				guard let self else {
 					return
 				}
 
@@ -130,22 +130,22 @@ final class WebsitesController {
 	Makes the next website the current one.
 	*/
 	func makeNextCurrent() {
-		guard let website = nextCurrent else {
+		guard let nextCurrent else {
 			return
 		}
 
-		makeCurrent(website)
+		makeCurrent(nextCurrent)
 	}
 
 	/**
 	Makes the previous website the current one.
 	*/
 	func makePreviousCurrent() {
-		guard let website = previousCurrent else {
+		guard let previousCurrent else {
 			return
 		}
 
-		makeCurrent(website)
+		makeCurrent(previousCurrent)
 	}
 
 	/**

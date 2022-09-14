@@ -114,7 +114,7 @@ final class WebViewController: NSViewController {
 		// TODO: A minor improvement would be to inject this on `DOMContentLoaded` using `WKScriptMessageHandler`.
 		webView.toggleBrowsingModeClass()
 
-		if let error = error {
+		if let error {
 			guard !WKWebView.canIgnoreError(error) else {
 				didLoadSubject.send()
 				return
@@ -285,7 +285,7 @@ extension WebViewController: WKDownloadDelegate {
 	}
 
 	func downloadDidFinish(_ download: WKDownload) {
-		guard let currentDownloadFile = currentDownloadFile else {
+		guard let currentDownloadFile else {
 			return
 		}
 

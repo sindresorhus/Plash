@@ -245,6 +245,14 @@ Plash can be automated with the built-in Shortcuts app, for example, using the �
 
 Plash uses very little memory. Usually around 40 MB. However, the websites you display can take up a lot of memory, and sometimes even have a memory leaks.
 
+#### Can Plash block ads?
+
+Not built-in, but you can block ads system-wide with a [DNS ad-blocker](https://alternate-dns.com).
+
+#### How can I switch to a specific website with a keyboard shortcut?
+
+Make a shortcut in the Shortcuts app that uses the “Set Current Website” action and then set a keyboard shortcut for the shortcut.
+
 #### Can I contribute localizations?
 
 I don't have any immediate plans to localize the app.
@@ -252,10 +260,6 @@ I don't have any immediate plans to localize the app.
 #### What does “Plash” mean?
 
 [Click here.](http://letmegooglethat.com/?q=define+plash)
-
-#### How can I switch to a specific website with a keyboard shortcut?
-
-Make a shortcut in the Shortcuts app that uses the “Set Current Website” action and then set a keyboard shortcut for the shortcut.
 
 ## Built with
 
