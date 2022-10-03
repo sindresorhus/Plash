@@ -151,8 +151,11 @@ extension WebViewController: WKNavigationDelegate {
 			return .download
 		}
 
-		// Fix signing into Google Account. Google has some stupid protection against fake user agents.
-		webView.customUserAgent = navigationAction.request.url?.host == "accounts.google.com" ? "" : SSWebView.safariUserAgent
+		// Fix signing into Google Account. Google has some stupid protection against fake user agents for "accounts.google.com" and "docs.google.com".
+		if let host = navigationAction.request.url?.host {
+			let useBlankUserAgent = host == "google.com" || host.hasSuffix(".google.com")
+			webView.customUserAgent = useBlankUserAgent ? "" : SSWebView.safariUserAgent
+		}
 
 		return .allow
 	}
