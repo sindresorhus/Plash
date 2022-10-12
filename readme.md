@@ -241,6 +241,12 @@ macOS hides menu bar apps when there is no space left in the menu bar. This is a
 
 Plash can be automated with the built-in Shortcuts app, for example, using the “Switch to Next Website” action. Shortcuts on macOS 12 does not yet support automations, but for now, you can use the [Shortery app](https://apps.apple.com/app/id1594183810).
 
+#### Does it support multiple displays?
+
+Support for multiple displays is currently limited to the ability to choose which display to show the website on. Support for setting a separate website for each display is [planned](https://github.com/sindresorhus/Plash/issues/2).
+
+However, I there is a [workaround](https://github.com/sindresorhus/Plash/issues/2#issuecomment-653891524).
+
 #### Why does Plash use so much memory?
 
 Plash uses very little memory. Usually around 40 MB. However, the websites you display can take up a lot of memory, and sometimes even have a memory leaks.
