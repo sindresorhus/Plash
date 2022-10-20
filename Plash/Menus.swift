@@ -54,11 +54,6 @@ extension AppState {
 		menu.addSeparator()
 
 		menu.addLinkItem(
-			"Website",
-			destination: "https://sindresorhus.com/plash"
-		)
-
-		menu.addLinkItem(
 			"Examples",
 			destination: "https://github.com/sindresorhus/Plash/issues/1"
 		)
@@ -66,6 +61,11 @@ extension AppState {
 		menu.addLinkItem(
 			"Scripting",
 			destination: "https://github.com/sindresorhus/Plash#scripting"
+		)
+
+		menu.addLinkItem(
+			"Website",
+			destination: "https://sindresorhus.com/plash"
 		)
 
 		menu.addSeparator()
@@ -90,40 +90,42 @@ extension AppState {
 
 		menu.addSeparator()
 
-		menu.addCallbackItem(
-			"Reload",
-			isEnabled: WebsitesController.shared.current != nil
-		) { [weak self] in
-			self?.loadUserURL()
-		}
+		if !WebsitesController.shared.all.isEmpty {
+			menu.addCallbackItem(
+				"Reload",
+				isEnabled: WebsitesController.shared.current != nil
+			) { [weak self] in
+				self?.loadUserURL()
+			}
 			.setShortcut(for: .reload)
 
-		menu.addCallbackItem(
-			"Browsing Mode",
-			isEnabled: WebsitesController.shared.current != nil,
-			isChecked: Defaults[.isBrowsingMode]
-		) {
-			Defaults[.isBrowsingMode].toggle()
+			menu.addCallbackItem(
+				"Browsing Mode",
+				isEnabled: WebsitesController.shared.current != nil,
+				isChecked: Defaults[.isBrowsingMode]
+			) {
+				Defaults[.isBrowsingMode].toggle()
 
-			SSApp.runOnce(identifier: "activatedBrowsingMode") {
-				DispatchQueue.main.async {
-					NSAlert.showModal(
-						title: "Browsing Mode lets you temporarily interact with the website. For example, to log into an account or scroll to a specific position on the website.",
-						message: "If you don't currently see the website, you might need to hide some windows to reveal the desktop."
-					)
+				SSApp.runOnce(identifier: "activatedBrowsingMode") {
+					DispatchQueue.main.async {
+						NSAlert.showModal(
+							title: "Browsing Mode lets you temporarily interact with the website. For example, to log into an account or scroll to a specific position on the website.",
+							message: "If you don't currently see the website, you might need to hide some windows to reveal the desktop."
+						)
+					}
 				}
 			}
-		}
 			.setShortcut(for: .toggleBrowsingMode)
 
-		menu.addCallbackItem(
-			"Edit…",
-			isEnabled: WebsitesController.shared.current != nil
-		) {
-			WebsitesWindowController.showWindow()
+			menu.addCallbackItem(
+				"Edit…",
+				isEnabled: WebsitesController.shared.current != nil
+			) {
+				WebsitesWindowController.showWindow()
 
-			// TODO: Find a better way to do this.
-			NotificationCenter.default.post(name: .showEditWebsiteDialog, object: nil)
+				// TODO: Find a better way to do this.
+				NotificationCenter.default.post(name: .showEditWebsiteDialog, object: nil)
+			}
 		}
 
 		menu.addSeparator()

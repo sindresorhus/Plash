@@ -10,6 +10,7 @@ import StoreKit
 import UniformTypeIdentifiers
 import LinkPresentation
 import Defaults
+import Sentry
 
 
 /**
@@ -449,6 +450,21 @@ extension SSApp {
 				NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
 			}
 		}
+	}
+}
+
+
+extension SSApp {
+	/**
+	Initialize Sentry.
+	*/
+	static func initSentry(_ dsn: String) {
+		#if !DEBUG && canImport(Sentry)
+		SentrySDK.start {
+			$0.dsn = dsn
+			$0.enableSwizzling = false
+		}
+		#endif
 	}
 }
 
@@ -3970,37 +3986,6 @@ extension RangeReplaceableCollection {
 }
 
 
-extension NSImage: NSItemProviderReading {
-	public static var readableTypeIdentifiersForItemProvider: [String] {
-		NSImage.imageTypes
-	}
-
-	public static func object(withItemProviderData data: Data, typeIdentifier: String) throws -> Self {
-		guard let image = self.init(data: data) else {
-			throw NSError.appError("Unsupported or invalid image")
-		}
-
-		return image
-	}
-}
-
-extension NSImage: NSItemProviderWriting {
-	public static var writableTypeIdentifiersForItemProvider: [String] {
-		[UTType.tiff.identifier]
-	}
-
-	public func loadData(withTypeIdentifier typeIdentifier: String, forItemProviderCompletionHandler completionHandler: @escaping (Data?, Error?) -> Void) -> Progress? {
-		guard let data = tiffRepresentation else {
-			completionHandler(nil, NSError.appError("Could not convert image to data"))
-			return nil
-		}
-
-		completionHandler(data, nil)
-		return nil
-	}
-}
-
-
 extension NSItemProvider {
 	func loadObject<T>(ofClass: T.Type) async throws -> T? where T: NSItemProviderReading {
 		try await withCheckedThrowingContinuation { continuation in
@@ -4042,7 +4027,11 @@ extension NSItemProvider {
 
 extension NSItemProvider {
 	func getImage() async -> NSImage? {
-		try? await loadObject(ofClass: NSImage.self)
+		if #available(macOS 13, *) {
+			return try? await loadObject(ofClass: NSImage.self)
+		} else {
+			return nil
+		}
 	}
 }
 

@@ -1,6 +1,5 @@
 import SwiftUI
 import Combine
-import Sentry
 import Defaults
 
 @MainActor
@@ -109,12 +108,7 @@ final class AppState: ObservableObject {
 			"NSApplicationCrashOnExceptions": true
 		])
 
-		#if !DEBUG
-		SentrySDK.start {
-			$0.dsn = "https://4ad446a4961b44ff8dc808a08379914e@o844094.ingest.sentry.io/6140750"
-			$0.enableSwizzling = false
-		}
-		#endif
+		SSApp.initSentry("https://4ad446a4961b44ff8dc808a08379914e@o844094.ingest.sentry.io/6140750")
 
 		// TODO: Remove in 2023.
 		SSApp.runOnce(identifier: "migrateToDefaultav5") {
@@ -155,7 +149,9 @@ final class AppState: ObservableObject {
 		}
 
 		reloadTimer = Timer.scheduledTimer(withTimeInterval: reloadInterval, repeats: true) { [self] _ in
-			loadUserURL()
+			Task { @MainActor in
+				loadUserURL()
+			}
 		}
 	}
 
