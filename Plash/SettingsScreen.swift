@@ -3,6 +3,84 @@ import LaunchAtLogin
 import Defaults
 import KeyboardShortcuts
 
+struct SettingsScreen: View {
+	var body: some View {
+		TabView {
+			GeneralSettings()
+				.settingsTabItem(.general)
+			ShortcutsSettings()
+				.settingsTabItem(.shortcuts)
+			AdvancedSettings()
+				.settingsTabItem(.advanced)
+		}
+			.frame(width: 340)
+			.windowLevel(.floating + 1) // To ensure it's always above the Plash browser window.
+	}
+}
+
+private struct GeneralSettings: View {
+	var body: some View {
+		VStack(alignment: .leading) {
+			VStack(alignment: .leading) {
+				LaunchAtLogin.Toggle()
+				ShowOnAllSpacesSetting()
+				Defaults.Toggle("Deactivate while on battery", key: .deactivateOnBattery)
+				ReloadIntervalSetting()
+			}
+				.padding()
+				.padding(.horizontal)
+			Divider()
+			OpacitySetting()
+				.padding()
+				.padding(.horizontal)
+		}
+			.padding(.vertical)
+	}
+}
+
+private struct ShortcutsSettings: View {
+	private let maxWidth = 160.0
+
+	var body: some View {
+		Form {
+			KeyboardShortcuts.Recorder("Toggle browsing mode:", name: .toggleBrowsingMode)
+				.fixedSize()
+			KeyboardShortcuts.Recorder("Reload website:", name: .reload)
+			KeyboardShortcuts.Recorder("Next website:", name: .nextWebsite)
+			KeyboardShortcuts.Recorder("Previous website:", name: .previousWebsite)
+			KeyboardShortcuts.Recorder("Random website:", name: .randomWebsite)
+		}
+			.padding()
+			.padding()
+			.offset(x: -10)
+	}
+}
+
+private struct AdvancedSettings: View {
+	var body: some View {
+		VStack {
+			Form {
+				BringBrowsingModeToFrontSetting()
+				OpenExternalLinksInBrowserSetting()
+				HideMenuBarIconSetting()
+				Defaults.Toggle("Mute audio", key: .muteAudio)
+			}
+				.padding()
+				.padding(.horizontal)
+				.fillFrame(.horizontal, alignment: .leading)
+			Divider()
+			DisplaySetting()
+				.padding()
+				.padding(.horizontal)
+			Divider()
+			ClearWebsiteDataSetting()
+				.padding()
+				.padding(.horizontal)
+		}
+			.padding(.vertical)
+	}
+}
+
 private struct ShowOnAllSpacesSetting: View {
 	var body: some View {
 		Defaults.Toggle(
@@ -61,7 +139,7 @@ private struct ReloadIntervalSetting: View {
 	var body: some View {
 		HStack {
 			Toggle("Reload every", isOn: $isEnabled)
-			Stepper(
+			Stepper( // swiftlint:disable:this accessibility_trait_for_button
 				value: reloadIntervalInMinutes.didSet { _ in
 					// We have to unfocus the text field because sometimes it's in a state where it does not update the value. Some kind of bug with the formatter. (macOS 12.4)
 					isTextFieldFocused = false
@@ -149,84 +227,6 @@ private struct ClearWebsiteDataSetting: View {
 		}
 			.help("Clears all cookies, local storage, caches, etc.")
 			.disabled(hasCleared)
-	}
-}
-
-private struct GeneralSettings: View {
-	var body: some View {
-		VStack(alignment: .leading) {
-			VStack(alignment: .leading) {
-				LaunchAtLogin.Toggle()
-				ShowOnAllSpacesSetting()
-				Defaults.Toggle("Deactivate while on battery", key: .deactivateOnBattery)
-				ReloadIntervalSetting()
-			}
-				.padding()
-				.padding(.horizontal)
-			Divider()
-			OpacitySetting()
-				.padding()
-				.padding(.horizontal)
-		}
-			.padding(.vertical)
-	}
-}
-
-private struct ShortcutsSettings: View {
-	private let maxWidth = 160.0
-
-	var body: some View {
-		Form {
-			KeyboardShortcuts.Recorder("Toggle browsing mode:", name: .toggleBrowsingMode)
-				.fixedSize()
-			KeyboardShortcuts.Recorder("Reload website:", name: .reload)
-			KeyboardShortcuts.Recorder("Next website:", name: .nextWebsite)
-			KeyboardShortcuts.Recorder("Previous website:", name: .previousWebsite)
-			KeyboardShortcuts.Recorder("Random website:", name: .randomWebsite)
-		}
-			.padding()
-			.padding()
-			.offset(x: -10)
-	}
-}
-
-private struct AdvancedSettings: View {
-	var body: some View {
-		VStack {
-			Form {
-				BringBrowsingModeToFrontSetting()
-				OpenExternalLinksInBrowserSetting()
-				HideMenuBarIconSetting()
-				Defaults.Toggle("Mute audio", key: .muteAudio)
-			}
-				.padding()
-				.padding(.horizontal)
-				.fillFrame(.horizontal, alignment: .leading)
-			Divider()
-			DisplaySetting()
-				.padding()
-				.padding(.horizontal)
-			Divider()
-			ClearWebsiteDataSetting()
-				.padding()
-				.padding(.horizontal)
-		}
-			.padding(.vertical)
-	}
-}
-
-struct SettingsScreen: View {
-	var body: some View {
-		TabView {
-			GeneralSettings()
-				.settingsTabItem(.general)
-			ShortcutsSettings()
-				.settingsTabItem(.shortcuts)
-			AdvancedSettings()
-				.settingsTabItem(.advanced)
-		}
-			.frame(width: 340)
-			.windowLevel(.floating)
 	}
 }
 

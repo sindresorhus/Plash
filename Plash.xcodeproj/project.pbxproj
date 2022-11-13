@@ -24,7 +24,6 @@
 		E333EB1B2385244E005FCE44 /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E333EB1A2385244E005FCE44 /* SettingsScreen.swift */; };
 		E3369A9A265E344300BAC78B /* URLCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3369A99265E344300BAC78B /* URLCommands.swift */; };
 		E34FCBCE264D32150022BDD3 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34FCBCD264D32150022BDD3 /* App.swift */; };
-		E354442626061C9100CA060F /* Migration.swift in Sources */ = {isa = PBXBuildFile; fileRef = E354442526061C9100CA060F /* Migration.swift */; };
 		E354442F26062D6300CA060F /* WebsitesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E354442E26062D6300CA060F /* WebsitesScreen.swift */; };
 		E354443C2607505100CA060F /* WebsitesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E354443B2607505100CA060F /* WebsitesController.swift */; };
 		E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = E3805F5A2466ED5600489E6C /* KeyboardShortcuts */; };
@@ -84,7 +83,6 @@
 		E333EB1A2385244E005FCE44 /* SettingsScreen.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = SettingsScreen.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E3369A99265E344300BAC78B /* URLCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLCommands.swift; sourceTree = "<group>"; };
 		E34FCBCD264D32150022BDD3 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
-		E354442526061C9100CA060F /* Migration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Migration.swift; sourceTree = "<group>"; };
 		E354442E26062D6300CA060F /* WebsitesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsitesScreen.swift; sourceTree = "<group>"; };
 		E354443B2607505100CA060F /* WebsitesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsitesController.swift; sourceTree = "<group>"; };
 		E384F27F24C3B37E002FD21B /* Events.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Events.swift; sourceTree = "<group>"; };
@@ -158,7 +156,6 @@
 				E3EC5A85250D7A0C00ABE1A1 /* WelcomeScreen.swift */,
 				E3369A99265E344300BAC78B /* URLCommands.swift */,
 				E3FC71E2271ECA9200C9D255 /* IntentHandler.swift */,
-				E354442526061C9100CA060F /* Migration.swift */,
 				E32421572384F0E600D28A91 /* Utilities.swift */,
 				E32421372384E9D900D28A91 /* Assets.xcassets */,
 				E3FC71E0271ECA1700C9D255 /* Intents.intentdefinition */,
@@ -372,7 +369,6 @@
 				E333EB1B2385244E005FCE44 /* SettingsScreen.swift in Sources */,
 				E354442F26062D6300CA060F /* WebsitesScreen.swift in Sources */,
 				E354443C2607505100CA060F /* WebsitesController.swift in Sources */,
-				E354442626061C9100CA060F /* Migration.swift in Sources */,
 				E3EC5A86250D7A0C00ABE1A1 /* WelcomeScreen.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -649,7 +645,7 @@
 			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 7.28.0;
+				minimumVersion = 7.31.2;
 			};
 		};
 		E32421482384ED8300D28A91 /* XCRemoteSwiftPackageReference "Defaults" */ = {
@@ -665,7 +661,7 @@
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.8.0;
+				minimumVersion = 1.9.0;
 			};
 		};
 		E3C4E27F251540F7007A6078 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */ = {
@@ -673,7 +669,7 @@
 			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 4.2.0;
+				minimumVersion = 5.0.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

@@ -5389,7 +5389,7 @@ extension View {
 	/**
 	Bind the native backing-window of a SwiftUI window to a property.
 	*/
-	func bindNativeWindow(_ window: Binding<NSWindow?>) -> some View {
+	func bindHostingWindow(_ window: Binding<NSWindow?>) -> some View {
 		background(WindowAccessor(window))
 	}
 }
@@ -5403,7 +5403,7 @@ private struct WindowViewModifier: ViewModifier {
 		onWindow(window)
 
 		return content
-			.bindNativeWindow($window)
+			.bindHostingWindow($window)
 	}
 }
 
@@ -5411,7 +5411,7 @@ extension View {
 	/**
 	Access the native backing-window of a SwiftUI window.
 	*/
-	func accessNativeWindow(_ onWindow: @escaping (NSWindow?) -> Void) -> some View {
+	func accessHostingWindow(_ onWindow: @escaping (NSWindow?) -> Void) -> some View {
 		modifier(WindowViewModifier(onWindow: onWindow))
 	}
 
@@ -5419,7 +5419,7 @@ extension View {
 	Set the window level of a SwiftUI window.
 	*/
 	func windowLevel(_ level: NSWindow.Level) -> some View {
-		accessNativeWindow {
+		accessHostingWindow {
 			$0?.level = level
 		}
 	}

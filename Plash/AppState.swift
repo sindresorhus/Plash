@@ -90,7 +90,6 @@ final class AppState: ObservableObject {
 		// Make the invisible native SwitUI window not block access to the desktop. (macOS 12.0)
 		NSApp.windows.first?.ignoresMouseEvents = true
 
-		migrate()
 		_ = statusItemButton
 		_ = desktopWindow
 		setUpEvents()

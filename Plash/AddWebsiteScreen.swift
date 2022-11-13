@@ -59,7 +59,7 @@ struct AddWebsiteScreen: View {
 			}
 		}
 			.frame(width: 500)
-			.bindNativeWindow($hostingWindow)
+			.bindHostingWindow($hostingWindow)
 			// Note: Current only works when a text field is focused. (macOS 11.3)
 			.onExitCommand {
 				guard isEditing, hasChanges else {

@@ -251,6 +251,10 @@ However, I there is a [workaround](https://github.com/sindresorhus/Plash/issues/
 
 Plash uses very little memory. Usually around 40 MB. However, the websites you display can take up a lot of memory, and sometimes even have a memory leaks.
 
+#### The menu bar does not adapt to the Plash wallpaper
+
+The menu bar adapts its color from the actual system wallpaper. Plash is not actually a wallpaper, but rather runs right above the wallpaper. So Plash cannot influence the menu bar color.
+
 #### Can Plash block ads?
 
 Not built-in, but you can block ads system-wide with a [DNS ad-blocker](https://alternate-dns.com).
