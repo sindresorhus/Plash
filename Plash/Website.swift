@@ -1,5 +1,4 @@
 import Foundation
-import Defaults
 
 struct Website: Hashable, Codable, Identifiable {
 	let id: UUID

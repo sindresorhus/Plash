@@ -322,7 +322,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "swiftlint\n";
+			shellScript = "PATH=\"/opt/homebrew/bin/:${PATH}\"\nswiftlint\n";
 			showEnvVarsInLog = 0;
 		};
 		E32421542384EF7A00D28A91 /* Copy "Launch at Login Helper" */ = {
@@ -653,7 +653,7 @@
 			repositoryURL = "https://github.com/sindresorhus/Defaults";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 6.3.0;
+				minimumVersion = 7.1.0;
 			};
 		};
 		E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {

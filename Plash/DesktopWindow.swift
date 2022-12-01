@@ -1,6 +1,4 @@
 import Cocoa
-import Combine
-import Defaults
 
 @MainActor
 final class DesktopWindow: NSWindow {

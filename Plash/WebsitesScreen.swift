@@ -1,5 +1,4 @@
 import SwiftUI
-import Defaults
 
 private struct IconView: View {
 	@State private var icon: Image?

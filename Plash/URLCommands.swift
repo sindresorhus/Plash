@@ -1,5 +1,4 @@
 import Cocoa
-import Defaults
 
 extension AppState {
 	func setUpURLCommands() {

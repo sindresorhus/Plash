@@ -1,7 +1,6 @@
 import Cocoa
 import Combine
 import WebKit
-import Defaults
 
 @MainActor
 final class WebViewController: NSViewController {

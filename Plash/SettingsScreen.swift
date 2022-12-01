@@ -1,6 +1,5 @@
 import SwiftUI
 import LaunchAtLogin
-import Defaults
 import KeyboardShortcuts
 
 struct SettingsScreen: View {

@@ -1,5 +1,4 @@
 import Cocoa
-import Defaults
 import KeyboardShortcuts
 
 extension AppState {

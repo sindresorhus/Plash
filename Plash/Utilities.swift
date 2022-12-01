@@ -9,9 +9,12 @@ import CryptoKit
 import StoreKit
 import UniformTypeIdentifiers
 import LinkPresentation
-import Defaults
 import Sentry
+import Defaults
 
+typealias Defaults = _Defaults
+typealias Default = _Default
+typealias AnyCancellable = Combine.AnyCancellable
 
 /**
 Convenience function for initializing an object and modifying its properties.
