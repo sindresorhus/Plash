@@ -138,11 +138,18 @@ final class SSWebView: WKWebView {
 
 extension SSWebView {
 	private var zoomLevelDefaultsKey: Defaults.Key<Double?>? {
-		guard let url = url?.normalized(removeFragment: true, removeQuery: true) else {
+		guard let url else {
 			return nil
 		}
 
-		return .init("zoomLevel_\(url)")
+		let keyPart = url
+			.normalized(removeFragment: true, removeQuery: true)
+			.absoluteString
+			.removingSchemeAndWWWFromURL
+			.toData
+			.base64EncodedString()
+
+		return .init("zoomLevel_\(keyPart)")
 	}
 
 	var zoomLevelDefaultsValue: Double? {

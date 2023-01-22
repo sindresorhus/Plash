@@ -1,27 +1,12 @@
 import SwiftUI
-import LaunchAtLogin
 
-/*
-TODO:
-- Refactor the whole website handling into a controller.
-- Fix TODO comments in the codebase.
-- Fix "Edit Website" if it's not visible in the list. Use the new `Window` type in macOS 13.
-
-TODO when targeting macOS 13:
-- Focus filter support - set a certain website when in a specific focus.
-	- Document it.
-- Use SwiftUI for the websites window. We cannot do it until the window can be manually toggled.
-- Upload non-App Store version.
-- Change the list to open on click instead of right-click.
-	- Also use `Foo.ID` instead of `Foo`.
-	- $rules[id: selection]
-	- Change the instruction about right-clicking.
-
-TODO when Swift 6 is out:
-- Convert all Combine usage to AsyncSequence.
-
-TODO when targeting macOS 14:
-= Use `MenuBarExtra`.
+/**
+TODO macOS 14:
+- Use SwiftUI for the desktop window and the web view.
+- Use `MenuBarExtra`
+- Remove `Combine` and `Defaults.publisher` usage.
+- Focus filter support.
+- Use `EnvironmentValues#requestReview`.
 */
 
 @main
@@ -30,13 +15,46 @@ struct AppMain: App {
 	@StateObject private var appState = AppState.shared
 
 	init() {
-		LaunchAtLogin.migrateIfNeeded()
+		setUpConfig()
 	}
 
 	var body: some Scene {
+		Window("Websites", id: "websites") {
+			WebsitesScreen()
+				.environmentObject(appState)
+		}
+			.windowToolbarStyle(.unifiedCompact)
+			.windowResizability(.contentSize)
+			.defaultPosition(.center)
 		Settings {
 			SettingsScreen()
 				.environmentObject(appState)
 		}
+	}
+
+	private func setUpConfig() {
+		UserDefaults.standard.register(defaults: [
+			"NSApplicationCrashOnExceptions": true
+		])
+
+		SSApp.initSentry("https://4ad446a4961b44ff8dc808a08379914e@o844094.ingest.sentry.io/6140750")
+	}
+}
+
+@MainActor
+final class AppDelegate: NSObject, NSApplicationDelegate {
+	func applicationWillFinishLaunching(_ notification: Notification) {
+		// It's important that this is here so it's registered in time.
+		AppState.shared.setUpURLCommands()
+	}
+
+	func applicationDidFinishLaunching(_ notification: Notification) {
+		Constants.websitesWindow?.close()
+	}
+
+	// This is only run when the app is started when it's already running.
+	func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
+		AppState.shared.handleAppReopen()
+		return false
 	}
 }

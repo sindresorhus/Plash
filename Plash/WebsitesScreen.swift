@@ -1,5 +1,150 @@
 import SwiftUI
 
+struct WebsitesScreen: View {
+	@Default(.websites) private var websites
+	@State private var selection: Website.ID?
+	@State private var isAddWebsiteDialogPresented = false
+	@Namespace private var bottomScrollID
+
+	var body: some View {
+		Form {
+			// TODO: The `ScrollViewReader` causes UI issues in a form. (macOS 13.1)
+//			ScrollViewReader { scrollViewProxy in
+			Section {
+				if !websites.isEmpty {
+					HideableInfoBox(
+						id: "websitesListTips",
+						message: "Click a website to edit. Drag and drop to reorder."
+					)
+						.padding(.leading)
+				}
+				List(selection: $selection) { // TODO: `List` with `editActions` does not work when we also use `selection`. (macOS 13.1)
+					ForEach($websites) { website in
+						RowView(
+							website: website,
+							selection: $selection
+						)
+					}
+						.onMove(perform: move)
+						.onDelete(perform: delete)
+				}
+			}/* footer: {
+				Color.clear
+					.frame(height: 1)
+					.id(bottomScrollID)
+			}*/
+				.onChange(of: websites) { [oldWebsites = websites] websites in
+					// Check that a website was added.
+					guard websites.count > oldWebsites.count else {
+						return
+					}
+
+					withAnimation {
+//							scrollViewProxy.scrollTo(bottomScrollID, anchor: .top)
+					}
+				}
+				.overlay {
+					if websites.isEmpty {
+						Text("No Websites")
+							.emptyStateTextStyle()
+					}
+				}
+		}
+//		}
+			.formStyle(.grouped)
+			.frame(width: 480, height: 520)
+			.sheet(item: $selection) {
+				AddWebsiteScreen(
+					isEditing: true,
+					website: $websites[id: $0]
+				)
+			}
+			.sheet(isPresented: $isAddWebsiteDialogPresented) {
+				AddWebsiteScreen(
+					isEditing: false,
+					website: nil
+				)
+			}
+			.onNotification(.showAddWebsiteDialog) { _ in
+				isAddWebsiteDialogPresented = true
+			}
+			.onNotification(.showEditWebsiteDialog) { _ in
+				selection = WebsitesController.shared.current?.id
+			}
+			.toolbar {
+				Button("Add Website", systemImage: "plus") {
+					isAddWebsiteDialogPresented = true
+				}
+			}
+			.windowLevel(.floating)
+			.windowIsMinimizable(false)
+	}
+
+
+	private func move(from source: IndexSet, to destination: Int) {
+		websites = websites.moving(fromOffsets: source, toOffset: destination)
+	}
+
+	private func delete(at offsets: IndexSet) {
+		websites = websites.removing(atOffsets: offsets)
+	}
+}
+
+struct WebsitesScreen_Previews: PreviewProvider {
+	static var previews: some View {
+		WebsitesScreen()
+	}
+}
+
+private struct RowView: View {
+	@Binding var website: Website
+	@Binding var selection: Website.ID?
+
+	var body: some View {
+		HStack {
+			Label {
+				// TODO: This should use something like `.lineBreakMode = .byCharWrapping` if SwiftUI ever supports that.
+				if let title = website.title.nilIfEmpty {
+					Text(title)
+				}
+				Text(website.subtitle)
+			} icon: {
+				IconView(website: website)
+			}
+				.lineLimit(1)
+			Spacer()
+			if website.isCurrent {
+				Image(systemName: "checkmark.circle.fill")
+					.renderingMode(.original)
+					.font(.title2)
+			}
+		}
+			.frame(height: 64) // Note: Setting a fixed height prevents a lot of SwiftUI rendering bugs.
+			.padding(.horizontal, 8)
+			.help(website.tooltip)
+			.swipeActions(edge: .leading, allowsFullSwipe: true) {
+				Button("Set as Current") {
+					website.makeCurrent()
+				}
+					.disabled(website.isCurrent)
+			}
+			.contextMenu {
+				Button("Set as Current") {
+					website.makeCurrent()
+				}
+					.disabled(website.isCurrent)
+				Divider()
+				Button("Edit…") {
+					selection = website.id
+				}
+				Divider()
+				Button("Delete", role: .destructive) {
+					website.remove()
+				}
+			}
+	}
+}
+
 private struct IconView: View {
 	@State private var icon: Image?
 
@@ -17,7 +162,7 @@ private struct IconView: View {
 		}
 			.frame(width: 32, height: 32)
 			.clipShape(.roundedRectangle(cornerRadius: 4, style: .continuous))
-			.task {
+			.task(id: website.url) {
 				guard let image = await fetchIcons() else {
 					return
 				}
@@ -41,198 +186,5 @@ private struct IconView: View {
 		cache[website.thumbnailCacheKey] = image
 
 		return image
-	}
-}
-
-private struct RowView: View {
-	@State private var isEditScreenPresented = false
-
-	@Binding var website: Website
-
-	var body: some View {
-		HStack {
-			IconView(website: website)
-				.padding(.trailing, 7)
-				.id(website.url)
-			// TODO: This should use something like `.lineBreakMode = .byCharWrapping` if SwiftUI ever supports that.
-			VStack(alignment: .leading) {
-				Text(website.title)
-					.font(.headline)
-					.lineLimit(1)
-				Text(website.subtitle)
-					.font(.subheadline)
-					.foregroundStyle(.secondary)
-					.lineLimit(1)
-			}
-			Spacer()
-			if website.isCurrent {
-				Image(systemName: "checkmark.circle.fill")
-					.renderingMode(.original)
-					.font(.title2)
-			}
-		}
-			.padding(.horizontal)
-			.frame(height: 64) // Note: Setting a fixed height prevents a lot of SwiftUI rendering bugs.
-			// TODO: This makes `onMove` not work when clicking the text.
-			// https://github.com/feedback-assistant/reports/issues/46
-			// Still an issue on macOS 11.2.3.
-//			.onTapGesture(count: 2) {
-//				edit()
-//			}
-			.help(website.tooltip)
-			.sheet(isPresented: $isEditScreenPresented) {
-				AddWebsiteScreen(
-					isEditing: true,
-					website: $website
-				)
-			}
-			.onNotification(.showEditWebsiteDialog) { _ in
-				DispatchQueue.main.async { // Attempt at working around SwiftUI crash.
-					guard website.isCurrent else {
-						return
-					}
-
-					isEditScreenPresented = true
-				}
-			}
-			.contextMenu {
-				Button("Set as Current") {
-					website.makeCurrent()
-				}
-					.disabled(website.isCurrent)
-				Divider()
-				Button("Edit…") {
-					edit()
-				}
-				Divider()
-				Button("Delete", role: .destructive) {
-					website.remove()
-				}
-			}
-	}
-
-	private func edit() {
-		website.makeCurrent()
-		isEditScreenPresented = true
-	}
-}
-
-struct WebsitesScreen: View {
-	@Default(.websites) private var websites
-	@State private var isEditScreenPresented = false
-	@Namespace private var bottomScrollID
-
-	var body: some View {
-		VStack(spacing: 0) {
-			HStack {
-				Spacer()
-				Button("Add Website", systemImage: "plus") {
-					isEditScreenPresented = true
-				}
-					.labelStyle(.iconOnly)
-					.keyboardShortcut(.defaultAction)
-			}
-				.padding()
-				.overlay(alignment: .leading) {
-					if !websites.isEmpty {
-						HideableInfoBox(
-							id: "websitesListTips",
-							message: "Right-click to edit. Drag and drop to reorder."
-						)
-							.padding(.leading)
-					}
-				}
-			ScrollViewReader { scrollViewProxy in
-				List {
-					ForEach($websites) { website in
-						RowView(website: website)
-					}
-						.onMove(perform: move)
-						.onDelete(perform: delete)
-					Color.clear
-						.frame(height: 1)
-						.padding(.bottom, 30) // Ensures it scrolls fully to the bottom when adding new websites.
-						.id(bottomScrollID)
-				}
-					.onChange(of: websites) { [oldWebsites = websites] websites in
-						// Check that a website was added.
-						guard websites.count > oldWebsites.count else {
-							return
-						}
-
-						withAnimation {
-							scrollViewProxy.scrollTo(bottomScrollID, anchor: .top)
-						}
-					}
-					.overlay {
-						if websites.isEmpty {
-							Text("No Websites")
-								.emptyStateTextStyle()
-						}
-					}
-					.overlay(alignment: .top) {
-						Divider()
-					}
-					.if(!websites.isEmpty) {
-						$0.listStyle(.inset(alternatesRowBackgrounds: true))
-					}
-			}
-		}
-			.frame(
-				width: 420,
-				height: 520
-			)
-			.sheet(isPresented: $isEditScreenPresented) {
-				AddWebsiteScreen(
-					isEditing: false,
-					website: nil
-				)
-			}
-			.onNotification(.showAddWebsiteDialog) { _ in
-				isEditScreenPresented = true
-			}
-			// TODO: When using SwiftUI for the window.
-//			.toolbar {
-//				ToolbarItem(placement: .confirmationAction) {
-//					Button("Add Website", systemImage: "plus") {
-//						isShowingAddSheet = true
-//					}
-//				}
-//			}
-	}
-
-	private func move(from source: IndexSet, to destination: Int) {
-		websites = websites.moving(fromOffsets: source, toOffset: destination)
-	}
-
-	private func delete(at offsets: IndexSet) {
-		websites = websites.removing(atOffsets: offsets)
-	}
-}
-
-// TODO
-//@MainActor
-final class WebsitesWindowController: SingletonWindowController {
-	private convenience init() {
-		let window = SwiftUIWindowForMenuBarApp()
-		self.init(window: window)
-
-		let view = WebsitesScreen()
-
-		window.title = "Websites"
-		window.styleMask = [
-			.titled,
-			.fullSizeContentView,
-			.closable
-		]
-		window.level = .floating
-		window.contentViewController = NSHostingController(rootView: view)
-		window.center()
-	}
-}
-
-struct WebsitesScreen_Previews: PreviewProvider {
-	static var previews: some View {
-		WebsitesScreen()
 	}
 }

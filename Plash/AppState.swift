@@ -77,17 +77,12 @@ final class AppState: ObservableObject {
 	}
 
 	init() {
-		setUpConfig()
-
 		DispatchQueue.main.async { [self] in
 			didLaunch()
 		}
 	}
 
 	private func didLaunch() {
-		// Make the invisible native SwitUI window not block access to the desktop. (macOS 12.0)
-		NSApp.windows.first?.ignoresMouseEvents = true
-
 		_ = statusItemButton
 		_ = desktopWindow
 		setUpEvents()
@@ -96,27 +91,14 @@ final class AppState: ObservableObject {
 
 		#if DEBUG
 //		SSApp.showSettingsWindow()
-//		WebsitesWindowController.showWindow()
+//		Constants.openWebsitesWindow()
 		#endif
-	}
-
-	private func setUpConfig() {
-		UserDefaults.standard.register(defaults: [
-			"NSApplicationCrashOnExceptions": true
-		])
-
-		SSApp.initSentry("https://4ad446a4961b44ff8dc808a08379914e@o844094.ingest.sentry.io/6140750")
-
-		// TODO: Remove in 2023.
-		SSApp.runOnce(identifier: "migrateToDefaultav5") {
-			Defaults.migrate(.websites, to: .v5)
-		}
 	}
 
 	func handleMenuBarIcon() {
 		statusItem.isVisible = true
 
-		delay(seconds: 5) { [self] in
+		delay(.seconds(5)) { [self] in
 			guard Defaults[.hideMenuBarIcon] else {
 				return
 			}
@@ -177,7 +159,10 @@ final class AppState: ObservableObject {
 	func loadURL(_ url: URL?) {
 		webViewError = nil
 
-		guard var url else {
+		guard
+			var url,
+			url.isValid
+		else {
 			return
 		}
 
@@ -189,22 +174,19 @@ final class AppState: ObservableObject {
 		}
 
 		// TODO: This is just a quick fix. The proper fix is to create a new web view below the existing one (with no opacity), load the URL, if it succeeds, we fade out the old one while fading in the new one. If it fails, we discard the new web view.
-		if !url.isFileURL, !Reachability.isOnlineExtensive() {
+		if
+			!url.isFileURL,
+			!Reachability.isOnlineExtensive()
+		{
 			webViewError = NSError.appError("No internet connection.")
 			return
-		}
-
-		// TODO: Report the bug to Apple.
-		// WKWebView has a bug where it can only load a local file once. So if you load file A, load file B, and load file A again, it errors. And if you load the same file as the existing one, nothing happens. Quality engineering.
-		if url.isFileURL {
-			recreateWebView()
 		}
 
 		webViewController.loadURL(url)
 
 		// TODO: Add a callback to `loadURL` when it's done loading instead.
 		// TODO: Fade in the web view.
-		delay(seconds: 1) { [self] in
+		delay(.seconds(1)) { [self] in
 			desktopWindow.contentView?.isHidden = false
 		}
 	}
@@ -222,20 +204,5 @@ final class AppState: ObservableObject {
 		return try url
 			.replacingPlaceholder("[[screenWidth]]", with: String(format: "%.0f", screen.visibleFrameWithoutStatusBar.width))
 			.replacingPlaceholder("[[screenHeight]]", with: String(format: "%.0f", screen.visibleFrameWithoutStatusBar.height))
-	}
-}
-
-@MainActor
-final class AppDelegate: NSObject, NSApplicationDelegate {
-	func applicationWillFinishLaunching(_ notification: Notification) {
-		// It's important that this is here so it's registered in time.
-		AppState.shared.setUpURLCommands()
-	}
-
-	// Does not work on macOS 12 because of `WindowGroup`: https://github.com/feedback-assistant/reports/issues/246
-	// This is only run when the app is started when it's already running.
-	func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
-		AppState.shared.handleAppReopen()
-		return true
 	}
 }

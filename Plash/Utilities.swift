@@ -35,8 +35,8 @@ func with<T>(_ item: T, update: (inout T) throws -> Void) rethrows -> T {
 }
 
 
-func delay(seconds: TimeInterval, closure: @escaping () -> Void) {
-	DispatchQueue.main.asyncAfter(deadline: .now() + seconds, execute: closure)
+func delay(_ duration: Duration, closure: @escaping () -> Void) {
+	DispatchQueue.main.asyncAfter(deadline: .now() + duration.toTimeInterval, execute: closure)
 }
 
 
@@ -99,8 +99,6 @@ final class SSMenu: NSMenu, NSMenuDelegate {
 }
 
 
-// TODO: Adopt the native method if this lands in Swift
-// From: https://github.com/apple/swift-evolution/pull/861/files#diff-7227258cce0fbf6442a789b162652031R110
 public struct FatalReason: CustomStringConvertible {
 	public static let unreachable = Self("Should never be reached during execution.")
 	public static let notYetImplemented = Self("Not yet implemented.")
@@ -337,9 +335,10 @@ extension NSMenu {
 		return menuItem
 	}
 
+	@MainActor
 	@discardableResult
 	func addSettingsItem() -> NSMenuItem {
-		addCallbackItem(OS.isMacOS13OrLater ? "Settings…" : "Preferences…", key: ",") {
+		addCallbackItem("Settings…", key: ",") {
 			SSApp.showSettingsWindow()
 		}
 	}
@@ -374,6 +373,7 @@ extension NSMenu {
 		}
 	}
 
+	@MainActor
 	@discardableResult
 	func addQuitItem() -> NSMenuItem {
 		addSeparator()
@@ -394,7 +394,7 @@ enum SSApp {
 	static let icon = NSApp.applicationIconImage!
 	static let url = Bundle.main.bundleURL
 
-//	@MainActor // TODO: When targeting macOS 13.
+	@MainActor
 	static func quit() {
 		NSApp.terminate(nil)
 	}
@@ -428,7 +428,7 @@ enum SSApp {
 			.open()
 	}
 
-//	@MainActor // TODO: When targeting macOS 13.
+	@MainActor
 	static func activateIfAccessory() {
 		guard NSApp.activationPolicy() == .accessory else {
 			return
@@ -442,17 +442,10 @@ extension SSApp {
 	/**
 	Manually show the SwiftUI settings window.
 	*/
-//	@MainActor // TODO: When targeting macOS 13.
+	@MainActor
 	static func showSettingsWindow() {
-		// Run in the next runloop so it doesn't conflict with SwiftUI if run at startup.
-		DispatchQueue.main.async {
-			activateIfAccessory()
-			if #available(macOS 13, *) {
-				NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-			} else {
-				NSApp.sendAction(Selector(("showPreferencesWindow:")), to: nil, from: nil)
-			}
-		}
+		activateIfAccessory()
+		NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
 	}
 }
 
@@ -1008,25 +1001,13 @@ extension Binding<Double> {
 }
 
 
-extension StringProtocol where Self: RangeReplaceableCollection {
-	var removingNewlines: Self {
-		// TODO: Use `filter(!\.isNewline)` when key paths support negation.
-		filter { !$0.isNewline }
-	}
-}
-
-
 extension String {
 	var trimmed: Self {
 		trimmingCharacters(in: .whitespacesAndNewlines)
 	}
 
-	var trimmedLeading: Self {
-		replacingOccurrences(of: #"^\s+"#, with: "", options: .regularExpression)
-	}
-
 	var trimmedTrailing: Self {
-		replacingOccurrences(of: #"\s+$"#, with: "", options: .regularExpression)
+		replacing(/\s+$/, with: "")
 	}
 
 	func removingPrefix(_ prefix: Self) -> Self {
@@ -1035,14 +1016,6 @@ extension String {
 		}
 
 		return Self(dropFirst(prefix.count))
-	}
-
-	// TODO: Remove this when targeting a Swift version with native regex support.
-	/**
-	Returns a string with the matches of the given regex replaced with the given replacement string.
-	*/
-	func replacingOccurrences(matchingRegex regex: Self, with replacement: Self) -> Self {
-		replacingOccurrences(of: regex, with: replacement, options: .regularExpression)
 	}
 
 	/**
@@ -1375,58 +1348,9 @@ extension NSEvent {
 }
 
 
-final class SwiftUIWindowForMenuBarApp: NSWindow {
-	override var canBecomeMain: Bool { true }
-	override var canBecomeKey: Bool { true }
-	override var acceptsFirstResponder: Bool { true }
-
-	var shouldCloseOnEscapePress = false
-
-	convenience init() {
-		self.init(
-			// It's important that this is not zero as that causes some SwiftUI rendering problems.
-			contentRect: CGRect(x: 0, y: 0, width: 100, height: 100),
-			styleMask: [
-				.titled,
-				.fullSizeContentView,
-				.closable,
-				.miniaturizable,
-				.resizable
-			],
-			backing: .buffered,
-			defer: true
-		)
-	}
-
-	override func cancelOperation(_ sender: Any?) {
-		guard shouldCloseOnEscapePress else {
-			return
-		}
-
-		performClose(self)
-	}
-
-	override func keyDown(with event: NSEvent) {
-		if event.modifiers == .command {
-			if event.charactersIgnoringModifiers == "w" {
-				performClose(self)
-				return
-			}
-
-			if event.charactersIgnoringModifiers == "m" {
-				performMiniaturize(self)
-				return
-			}
-		}
-
-		super.keyDown(with: event)
-	}
-}
-
-
 extension WKWebView {
-	static let safariUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.6 Safari/605.1.15"
-	static let chromeUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36"
+	static let safariUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.2 Safari/605.1.15"
+	static let chromeUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
 
 	/**
 	Evaluate JavaScript synchronously.
@@ -1830,18 +1754,6 @@ extension WKPreferences {
 }
 
 
-extension WKPreferences {
-	var isFullscreenEnabled: Bool {
-		get {
-			value(forKey: "fullScreenEnabled") as? Bool ?? false
-		}
-		set {
-			setValue(newValue, forKey: "fullScreenEnabled")
-		}
-	}
-}
-
-
 extension WKWindowFeatures {
 	/**
 	The size of the window.
@@ -2092,7 +2004,7 @@ extension String {
 	Make a URL more human-friendly by removing the scheme and `www.`.
 	*/
 	var removingSchemeAndWWWFromURL: Self {
-		replacingOccurrences(matchingRegex: #"^https?:\/\/(?:www.)?"#, with: "")
+		String(trimmingPrefix(/https?:\/\/(?:www\.)?/))
 	}
 }
 
@@ -2234,7 +2146,6 @@ struct ScrollableTextView: NSViewRepresentable {
 	func makeNSView(context: Context) -> NSViewType {
 		let scrollView = NSTextView.scrollablePlainDocumentContentTextView()
 		scrollView.borderType = .bezelBorder
-		scrollView.drawsBackground = true
 
 		let textView = scrollView.documentView as! NSTextView
 		textView.delegate = context.coordinator
@@ -2265,25 +2176,6 @@ struct ScrollableTextView: NSViewRepresentable {
 		textView.isAutomaticDashSubstitutionEnabled = isAutomaticDashSubstitutionEnabled
 		textView.isAutomaticTextReplacementEnabled = isAutomaticTextReplacementEnabled
 		textView.isAutomaticSpellingCorrectionEnabled = isAutomaticSpellingCorrectionEnabled
-	}
-}
-
-
-private struct BoxModifier: ViewModifier {
-	func body(content: Content) -> some View {
-		content
-			.padding()
-			.backgroundColor(.primary.opacity(0.05))
-			.cornerRadius(4)
-	}
-}
-
-extension View {
-	/**
-	Wrap the content in a box.
-	*/
-	func box() -> some View {
-		modifier(BoxModifier())
 	}
 }
 
@@ -2492,15 +2384,15 @@ extension Timer {
 	*/
 	@discardableResult
 	static func scheduledRepeatingTimer(
-		withTimeInterval interval: TimeInterval,
-		totalDuration: TimeInterval,
+		withTimeInterval interval: Duration,
+		totalDuration: Duration,
 		onRepeat: ((Timer) -> Void)? = nil,
 		onFinish: (() -> Void)? = nil
 	) -> Timer {
 		let startDate = Date()
 
-		return scheduledTimer(withTimeInterval: interval, repeats: true) { timer in
-			guard Date() <= startDate.addingTimeInterval(totalDuration) else {
+		return scheduledTimer(withTimeInterval: interval.toTimeInterval, repeats: true) { timer in
+			guard Date() <= startDate.addingTimeInterval(totalDuration.toTimeInterval) else {
 				timer.invalidate()
 				onFinish?()
 				return
@@ -2518,7 +2410,7 @@ extension NSStatusBarButton {
 
 	- Note: It will do nothing if the user has enabled the “Reduce motion” accessibility settings.
 	*/
-	func playRainbowAnimation(duration: TimeInterval = 5) {
+	func playRainbowAnimation(for duration: Duration = .seconds(5)) {
 		guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
 			return
 		}
@@ -2526,7 +2418,7 @@ extension NSStatusBarButton {
 		let originalTintColor = contentTintColor
 
 		Timer.scheduledRepeatingTimer(
-			withTimeInterval: 0.1,
+			withTimeInterval: .seconds(0.1),
 			totalDuration: duration,
 			onRepeat: { [weak self] _ in
 				self?.contentTintColor = .uniqueRandomSystemColor()
@@ -2968,8 +2860,7 @@ extension URL {
 			throw PlaceholderError.failedToEncodePlaceholder(placeholder)
 		}
 
-		let urlString = absoluteString
-			.replacingOccurrences(of: encodedPlaceholder, with: replacement)
+		let urlString = absoluteString.replacing(encodedPlaceholder, with: replacement)
 
 		guard let newURL = URL(string: urlString) else {
 			throw PlaceholderError.invalidURLAfterSubstitution(urlString)
@@ -3054,33 +2945,7 @@ final class AutofocusedTextField: NSTextField {
 }
 
 
-/**
-Hashable wrapper for a metatype value.
-*/
-struct HashableType<T>: Hashable {
-	static func == (lhs: Self, rhs: Self) -> Bool {
-		lhs.base == rhs.base
-	}
 
-	let base: T.Type
-
-	init(_ base: T.Type) {
-		self.base = base
-	}
-
-	func hash(into hasher: inout Hasher) {
-		hasher.combine(ObjectIdentifier(base))
-	}
-}
-
-extension Dictionary {
-	subscript<T>(key: T.Type) -> Value? where Key == HashableType<T> {
-		get { self[HashableType(key)] }
-		set {
-			self[HashableType(key)] = newValue
-		}
-	}
-}
 
 
 extension NSResponder {
@@ -3230,74 +3095,6 @@ extension WKWebView {
 }
 
 
-/**
-Creates a window controller that can only ever have one window.
-
-This can be useful when you need there to be only one window of a type, for example, a settings window. If the window already exists, and you call `.showWindow()`, it will instead just focus the existing window.
-
-- Important: Don't create an instance of this. Instead, call the static `.showWindow()` method. Also mark your `convenience init` as `private` so you don't accidentally call it.
-
-```
-final class SettingsWindowController: SingletonWindowController {
-	private convenience init() {
-		let window = NSWindow()
-		self.init(window: window)
-
-		window.center()
-	}
-}
-
-// …
-
-SettingsWindowController.showWindow()
-```
-*/
-class SingletonWindowController: NSWindowController, NSWindowDelegate { // swiftlint:disable:this final_class
-	private static var instances = [HashableType<SingletonWindowController>: SingletonWindowController]()
-
-	private static var currentInstance: SingletonWindowController {
-		guard let instance = instances[self] else {
-			let instance = self.init()
-			instances[self] = instance
-			return instance
-		}
-
-		return instance
-	}
-
-	static var window: NSWindow? {
-		get {
-			currentInstance.window
-		}
-		set {
-			currentInstance.window = newValue
-		}
-	}
-
-	static func showWindow() {
-		SSApp.activateIfAccessory()
-		window?.makeKeyAndOrderFront(nil)
-	}
-
-	override init(window: NSWindow?) {
-		super.init(window: window)
-		window?.delegate = self
-	}
-
-	@available(*, unavailable)
-	required init?(coder: NSCoder) {
-		fatalError("init(coder:) has not been implemented")
-	}
-
-	func windowWillClose(_ notification: Notification) {
-		Self.instances[Self.self] = nil
-	}
-
-	@available(*, unavailable)
-	override func showWindow(_ sender: Any?) {}
-}
-
-
 enum AssociationPolicy {
 	case assign
 	case retainNonatomic
@@ -3349,25 +3146,6 @@ extension ObjectAssociation {
 
 // MARK: - KVO utilities
 extension NSObjectProtocol where Self: NSObject {
-	/**
-	Bind the property of an object to the property of another object.
-
-	```
-	window.bind(\.title, to: toolbarItem, at: \.title)
-		.store(forTheLifetimeOf: window)
-	```
-	*/
-	func bind<Value, Target>(
-		_ sourceKeyPath: KeyPath<Self, Value>,
-		to target: Target,
-		at targetKeyPath: ReferenceWritableKeyPath<Target, Value>
-	) -> AnyCancellable {
-		publisher(for: sourceKeyPath)
-			.sink {
-				target[keyPath: targetKeyPath] = $0
-			}
-	}
-
 	/**
 	Bind the optional property of an object to the property of another object. If the optional property is `nil`, the given `default` value will be used.
 
@@ -3439,7 +3217,7 @@ extension URL {
 			return nil
 		}
 
-		let url = string.replacingOccurrences(of: #"^(?!(?:\w+:)?\/\/)"#, with: "https://", options: .regularExpression)
+		let url = string.replacing(/^(?!(?:\w+:)?\/\/)/, with: "https://")
 
 		self.init(string: url)
 	}
@@ -3628,94 +3406,6 @@ extension Color {
 extension View {
 	func eraseToAnyView() -> AnyView {
 		AnyView(self)
-	}
-}
-
-
-extension View {
-	// The closure unfortunately has to return `AnyView` as `some` cannot yet be used in return values in closures.
-	/**
-	Modify the view in a closure. This can be useful when you need to conditionally apply a modifier that is unavailable on certain platforms.
-
-	For example, imagine this code needing to run on macOS too where `View#actionSheet()` is not available:
-
-	```
-	struct ContentView: View {
-		var body: some View {
-			Text("Unicorn")
-				.modify {
-					#if os(iOS)
-					return $0.actionSheet(…).eraseToAnyView()
-					#endif
-
-					return nil
-				}
-		}
-	}
-	```
-
-	```
-	.modify {
-		guard #available(macOS 11, iOS 14, *) else {
-			return nil
-		}
-
-		return $0.keyboardShortcut("q")
-			.eraseToAnyView()
-	}
-	```
-	*/
-	@ViewBuilder
-	func modify(_ modifier: (Self) -> AnyView?) -> some View {
-		if let view = modifier(self) {
-			view
-		} else {
-			self
-		}
-	}
-
-	/**
-	- Important; You must always return `$0` in the else clause.
-
-	```
-	struct ContentView: View {
-		var body: some View {
-			Text("Unicorn")
-				.modifyWithViewBuilder {
-					#if os(iOS)
-					$0.actionSheet(…)
-					#else
-					$0
-					#endif
-				}
-		}
-	}
-	```
-
-	```
-	struct ContentView: View {
-		var body: some View {
-			Text("Unicorn")
-				.modifyWithViewBuilder {
-					if #available(macOS 11, *) {
-						$0.toolbar {
-							ToolbarItem(placement: .confirmationAction) {
-								Button("Done") {
-									dismiss()
-								}
-							}
-						}
-					} else {
-						$0
-					}
-				}
-		}
-	}
-	```
-	*/
-	@inlinable
-	func modifyWithViewBuilder(@ViewBuilder modifier: (Self) -> some View) -> some View {
-		modifier(self)
 	}
 }
 
@@ -4030,11 +3720,7 @@ extension NSItemProvider {
 
 extension NSItemProvider {
 	func getImage() async -> NSImage? {
-		if #available(macOS 13, *) {
-			return try? await loadObject(ofClass: NSImage.self)
-		} else {
-			return nil
-		}
+		try? await loadObject(ofClass: NSImage.self)
 	}
 }
 
@@ -4043,16 +3729,6 @@ extension NSItemProvider {
 extension NSItemProvider {
 	func hasItemConforming(to contentType: UTType) -> Bool {
 		hasItemConformingToTypeIdentifier(contentType.identifier)
-	}
-
-	func loadItem(
-		for contentType: UTType,
-		options: [AnyHashable: Any]? = nil // swiftlint:disable:this discouraged_optional_collection
-	) async throws -> NSSecureCoding {
-		try await loadItem(
-			forTypeIdentifier: contentType.identifier,
-			options: options
-		)
 	}
 }
 
@@ -4663,9 +4339,9 @@ extension OperatingSystem {
 	/**
 	- Note: Only use this when you cannot use an `if #available` check. For example, inline in function calls.
 	*/
-	static let isMacOS14OrLater: Bool = {
+	static let isMacOS15OrLater: Bool = {
 		#if os(macOS)
-		if #available(macOS 14, *) {
+		if #available(macOS 15, *) {
 			return true
 		} else {
 			return false
@@ -4678,9 +4354,9 @@ extension OperatingSystem {
 	/**
 	- Note: Only use this when you cannot use an `if #available` check. For example, inline in function calls.
 	*/
-	static let isMacOS13OrLater: Bool = {
+	static let isMacOS14OrLater: Bool = {
 		#if os(macOS)
-		if #available(macOS 13, *) {
+		if #available(macOS 14, *) {
 			return true
 		} else {
 			return false
@@ -4806,7 +4482,11 @@ final class WebsiteIconFetcher: NSObject {
 
 	@MainActor
 	static func fetch(for url: URL) async throws -> NSImage? {
-		try await self.init().fetch(for: url)
+		guard url.isValid else {
+			throw NSError.appError("Invalid URL: \(url.absoluteString)")
+		}
+
+		return try await self.init().fetch(for: url)
 	}
 
 	@MainActor
@@ -5183,7 +4863,7 @@ extension View {
 		object: AnyObject? = nil,
 		perform action: @escaping (Notification) -> Void
 	) -> some View {
-		// TODO: Use AsyncSequence when targeting macOS 13.
+		// TODO: Use AsyncSequence when targeting macOS 14.
 		onReceive(NotificationCenter.default.publisher(for: name, object: object)) {
 			action($0)
 		}
@@ -5288,61 +4968,7 @@ extension Defaults {
 }
 
 
-private struct OnChangeDebouncedViewModifier<Value: Equatable>: ViewModifier {
-	@State private var subject = PassthroughSubject<Void, Never>()
-
-	let value: Value
-	let dueTime: TimeInterval
-	let initial: Bool
-	let action: (Value) -> Void
-
-	func body(content: Content) -> some View {
-		content
-			.onChange(of: value) { _ in
-				subject.send()
-			}
-			.task { @MainActor in
-				if initial {
-					subject.send()
-				}
-
-				let changes = subject
-					.debounce(for: .seconds(dueTime), scheduler: DispatchQueue.main)
-					.receive(on: DispatchQueue.main)
-					.values
-
-				for await _ in changes {
-					action(value)
-				}
-			}
-	}
-}
-
-extension View {
-	/**
-	`.onChange` version that debounces the value changes.
-
-	It also allows triggering initially (on appear) too, not just on change.
-	*/
-	func onChangeDebounced<Value: Equatable>(
-		of value: Value,
-		dueTime: TimeInterval,
-		initial: Bool = false,
-		perform action: @escaping (Value) -> Void
-	) -> some View {
-		modifier(
-			OnChangeDebouncedViewModifier(
-				value: value,
-				dueTime: dueTime,
-				initial: initial,
-				action: action
-			)
-		)
-	}
-}
-
-
-// TODO: Remove when targeting macOS 13.
+// TODO: Remove when targeting macOS 14.
 extension Publisher {
 	/**
 	Convert a publisher to a `Result`.
@@ -5424,6 +5050,12 @@ extension View {
 	func windowLevel(_ level: NSWindow.Level) -> some View {
 		accessHostingWindow {
 			$0?.level = level
+		}
+	}
+
+	func windowIsMinimizable(_ isMinimizable: Bool = true) -> some View {
+		accessHostingWindow {
+			$0?.styleMask.toggleExistence(.miniaturizable, shouldExist: isMinimizable)
 		}
 	}
 }
@@ -5567,7 +5199,6 @@ extension SSPublishers {
 		typealias Output = URLComponents
 		typealias Failure = Never
 
-		// TODO: Make this `some Subscriber` when targeting macOS 13.
 		func receive<S: Subscriber>(subscriber: S) where S.Input == Output, S.Failure == Failure {
 			let subscription = InternalSubscription<S>()
 			subscription.subscriber = subscriber
@@ -5714,7 +5345,6 @@ struct EnumPicker<Enum, Label, Content>: View where Enum: CaseIterable & Equatab
 	var body: some View {
 		Picker(selection: enumBinding.caseIndex) { // swiftlint:disable:this multiline_arguments
 			ForEach(Array(Enum.allCases).indexed(), id: \.0) { index, element in
-				// TODO: Is `isSelected` really useful? If not, remove it.
 				content(element, element == enumBinding.wrappedValue)
 					.tag(index)
 			}
@@ -5887,22 +5517,6 @@ struct CloseOrClearButton: View {
 }
 
 
-extension URL {
-	/**
-	Get various common system directories.
-	*/
-	static func systemDirectory(_ directory: FileManager.SearchPathDirectory) -> Self {
-		// I don't think this can fail, but just in case, we have a sensible fallback.
-		let url = (try? FileManager.default.url(for: directory, in: .userDomainMask, appropriateFor: nil, create: false)) ?? FileManager.default.temporaryDirectory
-
-		// This is needed as in sanboxed app's, the returned URL is sometimes a symlink inside the sandbox container.
-		return url.resolvingSymlinksInPath()
-	}
-
-	static let downloadsDirectory = systemDirectory(.downloadsDirectory)
-}
-
-
 extension NSWorkspace {
 	/**
 	Bounces the Downloads folder in the Dock if present.
@@ -5948,5 +5562,43 @@ extension URL {
 
 		// `URL` does not have a way to get the domain without subdomains, so we fake it.
 		return host == domain || host.hasSuffix(".\(domain)")
+	}
+}
+
+
+extension Duration {
+	var nanoseconds: Int64 {
+		let (seconds, attoseconds) = components
+		let secondsNanos = seconds * 1_000_000_000
+		let attosecondsNanons = attoseconds / 1_000_000_000
+		let (totalNanos, isOverflow) = secondsNanos.addingReportingOverflow(attosecondsNanons)
+		return isOverflow ? .max : totalNanos
+	}
+
+	var toTimeInterval: TimeInterval { Double(nanoseconds) / 1_000_000_000 }
+}
+
+
+extension UUID: Identifiable {
+	public var id: Self { self }
+}
+
+
+extension View {
+	/**
+	`.task()` with debouncing.
+	*/
+	func debouncingTask(
+		id: some Equatable,
+		priority: TaskPriority = .userInitiated,
+		interval: Duration,
+		@_inheritActorContext @_implicitSelfCapture _ action: @Sendable @escaping () async -> Void
+	) -> some View {
+		task(id: id, priority: priority) {
+			do {
+				try await Task.sleep(for: interval)
+				await action()
+			} catch {}
+		}
 	}
 }

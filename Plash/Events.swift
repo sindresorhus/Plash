@@ -49,14 +49,6 @@ extension AppState {
 			}
 			.store(in: &cancellables)
 
-		// We use this instead of `applicationShouldHandleReopen` because of the macOS bug.
-		// https://github.com/feedback-assistant/reports/issues/246
-		NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)
-			.sink { [self] _ in
-				handleAppReopen()
-			}
-			.store(in: &cancellables)
-
 		Defaults.publisher(.websites, options: [])
 			.receive(on: DispatchQueue.main)
 			.sink { [self] in

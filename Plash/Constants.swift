@@ -3,6 +3,15 @@ import KeyboardShortcuts
 
 enum Constants {
 	static let menuBarIcon = NSImage(named: "MenuBarIcon")!
+
+	static var websitesWindow: NSWindow? {
+		NSApp.windows.first { $0.identifier?.rawValue == "websites" }
+	}
+
+	static func openWebsitesWindow() {
+		NSApp.activate(ignoringOtherApps: true)
+		websitesWindow?.makeKeyAndOrderFront(nil)
+	}
 }
 
 extension Defaults.Keys {
@@ -21,7 +30,6 @@ extension Defaults.Keys {
 	static let muteAudio = Key<Bool>("muteAudio", default: true)
 }
 
-extension Website: Defaults.Serializable {}
 extension Display: Defaults.Serializable {}
 
 extension KeyboardShortcuts.Name {

@@ -8,7 +8,6 @@ struct AddWebsiteScreen: View {
 	@State private var isApplyConfirmationPresented = false
 	@State private var originalWebsite: Website?
 	@State private var urlString = ""
-	@Namespace private var mainNamespace
 
 	@State private var newWebsite = Website(
 		id: UUID(),
@@ -45,18 +44,18 @@ struct AddWebsiteScreen: View {
 	}
 
 	var body: some View {
-		VStack(alignment: .leading) {
-			if SSApp.isFirstLaunch {
+		Form {
+			topView
+			if SSApp.isFirstLaunch, !isEditing {
 				firstLaunchView
 			}
-			VStack(alignment: .leading) {
-				topView
-				if isEditing {
-					editingView
-				}
+			if isEditing {
+				editingView
 			}
 		}
+			.formStyle(.grouped)
 			.frame(width: 500)
+			.fixedSize()
 			.bindHostingWindow($hostingWindow)
 			// Note: Current only works when a text field is focused. (macOS 11.3)
 			.onExitCommand {
@@ -84,17 +83,15 @@ struct AddWebsiteScreen: View {
 				Button("Cancel", role: .cancel) {}
 			}
 			.toolbar {
-				// TODO: This can be simplified when `.toolbar` supports conditionals.
-				ToolbarItem {
-					if isEditing {
+				if isEditing {
+					ToolbarItem {
 						Button("Revert") {
 							revert()
 						}
 							.disabled(!hasChanges)
 					}
-				}
-				ToolbarItem(placement: .cancellationAction) {
-					if !isEditing {
+				} else {
+					ToolbarItem(placement: .cancellationAction) {
 						Button("Cancel") {
 							dismiss()
 						}
@@ -107,116 +104,108 @@ struct AddWebsiteScreen: View {
 						.disabled(!isURLValid)
 				}
 			}
+			.task {
+				guard isEditing else {
+					return
+				}
+
+				website.wrappedValue.makeCurrent()
+			}
 	}
 
 	private var firstLaunchView: some View {
-		HStack {
-			HStack(spacing: 3) {
-				Text("You could, for example,")
-				Button("show the time.") {
-					urlString = "https://time.pablopunk.com/?seconds&fg=white&bg=transparent"
+		Section {
+			HStack {
+				HStack(spacing: 3) {
+					Text("You could, for example,")
+					Button("show the time.") {
+						urlString = "https://time.pablopunk.com/?seconds&fg=white&bg=transparent"
+					}
+						.buttonStyle(.link)
 				}
+				Spacer()
+				Link("More ideas", destination: "https://github.com/sindresorhus/Plash/issues/1")
 					.buttonStyle(.link)
 			}
-			Spacer()
-			Link("More ideas", destination: "https://github.com/sindresorhus/Plash/issues/1")
-				.buttonStyle(.link)
 		}
-			.box()
 	}
 
 	private var topView: some View {
-		VStack(alignment: .leading) {
-			HStack {
-				TextField(
-					"twitter.com",
-					// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines. (macOS 12.0)
-					// TODO: Report to Apple. Still an issue on macOS 13.
-					text: $urlString.setMap(\.removingNewlines)
-				)
-					.textFieldStyle(.roundedBorder)
-					.lineLimit(1)
-					.prefersDefaultFocus(!isEditing, in: mainNamespace)
-					.padding(.vertical)
-					// This change listener is used to respond to URL changes from the outside, like the "Revert" button or the Shortcuts actions.
-					.onChange(of: website.wrappedValue.url) {
-						guard
-							$0.absoluteString != "-",
-							$0.absoluteString != urlString
-						else {
-							return
-						}
-
-						urlString = $0.absoluteString
+		Section {
+			TextField("URL", text: $urlString)
+				.lineLimit(1)
+				// This change listener is used to respond to URL changes from the outside, like the "Revert" button or the Shortcuts actions.
+				.onChange(of: website.wrappedValue.url) {
+					guard
+						$0.absoluteString != "-",
+						$0.absoluteString != urlString
+					else {
+						return
 					}
-					.onChange(of: urlString) {
-						guard let url = URL(humanString: $0) else {
-							// Makes the “Revert” button work if the user clears the URL field.
-							if urlString.trimmed.isEmpty {
-								website.wrappedValue.url = "-"
-							} else if let url = URL(string: $0) {
-								website.wrappedValue.url = url
-							}
 
-							return
-						}
-
-						website.wrappedValue.url = url
-							.normalized(
-								// We need to allow typing `http://172.16.0.100:8080`.
-								removeDefaultPort: false
-							)
-					}
-					.onChangeDebounced(of: urlString, dueTime: 0.5) { _ in
-						Task {
-							await fetchTitle()
-						}
-					}
-				Button("Local Website…") {
-					Task {
-						guard let url = await chooseLocalWebsite() else {
-							return
-						}
-
-						urlString = url.absoluteString
-					}
+					urlString = $0.absoluteString
 				}
-			}
-			TextField(
-				"Title",
-				// `removingNewlines` is a workaround for a SwiftUI bug where it doesn't respect the line limit when pasting in multiple lines. (macOS 12.0)
-				text: website.title.setMap(\.removingNewlines)
-			)
-				.textFieldStyle(.roundedBorder)
+				.onChange(of: urlString) {
+					guard let url = URL(humanString: $0) else {
+						// Makes the “Revert” button work if the user clears the URL field.
+						if urlString.trimmed.isEmpty {
+							website.wrappedValue.url = "-"
+						} else if let url = URL(string: $0), url.isValid {
+							website.wrappedValue.url = url
+						}
+
+						return
+					}
+
+					guard url.isValid else {
+						return
+					}
+
+					website.wrappedValue.url = url
+						.normalized(
+							// We need to allow typing `http://172.16.0.100:8080`.
+							removeDefaultPort: false
+						)
+				}
+				.debouncingTask(id: website.wrappedValue.url, interval: .seconds(0.5)) {
+					await fetchTitle()
+				}
+			TextField("Title", text: website.title)
 				.lineLimit(1)
 				.disabled(isFetchingTitle)
-				.overlay(alignment: .trailing) {
+				.overlay(alignment: .leading) {
 					if isFetchingTitle {
 						ProgressView()
 							.controlSize(.small)
-							.offset(x: -4)
+							.offset(x: 50)
 					}
 				}
+		} footer: {
+			Button("Local Website…") {
+				Task {
+					guard let url = await chooseLocalWebsite() else {
+						return
+					}
+
+					urlString = url.absoluteString
+				}
+			}
+				.controlSize(.small)
 		}
-			.padding()
 	}
 
 	@ViewBuilder
 	private var editingView: some View {
-		Divider()
-		VStack(alignment: .leading) {
-			EnumPicker("Invert colors:", enumBinding: website.invertColors2) { element, _ in
+		Section {
+			EnumPicker("Invert colors", enumBinding: website.invertColors2) { element, _ in
 				Text(element.title)
 			}
-				.fixedSize()
-				.padding(.bottom, 4)
 				.help("Creates a fake dark mode for websites without a native dark mode by inverting all the colors on the website.")
 			Toggle("Use print styles", isOn: website.usePrintStyles)
 				.help("Forces the website to use its print styles (“@media print”) if any. Some websites have a simpler presentation for printing, for example, Google Calendar.")
-			// TODO: Put these inside a `DisclosureGroup` called `Advanced` when macOS 13 is out. It's too buggy on macOS 12.
 			VStack(alignment: .leading) {
 				HStack {
-					Text("CSS:")
+					Text("CSS")
 					Spacer()
 					InfoPopoverButton("This lets you modify the website with CSS. You could, for example, change some colors or hide some unnecessary elements.")
 						.controlSize(.small)
@@ -231,10 +220,9 @@ struct AddWebsiteScreen: View {
 				)
 					.frame(height: 70)
 			}
-				.padding(.top, 10)
 			VStack(alignment: .leading) {
 				HStack {
-					Text("JavaScript:")
+					Text("JavaScript")
 					Spacer()
 					InfoPopoverButton("This lets you modify the website with JavaScript. Prefer using CSS instead whenever possible. You can use “await” at the top-level.")
 						.controlSize(.small)
@@ -249,12 +237,14 @@ struct AddWebsiteScreen: View {
 				)
 					.frame(height: 70)
 			}
-				.padding(.top, 10)
 		}
-			.padding()
 	}
 
 	private func submit() {
+		guard isURLValid else {
+			return
+		}
+
 		if isEditing {
 			dismiss()
 		} else {
@@ -278,7 +268,7 @@ struct AddWebsiteScreen: View {
 			// TODO: Find a better way to inform the user about this.
 			Task {
 				await NSAlert.show(
-					title: "Right-click a website in the list to edit it, toggle dark mode, add custom CSS/JavaScript, and more."
+					title: "Click a website in the list to edit it, toggle dark mode, add custom CSS/JavaScript, and more."
 				)
 			}
 		}
@@ -286,7 +276,7 @@ struct AddWebsiteScreen: View {
 
 	@MainActor
 	private func chooseLocalWebsite() async -> URL? {
-//		guard let hostingWIndow else {
+//		guard let hostingWindow else {
 //			return nil
 //		}
 
@@ -310,8 +300,8 @@ struct AddWebsiteScreen: View {
 			panel.directoryURL = url
 		}
 
-		// TODO: Make it a sheet instead when targeting macOS 13. On macOS 12.4, it doesn't work to open a sheet inside another sheet.
-//		let result = await panel.beginSheet(hostingWIndow)
+		// TODO: Make it a sheet instead when targeting the macOS bug is fixed. (macOS 13.1)
+//		let result = await panel.beginSheet(hostingWindow)
 		let result = await panel.begin()
 
 		guard

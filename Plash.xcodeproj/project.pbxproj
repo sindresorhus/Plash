@@ -23,18 +23,17 @@
 		E32AD6BD26D275070008D900 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32AD6BC26D275070008D900 /* Utilities.swift */; };
 		E333EB1B2385244E005FCE44 /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E333EB1A2385244E005FCE44 /* SettingsScreen.swift */; };
 		E3369A9A265E344300BAC78B /* URLCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3369A99265E344300BAC78B /* URLCommands.swift */; };
+		E3494C19297D236000983648 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = E3494C18297D236000983648 /* LaunchAtLogin */; };
+		E3494C26297D38CC00983648 /* Intents.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3494C1A297D38CC00983648 /* Intents.swift */; };
 		E34FCBCE264D32150022BDD3 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34FCBCD264D32150022BDD3 /* App.swift */; };
 		E354442F26062D6300CA060F /* WebsitesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E354442E26062D6300CA060F /* WebsitesScreen.swift */; };
 		E354443C2607505100CA060F /* WebsitesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E354443B2607505100CA060F /* WebsitesController.swift */; };
 		E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = E3805F5A2466ED5600489E6C /* KeyboardShortcuts */; };
 		E384F28024C3B37E002FD21B /* Events.swift in Sources */ = {isa = PBXBuildFile; fileRef = E384F27F24C3B37E002FD21B /* Events.swift */; };
 		E384F28224C3B3CD002FD21B /* Menus.swift in Sources */ = {isa = PBXBuildFile; fileRef = E384F28124C3B3CD002FD21B /* Menus.swift */; };
-		E3C4E281251540F7007A6078 /* LaunchAtLogin in Frameworks */ = {isa = PBXBuildFile; productRef = E3C4E280251540F7007A6078 /* LaunchAtLogin */; };
 		E3EC5A86250D7A0C00ABE1A1 /* WelcomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3EC5A85250D7A0C00ABE1A1 /* WelcomeScreen.swift */; };
 		E3FA21AD23C74E6B00059E43 /* InternetAccessPolicy.json in Resources */ = {isa = PBXBuildFile; fileRef = E3FA21AC23C74E6B00059E43 /* InternetAccessPolicy.json */; };
 		E3FAF815264333D300CF7963 /* Website.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3FAF814264333D300CF7963 /* Website.swift */; };
-		E3FC71E1271ECA1E00C9D255 /* Intents.intentdefinition in Sources */ = {isa = PBXBuildFile; fileRef = E3FC71E0271ECA1700C9D255 /* Intents.intentdefinition */; };
-		E3FC71E3271ECA9200C9D255 /* IntentHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3FC71E2271ECA9200C9D255 /* IntentHandler.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -82,6 +81,7 @@
 		E32AD6BC26D275070008D900 /* Utilities.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Utilities.swift; sourceTree = "<group>"; };
 		E333EB1A2385244E005FCE44 /* SettingsScreen.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = SettingsScreen.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E3369A99265E344300BAC78B /* URLCommands.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLCommands.swift; sourceTree = "<group>"; };
+		E3494C1A297D38CC00983648 /* Intents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Intents.swift; sourceTree = "<group>"; };
 		E34FCBCD264D32150022BDD3 /* App.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = App.swift; sourceTree = "<group>"; };
 		E354442E26062D6300CA060F /* WebsitesScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsitesScreen.swift; sourceTree = "<group>"; };
 		E354443B2607505100CA060F /* WebsitesController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebsitesController.swift; sourceTree = "<group>"; };
@@ -90,8 +90,6 @@
 		E3EC5A85250D7A0C00ABE1A1 /* WelcomeScreen.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = WelcomeScreen.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E3FA21AC23C74E6B00059E43 /* InternetAccessPolicy.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; lineEnding = 0; path = InternetAccessPolicy.json; sourceTree = "<group>"; usesTabs = 1; };
 		E3FAF814264333D300CF7963 /* Website.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Website.swift; sourceTree = "<group>"; };
-		E3FC71E0271ECA1700C9D255 /* Intents.intentdefinition */ = {isa = PBXFileReference; lastKnownFileType = file.intentdefinition; path = Intents.intentdefinition; sourceTree = "<group>"; };
-		E3FC71E2271ECA9200C9D255 /* IntentHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = IntentHandler.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -101,7 +99,7 @@
 			files = (
 				E3294F7E255783A800D4172F /* Defaults in Frameworks */,
 				E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */,
-				E3C4E281251540F7007A6078 /* LaunchAtLogin in Frameworks */,
+				E3494C19297D236000983648 /* LaunchAtLogin in Frameworks */,
 				E30F3D5B278AF95C004A463E /* Sentry in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -155,10 +153,9 @@
 				E333EB1A2385244E005FCE44 /* SettingsScreen.swift */,
 				E3EC5A85250D7A0C00ABE1A1 /* WelcomeScreen.swift */,
 				E3369A99265E344300BAC78B /* URLCommands.swift */,
-				E3FC71E2271ECA9200C9D255 /* IntentHandler.swift */,
+				E3494C1A297D38CC00983648 /* Intents.swift */,
 				E32421572384F0E600D28A91 /* Utilities.swift */,
 				E32421372384E9D900D28A91 /* Assets.xcassets */,
-				E3FC71E0271ECA1700C9D255 /* Intents.intentdefinition */,
 				E3EF205F24C0D1A100A5F802 /* Other */,
 				E32421392384E9D900D28A91 /* Preview Content */,
 			);
@@ -205,7 +202,6 @@
 				E324212C2384E9D700D28A91 /* Sources */,
 				E324212D2384E9D700D28A91 /* Frameworks */,
 				E324212E2384E9D700D28A91 /* Resources */,
-				E32421542384EF7A00D28A91 /* Copy "Launch at Login Helper" */,
 				E32AD6B726D2718B0008D900 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
@@ -216,9 +212,9 @@
 			name = Plash;
 			packageProductDependencies = (
 				E3805F5A2466ED5600489E6C /* KeyboardShortcuts */,
-				E3C4E280251540F7007A6078 /* LaunchAtLogin */,
 				E3294F7D255783A800D4172F /* Defaults */,
 				E30F3D5A278AF95C004A463E /* Sentry */,
+				E3494C18297D236000983648 /* LaunchAtLogin */,
 			);
 			productName = Plash;
 			productReference = E32421302384E9D700D28A91 /* Plash.app */;
@@ -271,8 +267,8 @@
 			packageReferences = (
 				E32421482384ED8300D28A91 /* XCRemoteSwiftPackageReference "Defaults" */,
 				E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
-				E3C4E27F251540F7007A6078 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */,
 				E30F3D59278AF95C004A463E /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
+				E3494C17297D236000983648 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
 			);
 			productRefGroup = E32421312384E9D700D28A91 /* Products */;
 			projectDirPath = "";
@@ -325,26 +321,6 @@
 			shellScript = "PATH=\"/opt/homebrew/bin/:${PATH}\"\nswiftlint\n";
 			showEnvVarsInLog = 0;
 		};
-		E32421542384EF7A00D28A91 /* Copy "Launch at Login Helper" */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Copy \"Launch at Login Helper\"";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "\"${BUILT_PRODUCTS_DIR}/LaunchAtLogin_LaunchAtLogin.bundle/Contents/Resources/copy-helper-swiftpm.sh\"\n";
-			showEnvVarsInLog = 0;
-		};
 /* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -355,10 +331,9 @@
 				E32421362384E9D700D28A91 /* AddWebsiteScreen.swift in Sources */,
 				E3369A9A265E344300BAC78B /* URLCommands.swift in Sources */,
 				E384F28024C3B37E002FD21B /* Events.swift in Sources */,
-				E3FC71E1271ECA1E00C9D255 /* Intents.intentdefinition in Sources */,
 				E384F28224C3B3CD002FD21B /* Menus.swift in Sources */,
 				E324215A2384FBE500D28A91 /* WebViewController.swift in Sources */,
-				E3FC71E3271ECA9200C9D255 /* IntentHandler.swift in Sources */,
+				E3494C26297D38CC00983648 /* Intents.swift in Sources */,
 				E32421342384E9D700D28A91 /* AppState.swift in Sources */,
 				E32421472384EB4E00D28A91 /* DesktopWindow.swift in Sources */,
 				E32421582384F0E600D28A91 /* Utilities.swift in Sources */,
@@ -446,7 +421,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MACOSX_DEPLOYMENT_TARGET = 13.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -504,7 +479,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 12.4;
+				MACOSX_DEPLOYMENT_TARGET = 13.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
@@ -645,7 +620,7 @@
 			repositoryURL = "https://github.com/getsentry/sentry-cocoa";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 7.31.2;
+				minimumVersion = 8.0.0;
 			};
 		};
 		E32421482384ED8300D28A91 /* XCRemoteSwiftPackageReference "Defaults" */ = {
@@ -656,20 +631,20 @@
 				minimumVersion = 7.1.0;
 			};
 		};
+		E3494C17297D236000983648 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin-Modern";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.0;
+			};
+		};
 		E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.9.0;
-			};
-		};
-		E3C4E27F251540F7007A6078 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/sindresorhus/LaunchAtLogin";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 5.0.0;
+				minimumVersion = 1.9.3;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -685,15 +660,15 @@
 			package = E32421482384ED8300D28A91 /* XCRemoteSwiftPackageReference "Defaults" */;
 			productName = Defaults;
 		};
+		E3494C18297D236000983648 /* LaunchAtLogin */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E3494C17297D236000983648 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;
+			productName = LaunchAtLogin;
+		};
 		E3805F5A2466ED5600489E6C /* KeyboardShortcuts */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
 			productName = KeyboardShortcuts;
-		};
-		E3C4E280251540F7007A6078 /* LaunchAtLogin */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = E3C4E27F251540F7007A6078 /* XCRemoteSwiftPackageReference "LaunchAtLogin" */;
-			productName = LaunchAtLogin;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -1,5 +1,6 @@
 import Cocoa
 import UniformTypeIdentifiers
+import CoreTransferable
 
 
 extension Sequence where Element: Sequence {
@@ -20,38 +21,10 @@ extension NSExtensionContext {
 
 
 extension NSItemProvider {
-	func loadObject<T>(ofClass: T.Type) async throws -> T? where T: NSItemProviderReading {
+	func loadTransferable<T: Transferable>(type transferableType: T.Type) async throws -> T {
 		try await withCheckedThrowingContinuation { continuation in
-			_ = loadObject(ofClass: ofClass) { data, error in
-				if let error {
-					continuation.resume(throwing: error)
-					return
-				}
-
-				guard let image = data as? T else {
-					continuation.resume(returning: nil)
-					return
-				}
-
-				continuation.resume(returning: image)
-			}
-		}
-	}
-
-	func loadObject<T>(ofClass: T.Type) async throws -> T? where T: _ObjectiveCBridgeable, T._ObjectiveCType: NSItemProviderReading {
-		try await withCheckedThrowingContinuation { continuation in
-			_ = loadObject(ofClass: ofClass) { data, error in
-				if let error {
-					continuation.resume(throwing: error)
-					return
-				}
-
-				guard let data else {
-					continuation.resume(returning: nil)
-					return
-				}
-
-				continuation.resume(returning: data)
+			_ = loadTransferable(type: transferableType) {
+				continuation.resume(with: $0)
 			}
 		}
 	}
@@ -62,16 +35,6 @@ extension NSItemProvider {
 extension NSItemProvider {
 	func hasItemConforming(to contentType: UTType) -> Bool {
 		hasItemConformingToTypeIdentifier(contentType.identifier)
-	}
-
-	func loadItem(
-		for contentType: UTType,
-		options: [AnyHashable: Any]? = nil // swiftlint:disable:this discouraged_optional_collection
-	) async throws -> NSSecureCoding {
-		try await loadItem(
-			forTypeIdentifier: contentType.identifier,
-			options: options
-		)
 	}
 }
 

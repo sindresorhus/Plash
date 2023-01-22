@@ -56,12 +56,19 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 
 [![](https://tools.applemediaservices.com/api/badges/download-on-the-mac-app-store/black/en-us?size=250x83&releaseDate=1615852800)](https://apps.apple.com/app/id1494023538)
 
-Requires macOS 12 or later.
+Requires macOS 13 or later.
 
 **Older versions**
 
-- [Last macOS 11 compatible version](https://github.com/sindresorhus/Plash/releases/tag/v2.10.1) *(2.10.1)*
-- [Last macOS 10.15 compatible version](https://github.com/sindresorhus/Plash/releases/tag/v2.1.0) *(2.1.0)*
+- [Last macOS 12 compatible version](https://github.com/sindresorhus/Plash/releases/download/v2.12.1/Plash.2.12.1.-.macOS.12.zip) *(2.12.1)*
+- [Last macOS 11 compatible version](https://github.com/sindresorhus/Plash/releases/download/v2.10.1/Plash.2.10.1.-.macOS.11.zip) *(2.10.1)*
+- [Last macOS 10.15 compatible version](https://github.com/sindresorhus/Plash/releases/download/v2.1.0/Plash.2.1.1.-.macOS.10.15.zip) *(2.1.0)*
+
+**Non-App Store version**
+
+A special version for users that cannot access the App Store. It won't receive updates.
+
+[Download](https://dsc.cloud/sindresorhus/Plash-2.13.0-1674459734) *(2.13.0 · macOS 13+)*
 
 ## Tips
 

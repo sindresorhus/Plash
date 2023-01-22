@@ -1,6 +1,6 @@
 import Foundation
 
-struct Website: Hashable, Codable, Identifiable {
+struct Website: Hashable, Codable, Identifiable, Defaults.Serializable {
 	let id: UUID
 	var isCurrent: Bool
 	var url: URL

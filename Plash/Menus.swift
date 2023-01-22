@@ -120,7 +120,7 @@ extension AppState {
 				"Edit…",
 				isEnabled: WebsitesController.shared.current != nil
 			) {
-				WebsitesWindowController.showWindow()
+				Constants.openWebsitesWindow()
 
 				// TODO: Find a better way to do this.
 				NotificationCenter.default.post(name: .showEditWebsiteDialog, object: nil)
@@ -152,14 +152,14 @@ extension AppState {
 		}
 
 		menu.addCallbackItem("Add Website…") {
-			WebsitesWindowController.showWindow()
+			Constants.openWebsitesWindow()
 
 			// TODO: Find a better way to do this.
 			NotificationCenter.default.post(name: .showAddWebsiteDialog, object: nil)
 		}
 
 		menu.addCallbackItem("Websites…") {
-			WebsitesWindowController.showWindow()
+			Constants.openWebsitesWindow()
 		}
 	}
 

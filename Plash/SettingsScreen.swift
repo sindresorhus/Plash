@@ -12,28 +12,28 @@ struct SettingsScreen: View {
 			AdvancedSettings()
 				.settingsTabItem(.advanced)
 		}
-			.frame(width: 340)
+			.formStyle(.grouped)
+			.frame(width: 400)
+			.fixedSize()
 			.windowLevel(.floating + 1) // To ensure it's always above the Plash browser window.
 	}
 }
 
 private struct GeneralSettings: View {
 	var body: some View {
-		VStack(alignment: .leading) {
-			VStack(alignment: .leading) {
+		Form {
+			Section {
 				LaunchAtLogin.Toggle()
-				ShowOnAllSpacesSetting()
-				Defaults.Toggle("Deactivate while on battery", key: .deactivateOnBattery)
-				ReloadIntervalSetting()
 			}
-				.padding()
-				.padding(.horizontal)
-			Divider()
-			OpacitySetting()
-				.padding()
-				.padding(.horizontal)
+			Section {
+				ReloadIntervalSetting()
+				OpacitySetting()
+			}
+			Section {
+				DisplaySetting()
+				ShowOnAllSpacesSetting()
+			}
 		}
-			.padding(.vertical)
 	}
 }
 
@@ -42,41 +42,31 @@ private struct ShortcutsSettings: View {
 
 	var body: some View {
 		Form {
-			KeyboardShortcuts.Recorder("Toggle browsing mode:", name: .toggleBrowsingMode)
-				.fixedSize()
-			KeyboardShortcuts.Recorder("Reload website:", name: .reload)
-			KeyboardShortcuts.Recorder("Next website:", name: .nextWebsite)
-			KeyboardShortcuts.Recorder("Previous website:", name: .previousWebsite)
-			KeyboardShortcuts.Recorder("Random website:", name: .randomWebsite)
+			KeyboardShortcuts.Recorder("Toggle browsing mode", name: .toggleBrowsingMode)
+			KeyboardShortcuts.Recorder("Reload website", name: .reload)
+			KeyboardShortcuts.Recorder("Next website", name: .nextWebsite)
+			KeyboardShortcuts.Recorder("Previous website", name: .previousWebsite)
+			KeyboardShortcuts.Recorder("Random website", name: .randomWebsite)
 		}
-			.padding()
-			.padding()
-			.offset(x: -10)
 	}
 }
 
 private struct AdvancedSettings: View {
 	var body: some View {
-		VStack {
-			Form {
+		Form {
+			Section {
 				BringBrowsingModeToFrontSetting()
+				Defaults.Toggle("Deactivate while on battery", key: .deactivateOnBattery)
 				OpenExternalLinksInBrowserSetting()
 				HideMenuBarIconSetting()
 				Defaults.Toggle("Mute audio", key: .muteAudio)
 			}
-				.padding()
-				.padding(.horizontal)
-				.fillFrame(.horizontal, alignment: .leading)
-			Divider()
-			DisplaySetting()
-				.padding()
-				.padding(.horizontal)
-			Divider()
-			ClearWebsiteDataSetting()
-				.padding()
-				.padding(.horizontal)
+			Section {} // Padding
+			Section {} footer: {
+				ClearWebsiteDataSetting()
+					.controlSize(.small)
+			}
 		}
-			.padding(.vertical)
 	}
 }
 
@@ -120,7 +110,7 @@ private struct OpacitySetting: View {
 			in: 0.1...1,
 			step: 0.1
 		) {
-			Text("Opacity:")
+			Text("Opacity")
 		}
 			.help("Browsing mode always uses full opacity.")
 	}
@@ -136,32 +126,38 @@ private struct ReloadIntervalSetting: View {
 
 	// TODO: Improve VoiceOver accessibility for this control.
 	var body: some View {
-		HStack {
-			Toggle("Reload every", isOn: $isEnabled)
-			Stepper( // swiftlint:disable:this accessibility_trait_for_button
-				value: reloadIntervalInMinutes.didSet { _ in
-					// We have to unfocus the text field because sometimes it's in a state where it does not update the value. Some kind of bug with the formatter. (macOS 12.4)
-					isTextFieldFocused = false
-				},
-				in: Self.minimumReloadInterval...(.greatestFiniteMagnitude),
-				step: 1
-			) {
+		LabeledContent("Reload every") {
+			HStack { //swiftlint:disable:this accessibility_trait_for_button
 				TextField(
 					"",
 					value: reloadIntervalInMinutes,
 					format: .number.grouping(.never).precision(.fractionLength(1))
 				)
+					.labelsHidden()
 					.focused($isTextFieldFocused)
 					.frame(width: 40)
+					.disabled(!isEnabled)
+				Stepper(
+					"",
+					value: reloadIntervalInMinutes.didSet { _ in
+						// We have to unfocus the text field because sometimes it's in a state where it does not update the value. Some kind of bug with the formatter. (macOS 12.4)
+						isTextFieldFocused = false
+					},
+					in: Self.minimumReloadInterval...(.greatestFiniteMagnitude),
+					step: 1
+				)
 					.labelsHidden()
-					.padding(.trailing, -6)
+					.disabled(!isEnabled)
+				Text("minutes")
 			}
-				.disabled(!isEnabled)
 				.contentShape(.rectangle)
 				.onTapGesture {
 					isEnabled = true
 				}
-			Text("minutes")
+			Toggle("Reload every", isOn: $isEnabled)
+				.labelsHidden()
+				.controlSize(.mini)
+				.toggleStyle(.switch)
 		}
 			.accessibilityLabel("Reload interval in minutes")
 			.contentShape(.rectangle)
@@ -201,7 +197,7 @@ private struct DisplaySetting: View {
 
 	var body: some View {
 		Picker(
-			"Show on display:",
+			"Show on",
 			selection: $chosenDisplay.getMap(\.withFallbackToMain)
 		) {
 			ForEach(displayWrapper.wrappedValue.all) { display in
