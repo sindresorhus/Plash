@@ -1491,13 +1491,35 @@ extension WKWebView {
 	Default handler for websites requiring basic authentication. To be used in `WKDelegate`.
 	*/
 	@MainActor
-	func defaultAuthChallengeHandler(challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
+	func defaultAuthChallengeHandler(
+		challenge: URLAuthenticationChallenge,
+		allowSelfSignedCertificate: Bool = false
+	) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
 		guard
-			let host = url?.host,
+			let url,
+			let host = url.host
+		else {
+			return (.performDefaultHandling, nil)
+		}
+
+		guard
 			challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodHTTPBasic
 				|| challenge.protectionSpace.authenticationMethod == NSURLAuthenticationMethodHTTPDigest
 		else {
-			return (.performDefaultHandling, nil)
+			guard
+				allowSelfSignedCertificate || url.isLocal,
+				let serverTrust = challenge.protectionSpace.serverTrust
+			else {
+				return (.performDefaultHandling, nil)
+			}
+
+			let exceptions = SecTrustCopyExceptions(serverTrust)
+
+			guard SecTrustSetExceptions(serverTrust, exceptions) else {
+				return (.cancelAuthenticationChallenge, nil)
+			}
+
+			return (.useCredential, .init(trust: serverTrust))
 		}
 
 		let alert = NSAlert()
@@ -1537,6 +1559,18 @@ extension WKWebView {
 	}
 }
 
+
+extension URL {
+	var isLocal: Bool {
+		guard let host = host?.nilIfEmpty?.lowercased() else {
+			return false
+		}
+
+		return host == "localhost"
+			|| host == "127.0.0.1"
+			|| host == "::1"
+	}
+}
 
 extension WKWebView {
 	static func createCSSInjectScript(_ css: String) -> String {

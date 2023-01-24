@@ -237,6 +237,9 @@ struct AddWebsiteScreen: View {
 				)
 					.frame(height: 70)
 			}
+			Section("Advanced") {
+				Toggle("Allow self-signed certificate", isOn: website.allowSelfSignedCertificate)
+			}
 		}
 	}
 

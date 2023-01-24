@@ -186,7 +186,10 @@ extension WebViewController: WKNavigationDelegate {
 
 	func webView(_ webView: WKWebView, respondTo challenge: URLAuthenticationChallenge) async -> (URLSession.AuthChallengeDisposition, URLCredential?) {
 		// We're intentionally allowing this in non-browsing mode as loading the URL would fail otherwise.
-		await webView.defaultAuthChallengeHandler(challenge: challenge)
+		await webView.defaultAuthChallengeHandler(
+			challenge: challenge,
+			allowSelfSignedCertificate: WebsitesController.shared.current?.allowSelfSignedCertificate ?? false
+		)
 	}
 
 	func webView(_ webView: WKWebView, navigationAction: WKNavigationAction, didBecome download: WKDownload) {

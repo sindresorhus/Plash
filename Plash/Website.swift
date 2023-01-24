@@ -9,6 +9,7 @@ struct Website: Hashable, Codable, Identifiable, Defaults.Serializable {
 	var usePrintStyles: Bool
 	var css = ""
 	var javaScript = ""
+	@DecodableDefault.False var allowSelfSignedCertificate
 
 	var subtitle: String { url.humanString }
 
