@@ -28,6 +28,8 @@ extension Defaults.Keys {
 	static let bringBrowsingModeToFront = Key<Bool>("bringBrowsingModeToFront", default: false)
 	static let openExternalLinksInBrowser = Key<Bool>("openExternalLinksInBrowser", default: false)
 	static let muteAudio = Key<Bool>("muteAudio", default: true)
+
+	static let extendPlashBelowMenuBar = Key<Bool>("extendPlashBelowMenuBar", default: false)
 }
 
 extension Display: Defaults.Serializable {}
