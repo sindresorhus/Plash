@@ -43,6 +43,9 @@ struct AppMain: App {
 
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
+	// Without this, Plash quits when the screen is locked. (macOS 13.2)
+	func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
+
 	func applicationWillFinishLaunching(_ notification: Notification) {
 		// It's important that this is here so it's registered in time.
 		AppState.shared.setUpURLCommands()
