@@ -68,7 +68,7 @@ Requires macOS 13 or later.
 
 A special version for users that cannot access the App Store. It won't receive updates.
 
-[Download](https://dsc.cloud/sindresorhus/Plash-2.13.0-1674459734) *(2.13.0 · macOS 13+)*
+[Download](https://dsc.cloud/sindresorhus/Plash-2.13.1-1675003980) *(2.13.1 · macOS 13+)*
 
 ## Tips
 
