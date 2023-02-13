@@ -197,17 +197,18 @@ struct AddWebsiteScreen: View {
 	@ViewBuilder
 	private var editingView: some View {
 		Section {
-			EnumPicker("Invert colors", enumBinding: website.invertColors2) { element, _ in
-				Text(element.title)
+			EnumPicker("Invert colors", selection: website.invertColors2) {
+				Text($0.title)
 			}
 				.help("Creates a fake dark mode for websites without a native dark mode by inverting all the colors on the website.")
 			Toggle("Use print styles", isOn: website.usePrintStyles)
 				.help("Forces the website to use its print styles (“@media print”) if any. Some websites have a simpler presentation for printing, for example, Google Calendar.")
+			let cssHelpText = "This lets you modify the website with CSS. You could, for example, change some colors or hide some unnecessary elements."
 			VStack(alignment: .leading) {
 				HStack {
 					Text("CSS")
 					Spacer()
-					InfoPopoverButton("This lets you modify the website with CSS. You could, for example, change some colors or hide some unnecessary elements.")
+					InfoPopoverButton(cssHelpText)
 						.controlSize(.small)
 				}
 				ScrollableTextView(
@@ -220,11 +221,15 @@ struct AddWebsiteScreen: View {
 				)
 					.frame(height: 70)
 			}
+				.accessibilityElement(children: .combine)
+				.accessibilityLabel("CSS")
+				.accessibilityHint(Text(cssHelpText))
+			let javaScriptHelpText = "This lets you modify the website with JavaScript. Prefer using CSS instead whenever possible. You can use “await” at the top-level."
 			VStack(alignment: .leading) {
 				HStack {
 					Text("JavaScript")
 					Spacer()
-					InfoPopoverButton("This lets you modify the website with JavaScript. Prefer using CSS instead whenever possible. You can use “await” at the top-level.")
+					InfoPopoverButton(javaScriptHelpText)
 						.controlSize(.small)
 				}
 				ScrollableTextView(
@@ -237,6 +242,9 @@ struct AddWebsiteScreen: View {
 				)
 					.frame(height: 70)
 			}
+				.accessibilityElement(children: .combine)
+				.accessibilityLabel("JavaScript")
+				.accessibilityHint(Text(javaScriptHelpText))
 			Section("Advanced") {
 				Toggle("Allow self-signed certificate", isOn: website.allowSelfSignedCertificate)
 			}

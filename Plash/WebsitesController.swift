@@ -43,7 +43,7 @@ final class WebsitesController {
 
 	let allBinding = Defaults.bindingCollection(for: .websites)
 
-	init() {
+	private init() {
 		setUpEvents()
 		thumbnailCache.prewarmCacheFromDisk(for: all.map(\.thumbnailCacheKey))
 	}

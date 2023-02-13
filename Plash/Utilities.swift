@@ -459,6 +459,7 @@ extension SSApp {
 		SentrySDK.start {
 			$0.dsn = dsn
 			$0.enableSwizzling = false
+			$0.enableAppHangTracking = false // https://github.com/getsentry/sentry-cocoa/issues/2643
 		}
 		#endif
 	}
@@ -5171,6 +5172,8 @@ extension SSPublishers {
 
 			static let shared = EventManager()
 
+			private init() {}
+
 			private var handlers = [UUID: Handler]()
 
 			@objc
@@ -5334,52 +5337,15 @@ extension RandomAccessCollection {
 }
 
 
-/**
-Create a `Picker` from an enum.
-
-- Note: The enum must conform to `CaseIterable`.
-
-```
-enum EventIndicatorsInCalendar: String, Codable, CaseIterable {
-	case none
-	case one
-	case maxThree
-
-	var title: String {
-		switch self {
-		case .none:
-			return "None"
-		case .one:
-			return "Single Gray Dot"
-		case .maxThree:
-			return "Up To Three Colored Dots"
-		}
-	}
-}
-
-struct ContentView: View {
-	@Default(.indicateEventsInCalendar) private var indicator
-
-	var body: some View {
-		EnumPicker(
-			"Foo",
-			enumCase: $indicator
-		) { element, isSelected in
-			Text(element.title)
-		}
-	}
-}
-```
-*/
 struct EnumPicker<Enum, Label, Content>: View where Enum: CaseIterable & Equatable, Enum.AllCases.Index: Hashable, Label: View, Content: View {
-	let enumBinding: Binding<Enum>
-	@ViewBuilder let content: (Enum, Bool) -> Content
+	let selection: Binding<Enum>
+	@ViewBuilder let content: (Enum) -> Content
 	@ViewBuilder let label: () -> Label
 
 	var body: some View {
-		Picker(selection: enumBinding.caseIndex) { // swiftlint:disable:this multiline_arguments
+		Picker(selection: selection.caseIndex) { // swiftlint:disable:this multiline_arguments
 			ForEach(Array(Enum.allCases).indexed(), id: \.0) { index, element in
-				content(element, element == enumBinding.wrappedValue)
+				content(element)
 					.tag(index)
 			}
 		} label: {
@@ -5391,10 +5357,10 @@ struct EnumPicker<Enum, Label, Content>: View where Enum: CaseIterable & Equatab
 extension EnumPicker where Label == Text {
 	init(
 		_ title: some StringProtocol,
-		enumBinding: Binding<Enum>,
-		@ViewBuilder content: @escaping (Enum, Bool) -> Content
+		selection: Binding<Enum>,
+		@ViewBuilder content: @escaping (Enum) -> Content
 	) {
-		self.enumBinding = enumBinding
+		self.selection = selection
 		self.content = content
 		self.label = { Text(title) }
 	}
@@ -5634,5 +5600,37 @@ extension View {
 				await action()
 			} catch {}
 		}
+	}
+}
+
+
+extension View {
+	/**
+	Add a keyboard shortcut to a view, not a button.
+	*/
+	func onKeyboardShortcut(
+		_ shortcut: KeyboardShortcut?,
+		perform action: @escaping () -> Void
+	) -> some View {
+		overlay {
+			Button("", action: action)
+				.labelsHidden()
+				.opacity(0)
+				.frame(width: 0, height: 0)
+				.keyboardShortcut(shortcut)
+				.accessibilityHidden(true)
+		}
+	}
+
+	/**
+	Add a keyboard shortcut to a view, not a button.
+	*/
+	func onKeyboardShortcut(
+		_ key: KeyEquivalent,
+		modifiers: SwiftUI.EventModifiers = .command,
+		isEnabled: Bool = true,
+		perform action: @escaping () -> Void
+	) -> some View {
+		onKeyboardShortcut(isEnabled ? .init(key, modifiers: modifiers) : nil, perform: action)
 	}
 }

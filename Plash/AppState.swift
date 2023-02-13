@@ -13,7 +13,8 @@ final class AppState: ObservableObject {
 		$0.isVisible = true
 		$0.behavior = [.removalAllowed, .terminationOnRemoval]
 		$0.menu = menu
-		$0.button?.image = Constants.menuBarIcon
+		$0.button!.image = Constants.menuBarIcon
+		$0.button!.setAccessibilityTitle(SSApp.name)
 	}
 
 	private(set) lazy var statusItemButton = statusItem.button!
@@ -76,7 +77,7 @@ final class AppState: ObservableObject {
 		}
 	}
 
-	init() {
+	private init() {
 		DispatchQueue.main.async { [self] in
 			didLaunch()
 		}

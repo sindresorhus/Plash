@@ -2,7 +2,8 @@ import SwiftUI
 
 struct WebsitesScreen: View {
 	@Default(.websites) private var websites
-	@State private var selection: Website.ID?
+	@State private var selection: Website.ID? // We need two states as selection must be independent from actually opening the editing because of keyboard navigation and accessibility.
+	@State private var editedWebsite: Website.ID?
 	@State private var isAddWebsiteDialogPresented = false
 	@Namespace private var bottomScrollID
 
@@ -22,11 +23,15 @@ struct WebsitesScreen: View {
 					ForEach($websites) { website in
 						RowView(
 							website: website,
-							selection: $selection
+							selection: $editedWebsite
 						)
 					}
 						.onMove(perform: move)
 						.onDelete(perform: delete)
+				}
+				.frame(height: 500)
+				.onKeyboardShortcut(.defaultAction) {
+					editedWebsite = selection
 				}
 			}/* footer: {
 				Color.clear
@@ -49,11 +54,18 @@ struct WebsitesScreen: View {
 							.emptyStateTextStyle()
 					}
 				}
+				.accessibilityAction(named: Text("Add website")) {
+					isAddWebsiteDialogPresented = true
+				}
 		}
 //		}
 			.formStyle(.grouped)
-			.frame(width: 480, height: 520)
-			.sheet(item: $selection) {
+			.frame(width: 480)
+			.fixedSize()
+			.onChange(of: editedWebsite) {
+				selection = $0
+			}
+			.sheet(item: $editedWebsite) {
 				AddWebsiteScreen(
 					isEditing: true,
 					website: $websites[id: $0]
@@ -69,7 +81,7 @@ struct WebsitesScreen: View {
 				isAddWebsiteDialogPresented = true
 			}
 			.onNotification(.showEditWebsiteDialog) { _ in
-				selection = WebsitesController.shared.current?.id
+				editedWebsite = WebsitesController.shared.current?.id
 			}
 			.toolbar {
 				Button("Add Website", systemImage: "plus") {
@@ -141,6 +153,15 @@ private struct RowView: View {
 				Button("Delete", role: .destructive) {
 					website.remove()
 				}
+			}
+			.contentShape(.rectangle)
+			.onTapGesture {
+				selection = website.id
+			}
+			.accessibilityElement(children: .combine)
+			.accessibilityAddTraits(.isButton)
+			.if(website.isCurrent) {
+				$0.accessibilityAddTraits(.isSelected)
 			}
 	}
 }
