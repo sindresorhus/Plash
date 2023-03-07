@@ -22,7 +22,7 @@ extension Defaults.Keys {
 	static let hideMenuBarIcon = Key<Bool>("hideMenuBarIcon", default: false)
 	static let opacity = Key<Double>("opacity", default: 1)
 	static let reloadInterval = Key<Double?>("reloadInterval")
-	static let display = Key<Display>("display", default: .main)
+	static let display = Key<Display?>("display")
 	static let deactivateOnBattery = Key<Bool>("deactivateOnBattery", default: false)
 	static let showOnAllSpaces = Key<Bool>("showOnAllSpaces", default: false)
 	static let bringBrowsingModeToFront = Key<Bool>("bringBrowsingModeToFront", default: false)
@@ -31,8 +31,6 @@ extension Defaults.Keys {
 
 	static let extendPlashBelowMenuBar = Key<Bool>("extendPlashBelowMenuBar", default: false)
 }
-
-extension Display: Defaults.Serializable {}
 
 extension KeyboardShortcuts.Name {
 	static let toggleBrowsingMode = Self("toggleBrowsingMode")

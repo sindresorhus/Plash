@@ -1869,10 +1869,99 @@ final class ObservableValue<Value>: ObservableObject {
 }
 
 
+extension CFUUID {
+	var toUUID: UUID {
+		let bytes = CFUUIDGetUUIDBytes(self)
+
+		let newBytes = (
+			bytes.byte0,
+			bytes.byte1,
+			bytes.byte2,
+			bytes.byte3,
+			bytes.byte4,
+			bytes.byte5,
+			bytes.byte6,
+			bytes.byte7,
+			bytes.byte8,
+			bytes.byte9,
+			bytes.byte10,
+			bytes.byte11,
+			bytes.byte12,
+			bytes.byte13,
+			bytes.byte14,
+			bytes.byte15
+		)
+
+		return .init(uuid: newBytes)
+	}
+}
+
+
+extension UUID {
+	var toCFUUID: CFUUID {
+		let bytes = uuid
+
+		let newBytes = CFUUIDBytes(
+			byte0: bytes.0,
+			byte1: bytes.1,
+			byte2: bytes.2,
+			byte3: bytes.3,
+			byte4: bytes.4,
+			byte5: bytes.5,
+			byte6: bytes.6,
+			byte7: bytes.7,
+			byte8: bytes.8,
+			byte9: bytes.9,
+			byte10: bytes.10,
+			byte11: bytes.11,
+			byte12: bytes.12,
+			byte13: bytes.13,
+			byte14: bytes.14,
+			byte15: bytes.15
+		)
+
+		return CFUUIDCreateFromUUIDBytes(nil, newBytes)
+	}
+}
+
+
 extension NSScreen: Identifiable {
 	public var id: CGDirectDisplayID {
 		deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as! CGDirectDisplayID
 	}
+}
+
+extension NSScreen {
+	/**
+	Convert a persistent display ID to a transient one.
+	*/
+	static func uuidFromID(_ id: CGDirectDisplayID) -> UUID? {
+		// We force an optional as it can be `nil` in some cases even though it's not annotated as that.
+		// https://github.com/lwouis/alt-tab-macos/issues/330
+		let cfUUID: CFUUID? = CGDisplayCreateUUIDFromDisplayID(id)?.takeRetainedValue()
+		return cfUUID?.toUUID
+	}
+
+	/**
+	Convert a transient display ID to a persistent one.
+	*/
+	static func idFromUUID(_ uuid: UUID) -> CGDirectDisplayID? {
+		let id = CGDisplayGetDisplayIDFromUUID(uuid.toCFUUID)
+
+		// `CGDisplayGetDisplayIDFromUUID` returns `0` if the UUID is not found. We also prevent any potential negative values.
+		guard id > 0 else {
+			return nil
+		}
+
+		return id
+	}
+
+	/**
+	The persistent identifier of the screen.
+
+	The `.id` property is only persistent for the current session.
+	*/
+	var uuid: UUID? { Self.uuidFromID(id) }
 }
 
 extension NSScreen {
@@ -1960,24 +2049,31 @@ struct Display: Hashable, Codable, Identifiable {
 	/**
 	The main display.
 	*/
-	static let main = Self(id: CGMainDisplayID())
+	static let main = Self(transientID: CGMainDisplayID())
 
 	/**
 	All displays.
 	*/
 	static var all: [Self] {
-		NSScreen.screens.map { self.init(screen: $0) }
+		NSScreen.screens.compactMap { self.init(screen: $0) }
 	}
 
 	/**
-	The ID of the display.
+	The persistent ID of the display.
 	*/
-	let id: CGDirectDisplayID
+	let id: UUID
+
+	/**
+	The transient ID of the display.
+	*/
+	var transientID: CGDirectDisplayID? { NSScreen.idFromUUID(id) }
 
 	/**
 	The `NSScreen` for the display.
 	*/
-	var screen: NSScreen? { .from(cgDirectDisplayID: id) }
+	var screen: NSScreen? {
+		NSScreen.screens.first { $0.uuid == id }
+	}
 
 	/**
 	The localized name of the display.
@@ -1992,15 +2088,44 @@ struct Display: Hashable, Codable, Identifiable {
 	/**
 	Get the main display if the current display is not connected.
 	*/
-	var withFallbackToMain: Self { isConnected ? self : .main }
+	var withFallbackToMain: Self? { isConnected ? self : .main }
 
-	init(id: CGDirectDisplayID) {
+	init(_ id: UUID) {
 		self.id = id
 	}
 
-	init(screen: NSScreen) {
-		self.id = screen.id
+	init?(transientID: CGDirectDisplayID) {
+		guard let id = NSScreen.uuidFromID(transientID) else {
+			return nil
+		}
+
+		self.init(id)
 	}
+
+	init?(screen: NSScreen) {
+		self.init(transientID: screen.id)
+	}
+}
+
+extension Display: Defaults.Serializable {
+	struct Bridge: Defaults.Bridge {
+		typealias Value = Display
+		typealias Serializable = UUID
+
+		func serialize(_ value: Value?) -> Serializable? {
+			value?.id
+		}
+
+		func deserialize(_ object: Serializable?) -> Value? {
+			guard let object else {
+				return nil
+			}
+
+			return .init(object)
+		}
+	}
+
+	static let bridge = Bridge()
 }
 
 

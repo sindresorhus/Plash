@@ -198,13 +198,24 @@ private struct DisplaySetting: View {
 	var body: some View {
 		Picker(
 			"Show on",
-			selection: $chosenDisplay.getMap(\.withFallbackToMain)
+			selection: $chosenDisplay.getMap(\.?.withFallbackToMain)
 		) {
 			ForEach(displayWrapper.wrappedValue.all) { display in
 				Text(display.localizedName)
-					.tag(display)
+					.tag(display as Display?)
+					// A view cannot have multiple tags, otherwise, this would have been the best solution.
+//					.if(display == .main) {
+//						$0.tag(nil as Display?)
+//					}
 			}
 		}
+			.task(id: chosenDisplay) {
+				guard chosenDisplay == nil else {
+					return
+				}
+
+				chosenDisplay = .main
+			}
 	}
 }
 
