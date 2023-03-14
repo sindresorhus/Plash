@@ -94,6 +94,19 @@ final class AppState: ObservableObject {
 //		SSApp.showSettingsWindow()
 //		Constants.openWebsitesWindow()
 		#endif
+
+		SSApp.runOnce(identifier: "warnAboutSettingDisplaySetting") {
+			guard
+				!SSApp.isFirstLaunch,
+				UserDefaults.standard.string(forKey: "display") != #"{"id":1}"#
+			else {
+				return
+			}
+
+			SSApp.activateIfAccessory()
+			NSAlert.showModal(title: "Because of a bug, you need to select the display to show Plash on again in the settings.")
+			SSApp.showSettingsWindow()
+		}
 	}
 
 	func handleMenuBarIcon() {
@@ -203,7 +216,7 @@ final class AppState: ObservableObject {
 		}
 
 		return try url
-			.replacingPlaceholder("[[screenWidth]]", with: String(format: "%.0f", screen.visibleFrameWithoutStatusBar.width))
-			.replacingPlaceholder("[[screenHeight]]", with: String(format: "%.0f", screen.visibleFrameWithoutStatusBar.height))
+			.replacingPlaceholder("[[screenWidth]]", with: String(format: "%.0f", screen.frameWithoutStatusBar.width))
+			.replacingPlaceholder("[[screenHeight]]", with: String(format: "%.0f", screen.frameWithoutStatusBar.height))
 	}
 }

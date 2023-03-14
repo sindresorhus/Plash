@@ -2011,17 +2011,29 @@ extension NSScreen {
 	}
 
 	/**
+	The thickness of the status bar on the screen.
+
+	If the screen does not have a status bar, it returns `0`.
+
+	- Note: There is a 1 point gap between the status bar and a maximized window. You may want to handle that.
+	*/
+	var statusBarThickness: Double {
+		let value = (frame.height - visibleFrame.height - (visibleFrame.origin.y - frame.origin.y) - 1).double
+		return max(0, value)
+	}
+
+	/**
 	Get the frame of the actual visible part of the screen. This means under the dock, but *not* under the status bar if there's a status bar. This is different from `.visibleFrame` which also includes the space under the status bar.
 	*/
-	var visibleFrameWithoutStatusBar: CGRect {
-		var screenFrame = frame
+	var frameWithoutStatusBar: CGRect {
+		var frame = frame
 
 		// Account for the status bar if the window is on the main screen and the status bar is permanently visible, or if on a secondary screen and secondary screens are set to show the status bar.
 		if hasStatusBar {
-			screenFrame.size.height -= NSStatusBar.actualThickness
+			frame.size.height -= statusBarThickness
 		}
 
-		return screenFrame
+		return frame
 	}
 
 	/**
@@ -2219,11 +2231,13 @@ extension NSWorkspace {
 
 extension NSStatusBar {
 	/**
-	The actual thickness of the status bar. `.thickness` confusingly returns the thickness of the content area.
+	The actual thickness of the primary status bar. `.thickness` confusingly returns the thickness of the content area.
 
 	Keep in mind for screen calculations that the status bar has an additional 1 point padding below it (between it and windows).
+
+	- Note: This only returns the thickness of the menu bar on the primary screen.
 	*/
-	static var actualThickness: Double {
+	static var actualThicknessOfPrimary: Double {
 		let legacyHeight = 24.0
 
 		guard let screen = NSScreen.primary else {
@@ -2244,7 +2258,7 @@ extension NSStatusBar {
 		// There's a 1 point gap between the status bar and any maximized window.
 		let statusBarBottomPadding = 1.0
 
-		let menuBarHeight = actualThickness + statusBarBottomPadding
+		let menuBarHeight = actualThicknessOfPrimary + statusBarBottomPadding
 		let dockHeight = NSWorkspace.shared.dockHeight ?? 0
 
 		return (screen.frame.height - screen.visibleFrame.height - dockHeight) < menuBarHeight

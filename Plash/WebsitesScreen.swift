@@ -140,7 +140,11 @@ private struct RowView: View {
 				}
 					.disabled(website.isCurrent)
 			}
-			.contextMenu {
+			.contentShape(.rectangle)
+			.onTapGesture {
+				selection = website.id
+			}
+			.contextMenu { // Must come after `.onTapGesture`.
 				Button("Set as Current") {
 					website.makeCurrent()
 				}
@@ -153,10 +157,6 @@ private struct RowView: View {
 				Button("Delete", role: .destructive) {
 					website.remove()
 				}
-			}
-			.contentShape(.rectangle)
-			.onTapGesture {
-				selection = website.id
 			}
 			.accessibilityElement(children: .combine)
 			.accessibilityAddTraits(.isButton)
