@@ -65,7 +65,7 @@ final class WebsitesController {
 
 				// We only reset the iterator if a website was added/removed.
 				if change.newValue.map(\.id) != change.oldValue.map(\.id) {
-					self.randomWebsiteIterator = self.all.infiniteUniformRandomSequence().makeIterator()
+					randomWebsiteIterator = all.infiniteUniformRandomSequence().makeIterator()
 				}
 			}
 			.store(in: &cancellables)

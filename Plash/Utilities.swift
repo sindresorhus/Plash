@@ -740,7 +740,7 @@ extension ControlActionClosureProtocol {
 
 			let trampoline = ActionTrampoline(action: newValue)
 			target = trampoline
-			self.action = #selector(ActionTrampoline.handleAction)
+			action = #selector(ActionTrampoline.handleAction)
 			objc_setAssociatedObject(self, &controlActionClosureProtocolAssociatedObjectKey, trampoline, .OBJC_ASSOCIATION_RETAIN)
 		}
 	}
@@ -4137,7 +4137,7 @@ final class SimpleImageCache<Key: SimpleImageCacheKeyable> {
 			}
 
 			// Ensure the cache directory exists in case it was removed by `.removeAllImages()` or the user.
-			self.createCacheDirectoryIfNeeded()
+			createCacheDirectoryIfNeeded()
 
 			do {
 				try tiffData.write(to: cacheFile)
@@ -5772,4 +5772,52 @@ extension View {
 	) -> some View {
 		onKeyboardShortcut(isEnabled ? .init(key, modifiers: modifiers) : nil, perform: action)
 	}
+}
+
+
+extension View {
+	/**
+	Listen to double click events on the view.
+
+	This exists as it's the only way to make double click not interfere with reordering a list.
+	*/
+	func onDoubleClick(
+		_ action: @escaping () -> Void
+	) -> some View {
+		OnDoubleClick(action: action, content: self)
+	}
+}
+
+private struct OnDoubleClick<Content>: View where Content: View {
+	let action: () -> Void
+	let content: Content
+
+	var body: some View {
+		OnDoubleClickRepresentable(action: action, content: content)
+	}
+}
+
+private struct OnDoubleClickRepresentable<Content: View>: NSViewRepresentable {
+	final class HostingView<Content: View>: NSHostingView<Content> {
+		var action: (() -> Void)?
+
+		override func mouseDown(with event: NSEvent) {
+			if event.clickCount == 2 {
+				action?()
+			}
+
+			super.mouseDown(with: event)
+		}
+	}
+
+	let action: () -> Void
+	let content: Content
+
+	func makeNSView(context: Context) -> HostingView<Content> {
+		let nsView = HostingView(rootView: content)
+		nsView.action = action
+		return nsView
+	}
+
+	func updateNSView(_ nsView: HostingView<Content>, context: Context) {}
 }

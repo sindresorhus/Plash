@@ -19,20 +19,16 @@ struct WebsitesScreen: View {
 					)
 						.padding(.leading)
 				}
-				List(selection: $selection) { // TODO: `List` with `editActions` does not work when we also use `selection`. (macOS 13.1)
-					ForEach($websites) { website in
-						RowView(
-							website: website,
-							selection: $editedWebsite
-						)
+				List($websites, editActions: .all, selection: $selection) { website in
+					RowView(
+						website: website,
+						selection: $editedWebsite
+					)
+				}
+					.frame(height: 500)
+					.onKeyboardShortcut(.defaultAction) {
+						editedWebsite = selection
 					}
-						.onMove(perform: move)
-						.onDelete(perform: delete)
-				}
-				.frame(height: 500)
-				.onKeyboardShortcut(.defaultAction) {
-					editedWebsite = selection
-				}
 			}/* footer: {
 				Color.clear
 					.frame(height: 1)
@@ -91,15 +87,6 @@ struct WebsitesScreen: View {
 			.windowLevel(.floating)
 			.windowIsMinimizable(false)
 	}
-
-
-	private func move(from source: IndexSet, to destination: Int) {
-		websites = websites.moving(fromOffsets: source, toOffset: destination)
-	}
-
-	private func delete(at offsets: IndexSet) {
-		websites = websites.removing(atOffsets: offsets)
-	}
 }
 
 struct WebsitesScreen_Previews: PreviewProvider {
@@ -141,10 +128,10 @@ private struct RowView: View {
 					.disabled(website.isCurrent)
 			}
 			.contentShape(.rectangle)
-			.onTapGesture {
+			.onDoubleClick {
 				selection = website.id
 			}
-			.contextMenu { // Must come after `.onTapGesture`.
+			.contextMenu { // Must come after `.onDoubleClick`.
 				Button("Set as Current") {
 					website.makeCurrent()
 				}

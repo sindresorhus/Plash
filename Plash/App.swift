@@ -1,6 +1,8 @@
 import SwiftUI
 
 /**
+Run JS on website intent: https://github.com/MarkEdit-app/MarkEdit/commit/b2a0d137fe71984b4321271cb96ecddc24017420#diff-f0ae980c6a38708855537662148a8c05f4c2e48b9f561b8c81ae7ba26497005eR35
+
 TODO macOS 14:
 - Use SwiftUI for the desktop window and the web view.
 - Use `MenuBarExtra`
