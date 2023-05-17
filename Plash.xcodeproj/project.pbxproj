@@ -629,7 +629,7 @@
 			repositoryURL = "https://github.com/sindresorhus/Defaults";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 7.1.0;
+				minimumVersion = 7.2.0;
 			};
 		};
 		E3494C17297D236000983648 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */ = {
@@ -645,7 +645,7 @@
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.9.3;
+				minimumVersion = 1.10.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */

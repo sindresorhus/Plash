@@ -404,10 +404,10 @@ enum SSApp {
 
 		if UserDefaults.standard.bool(forKey: key) {
 			return false
-		} else {
-			UserDefaults.standard.set(true, forKey: key)
-			return true
 		}
+
+		UserDefaults.standard.set(true, forKey: key)
+		return true
 	}()
 
 	static func openSendFeedbackPage() {
@@ -444,8 +444,16 @@ extension SSApp {
 	*/
 	@MainActor
 	static func showSettingsWindow() {
-		activateIfAccessory()
-		NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+		// Run in the next runloop so it doesn't conflict with SwiftUI if run at startup.
+		DispatchQueue.main.async {
+			activateIfAccessory()
+
+			if #available(macOS 14, *) {
+				NSApp.mainMenu?.items.first?.submenu?.item(withTitle: "Settings…")?.performAction()
+			} else {
+				NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+			}
+		}
 	}
 }
 
@@ -462,6 +470,17 @@ extension SSApp {
 			$0.enableAppHangTracking = false // https://github.com/getsentry/sentry-cocoa/issues/2643
 		}
 		#endif
+	}
+}
+
+
+extension NSMenuItem {
+	func performAction() {
+		guard let menu else {
+			return
+		}
+
+		menu.performActionForItem(at: menu.index(of: self))
 	}
 }
 
@@ -1028,11 +1047,13 @@ extension String {
 	func truncating(to number: Int, truncationIndicator: Self = "…") -> Self {
 		if number <= 0 {
 			return ""
-		} else if count > number {
-			return Self(prefix(number - truncationIndicator.count)).trimmedTrailing + truncationIndicator
-		} else {
-			return self
 		}
+
+		if count > number {
+			return Self(prefix(number - truncationIndicator.count)).trimmedTrailing + truncationIndicator
+		}
+
+		return self
 	}
 }
 
@@ -3998,7 +4019,7 @@ final class Cache<Key: Hashable, Value> {
 		override var hash: Int { key.hashValue }
 
 		override func isEqual(_ object: Any?) -> Bool {
-			guard let value = object as? WrappedKey else {
+			guard let value = object as? Self else {
 				return false
 			}
 
@@ -4517,9 +4538,9 @@ extension OperatingSystem {
 		#if os(macOS)
 		if #available(macOS 15, *) {
 			return true
-		} else {
-			return false
 		}
+
+		return false
 		#else
 		return false
 		#endif
@@ -4532,9 +4553,9 @@ extension OperatingSystem {
 		#if os(macOS)
 		if #available(macOS 14, *) {
 			return true
-		} else {
-			return false
 		}
+
+		return false
 		#else
 		return false
 		#endif
@@ -5037,10 +5058,7 @@ extension View {
 		object: AnyObject? = nil,
 		perform action: @escaping (Notification) -> Void
 	) -> some View {
-		// TODO: Use AsyncSequence when targeting macOS 14.
-		onReceive(NotificationCenter.default.publisher(for: name, object: object)) {
-			action($0)
-		}
+		onReceive(NotificationCenter.default.publisher(for: name, object: object), perform: action)
 	}
 }
 
