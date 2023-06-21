@@ -166,6 +166,14 @@ extension AppState {
 	func updateMenu() {
 		menu.removeAllItems()
 
+		menu.addCallbackItem(
+			"Toggle \(AppState.shared.isEnabled ? "Off" : "On")"
+		) {
+			AppState.shared.isEnabled.toggle()
+		}
+			.setShortcut(for: .reload)
+		menu.addSeparator()
+
 		if isEnabled {
 			addWebsiteItems()
 		} else {
