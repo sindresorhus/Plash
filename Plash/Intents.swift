@@ -58,6 +58,70 @@ struct RemoveWebsitesItent: AppIntent, CustomIntentMigratedAppIntent {
 	}
 }
 
+struct ToggleCurrentleWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
+	enum Action: String, AppEnum, CaseDisplayRepresentable {
+		case toggle
+		case turn
+
+		static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Mode")
+
+		static var caseDisplayRepresentations: [ToggleCurrentleWebsiteIntent.Action: DisplayRepresentation] = [
+			.toggle: DisplayRepresentation(stringLiteral: "Toggle"),
+			.turn: DisplayRepresentation(stringLiteral: "Turn")
+		]
+	}
+
+	static let intentClassName = "ToggleWebsiteIntent"
+
+	static let title: LocalizedStringResource = "Toggle Plash"
+
+	static let description = IntentDescription("Toggle Plash.")
+
+	@Parameter(title: "Mode", default: .toggle)
+	var action: Action
+
+	@Parameter(title: "On/Off")
+	var setTo: Bool
+
+	static var parameterSummary: some ParameterSummary {
+		Switch(\.$action) {
+			Case(Action.toggle) {
+				Summary("\(\.$action) Plash")
+			}
+			Case(Action.turn) {
+				Summary("\(\.$action) Plash \(\.$setTo)")
+			}
+			DefaultCase {
+				Summary("\(\.$action) Plash")
+			}
+		}
+	}
+
+	func perform() async throws -> some IntentResult {
+		switch action {
+		case .toggle:
+			await toggle()
+		case .turn:
+			await turn(setTo)
+		}
+		return .result()
+	}
+
+	@MainActor
+	func toggle() {
+		Task {
+			AppState.shared.isEnabled.toggle()
+		}
+	}
+	
+	@MainActor
+	func turn(_ setTo: Bool) {
+		Task {
+			AppState.shared.isEnabled = setTo
+		}
+	}
+}
+
 @available(macOS, deprecated: 13, message: "Replaced by the “Find Website” action.")
 struct GetWebsitesIntent: AppIntent, CustomIntentMigratedAppIntent {
 	static let intentClassName = "GetWebsitesIntent"
