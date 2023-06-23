@@ -110,14 +110,14 @@ struct ToggleCurrentleWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
 	@MainActor
 	func toggle() {
 		Task {
-			AppState.shared.isEnabled.toggle()
+			AppState.shared.isManuallyDisabled.toggle()
 		}
 	}
-	
+
 	@MainActor
 	func turn(_ setTo: Bool) {
 		Task {
-			AppState.shared.isEnabled = setTo
+			AppState.shared.isManuallyDisabled = !setTo
 		}
 	}
 }

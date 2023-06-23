@@ -167,9 +167,9 @@ extension AppState {
 		menu.removeAllItems()
 
 		menu.addCallbackItem(
-			"Toggle \(AppState.shared.isEnabled ? "Off" : "On")"
+			"Toggle \(!AppState.shared.isManuallyDisabled ? "Off" : "On")"
 		) {
-			AppState.shared.isEnabled.toggle()
+			AppState.shared.isManuallyDisabled.toggle()
 		}
 			.setShortcut(for: .reload)
 		menu.addSeparator()

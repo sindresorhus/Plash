@@ -52,6 +52,12 @@ final class AppState: ObservableObject {
 
 	var isScreenLocked = false
 
+	var isManuallyDisabled = false {
+		didSet {
+			setEnabledStatus()
+		}
+	}
+
 	var reloadTimer: Timer?
 
 	var webViewError: Error? {
@@ -126,7 +132,7 @@ final class AppState: ObservableObject {
 	}
 
 	func setEnabledStatus() {
-		isEnabled = !isScreenLocked && !(Defaults[.deactivateOnBattery] && powerSourceWatcher?.powerSource.isUsingBattery == true)
+		isEnabled = !isManuallyDisabled && !isScreenLocked && !(Defaults[.deactivateOnBattery] && powerSourceWatcher?.powerSource.isUsingBattery == true)
 	}
 
 	func resetTimer() {
