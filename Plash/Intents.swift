@@ -59,65 +59,42 @@ struct RemoveWebsitesItent: AppIntent, CustomIntentMigratedAppIntent {
 }
 
 struct ToggleCurrentleWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
-	enum Action: String, AppEnum, CaseDisplayRepresentable {
-		case toggle
-		case turn
-
-		static var typeDisplayRepresentation = TypeDisplayRepresentation(name: "Mode")
-
-		static var caseDisplayRepresentations: [ToggleCurrentleWebsiteIntent.Action: DisplayRepresentation] = [
-			.toggle: DisplayRepresentation(stringLiteral: "Toggle"),
-			.turn: DisplayRepresentation(stringLiteral: "Turn")
-		]
-	}
-
 	static let intentClassName = "ToggleWebsiteIntent"
 
 	static let title: LocalizedStringResource = "Toggle Plash"
 
 	static let description = IntentDescription("Toggle Plash.")
 
-	@Parameter(title: "Mode", default: .toggle)
-	var action: Action
+	@Parameter(
+		title: "Action",
+		displayName: Bool.IntentDisplayName(true: "Toggle", false: "Turn")
+	)
+	var shouldToggle: Bool
 
-	@Parameter(title: "On/Off")
-	var setTo: Bool
+	@Parameter(title: "Is Enabled")
+	var isEnabled: Bool
 
 	static var parameterSummary: some ParameterSummary {
-		Switch(\.$action) {
-			Case(Action.toggle) {
-				Summary("\(\.$action) Plash")
-			}
-			Case(Action.turn) {
-				Summary("\(\.$action) Plash \(\.$setTo)")
-			}
-			DefaultCase {
-				Summary("\(\.$action) Plash")
-			}
+		When(\.$shouldToggle, .equalTo, true, {
+			Summary("\(\.$shouldToggle) Plash")
+		}) {
+			Summary("\(\.$shouldToggle) Plash \(\.$isEnabled)")
 		}
 	}
 
 	func perform() async throws -> some IntentResult {
-		switch action {
-		case .toggle:
-			await toggle()
-		case .turn:
-			await turn(setTo)
-		}
+		await setState()
 		return .result()
 	}
 
 	@MainActor
-	func toggle() {
+	func setState() {
 		Task {
-			AppState.shared.isManuallyDisabled.toggle()
-		}
-	}
-
-	@MainActor
-	func turn(_ setTo: Bool) {
-		Task {
-			AppState.shared.isManuallyDisabled = !setTo
+			if shouldToggle {
+				AppState.shared.isManuallyDisabled.toggle()
+			} else {
+				AppState.shared.isManuallyDisabled = !isEnabled
+			}
 		}
 	}
 }
