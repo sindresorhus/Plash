@@ -1,24 +1,22 @@
-Make any website your desktop wallpaper.
+Plash - Transform Any Website into Your Desktop Wallpaper.
 
-This enables you to have a highly dynamic desktop wallpaper. You could display your favorite news site, Facebook feed, or a random beautiful scenery photo. The use-cases are limitless. You could even set an animated GIF as wallpaper. You can even add multiple websites and easily switch between them.
+Elevate your desktop experience with Plash, the ultimate tool for turning any website into your dynamic and personalized wallpaper. Unlock a world of possibilities as you seamlessly blend the digital and visual, from news and social feeds to breathtaking landscapes. Plash empowers you to curate a stunning backdrop that reflects your style and interests. Elevate your workspace and express your individuality like never before.
 
 
 ■ Features
 
-- Show a remote or local website
+- Display remote or local websites on your desktop
 - Interact with the website (“Browsing Mode”)
-- Automatically reload the website at a custom interval
-- Add multiple websites
+- Automatically reload the website at a custom interval for real-time updates
+- Add and manage multiple websites effortlessly
 - Show the website on a different display
 - Invert website colors (fake dark mode)
-- Add custom CSS and JavaScript to the website
-- Lower the opacity
-- Transparent background
-	If the website doesn't have a background color, your system wallpaper will show through.
-- Automatically deactivate while on battery
+- Apply custom CSS and JavaScript to websites for personalization
+- Adjust opacity and enjoy a transparent background that reveals your system wallpaper
+- Automatically deactivate while on battery to save energy
 - Audio is muted
 - Single image will be aspect-filled to your screen
-- Hide menu bar icon
+- Hide menu bar icon for a clutter-free desktop
 - Shortcuts support
 - Scriptable (see the Plash website)
 - Share extension
