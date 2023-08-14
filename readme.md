@@ -31,7 +31,7 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 - **Build a custom website**\
 	You could build something quick and host it on [GitHub Pages](https://pages.github.com), [jsfiddle](https://jsfiddle.net), or [CodePen](https://codepen.io).
 
-[*Share your use-case*](https://github.com/sindresorhus/Plash/issues/1)
+[*Share your use-case*](https://github.com/sindresorhus/Plash/discussions/136)
 
 ## Features
 

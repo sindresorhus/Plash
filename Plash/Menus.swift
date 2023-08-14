@@ -52,7 +52,7 @@ extension AppState {
 
 		menu.addSeparator()
 
-		menu.addLinkItem("Examples", destination: "https://github.com/sindresorhus/Plash/issues/1")
+		menu.addLinkItem("Examples", destination: "https://github.com/sindresorhus/Plash/discussions/136")
 
 		menu.addLinkItem("Tips", destination: "https://github.com/sindresorhus/Plash#tips")
 
