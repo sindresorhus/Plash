@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Scheme
-   LastUpgradeVersion = "1430"
+   LastUpgradeVersion = "1500"
    wasCreatedForAppExtension = "YES"
    version = "2.0">
    <BuildAction
@@ -16,8 +16,8 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "E32AD6A826D2718B0008D900"
-               BuildableName = "ShareExtension.appex"
-               BlueprintName = "ShareExtension"
+               BuildableName = "Share Extension.appex"
+               BlueprintName = "Share Extension"
                ReferencedContainer = "container:Plash.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>

@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 60;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -19,7 +19,7 @@
 		E324215A2384FBE500D28A91 /* WebViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32421592384FBE500D28A91 /* WebViewController.swift */; };
 		E3294F7E255783A800D4172F /* Defaults in Frameworks */ = {isa = PBXBuildFile; productRef = E3294F7D255783A800D4172F /* Defaults */; };
 		E32AD6AE26D2718B0008D900 /* ShareController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32AD6AD26D2718B0008D900 /* ShareController.swift */; };
-		E32AD6B626D2718B0008D900 /* ShareExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E32AD6A926D2718B0008D900 /* ShareExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		E32AD6B626D2718B0008D900 /* Share Extension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = E32AD6A926D2718B0008D900 /* Share Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E32AD6BD26D275070008D900 /* Utilities.swift in Sources */ = {isa = PBXBuildFile; fileRef = E32AD6BC26D275070008D900 /* Utilities.swift */; };
 		E333EB1B2385244E005FCE44 /* SettingsScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E333EB1A2385244E005FCE44 /* SettingsScreen.swift */; };
 		E3369A9A265E344300BAC78B /* URLCommands.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3369A99265E344300BAC78B /* URLCommands.swift */; };
@@ -28,7 +28,7 @@
 		E34FCBCE264D32150022BDD3 /* App.swift in Sources */ = {isa = PBXBuildFile; fileRef = E34FCBCD264D32150022BDD3 /* App.swift */; };
 		E354442F26062D6300CA060F /* WebsitesScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E354442E26062D6300CA060F /* WebsitesScreen.swift */; };
 		E354443C2607505100CA060F /* WebsitesController.swift in Sources */ = {isa = PBXBuildFile; fileRef = E354443B2607505100CA060F /* WebsitesController.swift */; };
-		E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = E3805F5A2466ED5600489E6C /* KeyboardShortcuts */; };
+		E3847AB22AB376B700923A5E /* KeyboardShortcuts in Frameworks */ = {isa = PBXBuildFile; productRef = E3847AB12AB376B700923A5E /* KeyboardShortcuts */; };
 		E384F28024C3B37E002FD21B /* Events.swift in Sources */ = {isa = PBXBuildFile; fileRef = E384F27F24C3B37E002FD21B /* Events.swift */; };
 		E384F28224C3B3CD002FD21B /* Menus.swift in Sources */ = {isa = PBXBuildFile; fileRef = E384F28124C3B3CD002FD21B /* Menus.swift */; };
 		E3EC5A86250D7A0C00ABE1A1 /* WelcomeScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3EC5A85250D7A0C00ABE1A1 /* WelcomeScreen.swift */; };
@@ -53,7 +53,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 13;
 			files = (
-				E32AD6B626D2718B0008D900 /* ShareExtension.appex in Embed Foundation Extensions */,
+				E32AD6B626D2718B0008D900 /* Share Extension.appex in Embed Foundation Extensions */,
 			);
 			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -73,7 +73,7 @@
 		E32421552384F09D00D28A91 /* Constants.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = Constants.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E32421572384F0E600D28A91 /* Utilities.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = Utilities.swift; sourceTree = "<group>"; usesTabs = 1; };
 		E32421592384FBE500D28A91 /* WebViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = WebViewController.swift; sourceTree = "<group>"; usesTabs = 1; };
-		E32AD6A926D2718B0008D900 /* ShareExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = ShareExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		E32AD6A926D2718B0008D900 /* Share Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "Share Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		E32AD6AD26D2718B0008D900 /* ShareController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareController.swift; sourceTree = "<group>"; };
 		E32AD6B226D2718B0008D900 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E32AD6B326D2718B0008D900 /* ShareExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = ShareExtension.entitlements; sourceTree = "<group>"; };
@@ -98,7 +98,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				E3294F7E255783A800D4172F /* Defaults in Frameworks */,
-				E3805F5B2466ED5600489E6C /* KeyboardShortcuts in Frameworks */,
+				E3847AB22AB376B700923A5E /* KeyboardShortcuts in Frameworks */,
 				E3494C19297D236000983648 /* LaunchAtLogin in Frameworks */,
 				E30F3D5B278AF95C004A463E /* Sentry in Frameworks */,
 			);
@@ -114,6 +114,13 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		E31C8C5F2A9FCC7E00C01756 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 		E32421272384E9D700D28A91 = {
 			isa = PBXGroup;
 			children = (
@@ -121,6 +128,7 @@
 				E32421322384E9D700D28A91 /* Plash */,
 				E32AD6AA26D2718B0008D900 /* ShareExtension */,
 				E32421312384E9D700D28A91 /* Products */,
+				E31C8C5F2A9FCC7E00C01756 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 			tabWidth = 4;
@@ -130,7 +138,7 @@
 			isa = PBXGroup;
 			children = (
 				E32421302384E9D700D28A91 /* Plash.app */,
-				E32AD6A926D2718B0008D900 /* ShareExtension.appex */,
+				E32AD6A926D2718B0008D900 /* Share Extension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -211,18 +219,18 @@
 			);
 			name = Plash;
 			packageProductDependencies = (
-				E3805F5A2466ED5600489E6C /* KeyboardShortcuts */,
 				E3294F7D255783A800D4172F /* Defaults */,
 				E30F3D5A278AF95C004A463E /* Sentry */,
 				E3494C18297D236000983648 /* LaunchAtLogin */,
+				E3847AB12AB376B700923A5E /* KeyboardShortcuts */,
 			);
 			productName = Plash;
 			productReference = E32421302384E9D700D28A91 /* Plash.app */;
 			productType = "com.apple.product-type.application";
 		};
-		E32AD6A826D2718B0008D900 /* ShareExtension */ = {
+		E32AD6A826D2718B0008D900 /* Share Extension */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E32AD6BA26D2718B0008D900 /* Build configuration list for PBXNativeTarget "ShareExtension" */;
+			buildConfigurationList = E32AD6BA26D2718B0008D900 /* Build configuration list for PBXNativeTarget "Share Extension" */;
 			buildPhases = (
 				E32AD6A526D2718B0008D900 /* Sources */,
 				E32AD6A626D2718B0008D900 /* Frameworks */,
@@ -232,9 +240,9 @@
 			);
 			dependencies = (
 			);
-			name = ShareExtension;
+			name = "Share Extension";
 			productName = ShareExtension;
-			productReference = E32AD6A926D2718B0008D900 /* ShareExtension.appex */;
+			productReference = E32AD6A926D2718B0008D900 /* Share Extension.appex */;
 			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
@@ -245,7 +253,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
 				LastSwiftUpdateCheck = 1250;
-				LastUpgradeCheck = 1430;
+				LastUpgradeCheck = 1500;
 				ORGANIZATIONNAME = "Sindre Sorhus";
 				TargetAttributes = {
 					E324212F2384E9D700D28A91 = {
@@ -257,7 +265,7 @@
 				};
 			};
 			buildConfigurationList = E324212B2384E9D700D28A91 /* Build configuration list for PBXProject "Plash" */;
-			compatibilityVersion = "Xcode 14.0";
+			compatibilityVersion = "Xcode 15.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -267,16 +275,16 @@
 			mainGroup = E32421272384E9D700D28A91;
 			packageReferences = (
 				E32421482384ED8300D28A91 /* XCRemoteSwiftPackageReference "Defaults" */,
-				E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
 				E30F3D59278AF95C004A463E /* XCRemoteSwiftPackageReference "sentry-cocoa" */,
 				E3494C17297D236000983648 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */,
+				E3847AB02AB376B700923A5E /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */,
 			);
 			productRefGroup = E32421312384E9D700D28A91 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				E324212F2384E9D700D28A91 /* Plash */,
-				E32AD6A826D2718B0008D900 /* ShareExtension */,
+				E32AD6A826D2718B0008D900 /* Share Extension */,
 			);
 		};
 /* End PBXProject section */
@@ -363,7 +371,7 @@
 /* Begin PBXTargetDependency section */
 		E32AD6B526D2718B0008D900 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = E32AD6A826D2718B0008D900 /* ShareExtension */;
+			target = E32AD6A826D2718B0008D900 /* Share Extension */;
 			targetProxy = E32AD6B426D2718B0008D900 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -374,6 +382,7 @@
 			baseConfigurationReference = E32AD6BB26D271C00008D900 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
@@ -408,6 +417,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -422,7 +432,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -438,6 +448,7 @@
 			baseConfigurationReference = E32AD6BB26D271C00008D900 /* Config.xcconfig */;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
@@ -472,6 +483,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = NO;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -480,7 +492,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 13.3;
+				MACOSX_DEPLOYMENT_TARGET = 13.5;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
@@ -604,7 +616,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		E32AD6BA26D2718B0008D900 /* Build configuration list for PBXNativeTarget "ShareExtension" */ = {
+		E32AD6BA26D2718B0008D900 /* Build configuration list for PBXNativeTarget "Share Extension" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				E32AD6B826D2718B0008D900 /* Debug */,
@@ -640,12 +652,12 @@
 				minimumVersion = 1.0.0;
 			};
 		};
-		E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
+		E3847AB02AB376B700923A5E /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/sindresorhus/KeyboardShortcuts";
 			requirement = {
 				kind = upToNextMajorVersion;
-				minimumVersion = 1.10.0;
+				minimumVersion = 1.14.1;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
@@ -666,9 +678,9 @@
 			package = E3494C17297D236000983648 /* XCRemoteSwiftPackageReference "LaunchAtLogin-Modern" */;
 			productName = LaunchAtLogin;
 		};
-		E3805F5A2466ED5600489E6C /* KeyboardShortcuts */ = {
+		E3847AB12AB376B700923A5E /* KeyboardShortcuts */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = E3805F592466ED5600489E6C /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
+			package = E3847AB02AB376B700923A5E /* XCRemoteSwiftPackageReference "KeyboardShortcuts" */;
 			productName = KeyboardShortcuts;
 		};
 /* End XCSwiftPackageProductDependency section */

@@ -132,6 +132,7 @@ struct AddWebsiteScreen: View {
 
 	private var topView: some View {
 		Section {
+			// TODO: Use `.textContentType(.URL)` when targeting macOS 14.
 			TextField("URL", text: $urlString)
 				.lineLimit(1)
 				// This change listener is used to respond to URL changes from the outside, like the "Revert" button or the Shortcuts actions.
@@ -150,7 +151,10 @@ struct AddWebsiteScreen: View {
 						// Makes the “Revert” button work if the user clears the URL field.
 						if urlString.trimmed.isEmpty {
 							website.wrappedValue.url = "-"
-						} else if let url = URL(string: $0), url.isValid {
+						} else if
+							let url = URL(string: $0),
+							url.isValid
+						{
 							website.wrappedValue.url = url
 						}
 
@@ -163,8 +167,8 @@ struct AddWebsiteScreen: View {
 
 					website.wrappedValue.url = url
 						.normalized(
-							// We need to allow typing `http://172.16.0.100:8080`.
-							removeDefaultPort: false
+							removeDefaultPort: false, // We need to allow typing `http://172.16.0.100:8080`.
+							removeWWW: false // Some low-quality sites don't work without this.
 						)
 				}
 				.debouncingTask(id: website.wrappedValue.url, interval: .seconds(0.5)) {
@@ -383,11 +387,9 @@ struct AddWebsiteScreen: View {
 	}
 }
 
-struct AddWebsiteScreen_Previews: PreviewProvider {
-	static var previews: some View {
-		AddWebsiteScreen(
-			isEditing: false,
-			website: nil
-		)
-	}
+#Preview {
+	AddWebsiteScreen(
+		isEditing: false,
+		website: nil
+	)
 }

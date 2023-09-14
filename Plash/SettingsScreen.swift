@@ -230,8 +230,6 @@ private struct ClearWebsiteDataSetting: View {
 	}
 }
 
-struct SettingsScreen_Previews: PreviewProvider {
-	static var previews: some View {
-		SettingsScreen()
-	}
+#Preview {
+	SettingsScreen()
 }

@@ -38,11 +38,11 @@ extension Website {
 		var title: String {
 			switch self {
 			case .never:
-				return "Never"
+				"Never"
 			case .always:
-				return "Always"
+				"Always"
 			case .darkMode:
-				return "When in dark mode"
+				"When in dark mode"
 			}
 		}
 	}

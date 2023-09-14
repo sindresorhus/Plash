@@ -368,7 +368,10 @@ extension NSMenu {
 	@discardableResult
 	func addAboutItem() -> NSMenuItem {
 		addCallbackItem("About") {
-			NSApp.activate(ignoringOtherApps: true)
+			Task { @MainActor in // TODO: Remove this when NSMenu is annotated as main actor.
+				SSApp.activateIfAccessory()
+			}
+
 			NSApp.orderFrontStandardAboutPanel(nil)
 		}
 	}
@@ -434,7 +437,17 @@ enum SSApp {
 			return
 		}
 
-		NSApp.activate(ignoringOtherApps: true)
+		forceActivate()
+	}
+
+//	@MainActor
+	static func forceActivate() {
+		if #available(macOS 14, *) {
+			NSApp.yieldActivation(toApplicationWithBundleIdentifier: idString)
+			NSApp.activate()
+		} else {
+			NSApp.activate(ignoringOtherApps: true)
+		}
 	}
 }
 
@@ -2865,7 +2878,7 @@ enum SecurityScopedBookmarkManager {
 			$0.prompt = "Allow"
 		}
 
-		NSApp.activate(ignoringOtherApps: true)
+		SSApp.activateIfAccessory()
 
 		guard openPanel.runModal() == .OK else {
 			return nil
@@ -2980,7 +2993,8 @@ extension URL {
 	func normalized(
 		removeFragment: Bool = false,
 		removeQuery: Bool = false,
-		removeDefaultPort: Bool = true
+		removeDefaultPort: Bool = true,
+		removeWWW: Bool = true
 	) -> Self {
 		let url = absoluteURL.standardized
 
@@ -3001,7 +3015,9 @@ extension URL {
 		components.host = components.host?.lowercased()
 		components.scheme = components.scheme?.lowercased()
 
-		components.host = components.host?.removingPrefix("www.")
+		if removeWWW {
+			components.host = components.host?.removingPrefix("www.")
+		}
 
 		// Remove empty fragment.
 		// - `https://sindresorhus.com/#`
@@ -3036,9 +3052,9 @@ extension URL {
 		var errorDescription: String? {
 			switch self {
 			case .failedToEncodePlaceholder(let placeholder):
-				return "Failed to encode placeholder “\(placeholder)”"
+				"Failed to encode placeholder “\(placeholder)”"
 			case .invalidURLAfterSubstitution(let urlString):
-				return "New URL was not valid after substituting placeholders. URL string is “\(urlString)”"
+				"New URL was not valid after substituting placeholders. URL string is “\(urlString)”"
 			}
 		}
 	}
@@ -3300,15 +3316,15 @@ enum AssociationPolicy {
 	var rawValue: objc_AssociationPolicy {
 		switch self {
 		case .assign:
-			return .OBJC_ASSOCIATION_ASSIGN
+			.OBJC_ASSOCIATION_ASSIGN
 		case .retainNonatomic:
-			return .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+			.OBJC_ASSOCIATION_RETAIN_NONATOMIC
 		case .copyNonatomic:
-			return .OBJC_ASSOCIATION_COPY_NONATOMIC
+			.OBJC_ASSOCIATION_COPY_NONATOMIC
 		case .retain:
-			return .OBJC_ASSOCIATION_RETAIN
+			.OBJC_ASSOCIATION_RETAIN
 		case .copy:
-			return .OBJC_ASSOCIATION_COPY
+			.OBJC_ASSOCIATION_COPY
 		}
 	}
 }
@@ -4542,7 +4558,7 @@ extension OperatingSystem {
 
 		return false
 		#else
-		return false
+		false
 		#endif
 	}()
 
@@ -4557,7 +4573,7 @@ extension OperatingSystem {
 
 		return false
 		#else
-		return false
+		false
 		#endif
 	}()
 }
@@ -4989,7 +5005,7 @@ extension DecodableDefault {
 	typealias Source = DecodableDefaultSource
 	typealias List = Decodable & ExpressibleByArrayLiteral
 	typealias Map = Decodable & ExpressibleByDictionaryLiteral
-	typealias Number = Decodable & AdditiveArithmetic
+	typealias Number = AdditiveArithmetic & Decodable
 
 	enum Sources {
 		enum True: Source {
@@ -5261,11 +5277,11 @@ enum SettingsTabType {
 	fileprivate var label: some View {
 		switch self {
 		case .general:
-			return Label("General", systemImage: "gearshape")
+			Label("General", systemImage: "gearshape")
 		case .advanced:
-			return Label("Advanced", systemImage: "gearshape.2")
+			Label("Advanced", systemImage: "gearshape.2")
 		case .shortcuts:
-			return Label("Shortcuts", systemImage: "command")
+			Label("Shortcuts", systemImage: "command")
 		}
 	}
 }

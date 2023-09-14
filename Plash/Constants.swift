@@ -2,14 +2,12 @@ import SwiftUI
 import KeyboardShortcuts
 
 enum Constants {
-	static let menuBarIcon = NSImage(named: "MenuBarIcon")!
-
 	static var websitesWindow: NSWindow? {
 		NSApp.windows.first { $0.identifier?.rawValue == "websites" }
 	}
 
 	static func openWebsitesWindow() {
-		NSApp.activate(ignoringOtherApps: true)
+		SSApp.forceActivate()
 		websitesWindow?.makeKeyAndOrderFront(nil)
 	}
 }

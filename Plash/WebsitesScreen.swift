@@ -19,12 +19,13 @@ struct WebsitesScreen: View {
 					)
 						.padding(.leading)
 				}
-				List($websites, editActions: .all, selection: $selection) { website in
+				List($websites, editActions: .all) { website in
 					RowView(
 						website: website,
 						selection: $editedWebsite
 					)
 				}
+					.id(websites) // Workaround for the row not updating when changing the current active website. It's placed here and not on the row to prevent another issue where adding a new website makes it scroll outside the view. (macOS 14.0)
 					.frame(height: 500)
 					.onKeyboardShortcut(.defaultAction) {
 						editedWebsite = selection
@@ -89,10 +90,8 @@ struct WebsitesScreen: View {
 	}
 }
 
-struct WebsitesScreen_Previews: PreviewProvider {
-	static var previews: some View {
-		WebsitesScreen()
-	}
+#Preview {
+	WebsitesScreen()
 }
 
 private struct RowView: View {
@@ -149,6 +148,14 @@ private struct RowView: View {
 			.accessibilityAddTraits(.isButton)
 			.if(website.isCurrent) {
 				$0.accessibilityAddTraits(.isSelected)
+			}
+			.accessibilityAction(named: "Edit") { // Doesn't show up in accessibility actions. (macOS 14.0)
+				selection = website.id
+			}
+			.accessibilityRepresentation {
+				Button(website.menuTitle) {
+					selection = website.id
+				}
 			}
 	}
 }
