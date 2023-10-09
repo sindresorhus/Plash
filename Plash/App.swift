@@ -4,6 +4,7 @@ import SwiftUI
 TODO macOS 14:
 - Focus filter support.
 - Set `!` as menu bar item text when there is an error.
+- handle loose `URL(string: $0)`
 
 TODO macOS 15:
 - Use SwiftUI for the desktop window and the web view.
