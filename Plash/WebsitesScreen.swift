@@ -2,66 +2,48 @@ import SwiftUI
 
 struct WebsitesScreen: View {
 	@Default(.websites) private var websites
-	@State private var selection: Website.ID? // We need two states as selection must be independent from actually opening the editing because of keyboard navigation and accessibility.
+//	@State private var selection: Website.ID? // We need two states as selection must be independent from actually opening the editing because of keyboard navigation and accessibility.
 	@State private var editedWebsite: Website.ID?
 	@State private var isAddWebsiteDialogPresented = false
 	@Namespace private var bottomScrollID
 
 	var body: some View {
 		Form {
-			// TODO: The `ScrollViewReader` causes UI issues in a form. (macOS 13.1)
-//			ScrollViewReader { scrollViewProxy in
-			Section {
-				if !websites.isEmpty {
-					HideableInfoBox(
-						id: "websitesListTips",
-						message: "Click a website to edit. Drag and drop to reorder."
-					)
-						.padding(.leading)
-				}
-				List($websites, editActions: .all) { website in
-					RowView(
-						website: website,
-						selection: $editedWebsite
-					)
-				}
-					.id(websites) // Workaround for the row not updating when changing the current active website. It's placed here and not on the row to prevent another issue where adding a new website makes it scroll outside the view. (macOS 14.0)
-					.frame(height: 500)
-					.onKeyboardShortcut(.defaultAction) {
-						editedWebsite = selection
-					}
-			}/* footer: {
-				Color.clear
-					.frame(height: 1)
-					.id(bottomScrollID)
-			}*/
-				.onChange(of: websites) { [oldWebsites = websites] websites in
-					// Check that a website was added.
-					guard websites.count > oldWebsites.count else {
-						return
-					}
-
-					withAnimation {
-//							scrollViewProxy.scrollTo(bottomScrollID, anchor: .top)
-					}
-				}
-				.overlay {
-					if websites.isEmpty {
-						Text("No Websites")
-							.emptyStateTextStyle()
-					}
-				}
-				.accessibilityAction(named: Text("Add website")) {
-					isAddWebsiteDialogPresented = true
-				}
-		}
-//		}
-			.formStyle(.grouped)
-			.frame(width: 480)
-			.fixedSize()
-			.onChange(of: editedWebsite) {
-				selection = $0
+			List($websites, editActions: .all) { website in
+				RowView(
+					website: website,
+					selection: $editedWebsite
+				)
 			}
+				.id(websites) // Workaround for the row not updating when changing the current active website. It's placed here and not on the row to prevent another issue where adding a new website makes it scroll outside the view. (macOS 14.0)
+//				.onKeyboardShortcut(.defaultAction) {
+//					editedWebsite = selection
+//				}
+			.onChange(of: websites) { [oldWebsites = websites] websites in
+				// Check that a website was added.
+				guard websites.count > oldWebsites.count else {
+					return
+				}
+
+				withAnimation {
+//							scrollViewProxy.scrollTo(bottomScrollID, anchor: .top)
+				}
+			}
+			.overlay {
+				if websites.isEmpty {
+					Text("No Websites")
+						.emptyStateTextStyle()
+				}
+			}
+			.accessibilityAction(named: Text("Add website")) {
+				isAddWebsiteDialogPresented = true
+			}
+		}
+			.formStyle(.grouped)
+			.frame(width: 480, height: 500)
+//			.onChange(of: editedWebsite) {
+//				selection = $0
+//			}
 			.sheet(item: $editedWebsite) {
 				AddWebsiteScreen(
 					isEditing: true,

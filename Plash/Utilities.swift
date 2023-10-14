@@ -16,6 +16,9 @@ typealias Defaults = _Defaults
 typealias Default = _Default
 typealias AnyCancellable = Combine.AnyCancellable
 
+// TODO: Check if any of these can be removed when targeting macOS 15.
+extension NSImage: @unchecked Sendable {}
+
 /**
 Convenience function for initializing an object and modifying its properties.
 
@@ -5832,7 +5835,7 @@ private struct OnDoubleClick<Content>: View where Content: View {
 }
 
 private struct OnDoubleClickRepresentable<Content: View>: NSViewRepresentable {
-	final class HostingView<Content: View>: NSHostingView<Content> {
+	final class HostingView<Content2: View>: NSHostingView<Content2> {
 		var action: (() -> Void)?
 
 		override func mouseDown(with event: NSEvent) {
