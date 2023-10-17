@@ -17,7 +17,6 @@ final class WebViewController: NSViewController {
 
 	private func createWebView() -> SSWebView {
 		let configuration = WKWebViewConfiguration()
-		configuration.mediaTypesRequiringUserActionForPlayback = .audio
 		configuration.allowsAirPlayForMediaPlayback = false
 		configuration.applicationNameForUserAgent = "\(SSApp.name)/\(SSApp.version)"
 
