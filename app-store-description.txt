@@ -72,4 +72,4 @@ Make a shortcut in the Shortcuts app that uses the “Set Current Website” act
 
 ■ Support
 
-Click the “Send Feedback” button in the app or email me at sindresorhus@gmail.com
+Click the “Send Feedback” button in the app.

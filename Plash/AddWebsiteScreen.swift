@@ -132,27 +132,27 @@ struct AddWebsiteScreen: View {
 
 	private var topView: some View {
 		Section {
-			// TODO: Use `.textContentType(.URL)` when targeting macOS 14.
 			TextField("URL", text: $urlString)
+				.textContentType(.URL)
 				.lineLimit(1)
 				// This change listener is used to respond to URL changes from the outside, like the "Revert" button or the Shortcuts actions.
-				.onChange(of: website.wrappedValue.url) {
+				.onChange(of: website.wrappedValue.url) { _, url in
 					guard
-						$0.absoluteString != "-",
-						$0.absoluteString != urlString
+						url.absoluteString != "-",
+						url.absoluteString != urlString
 					else {
 						return
 					}
 
-					urlString = $0.absoluteString
+					urlString = url.absoluteString
 				}
 				.onChange(of: urlString) {
-					guard let url = URL(humanString: $0) else {
+					guard let url = URL(humanString: urlString) else {
 						// Makes the “Revert” button work if the user clears the URL field.
 						if urlString.trimmed.isEmpty {
 							website.wrappedValue.url = "-"
 						} else if
-							let url = URL(string: $0),
+							let url = URL(string: urlString, encodingInvalidCharacters: false),
 							url.isValid
 						{
 							website.wrappedValue.url = url
@@ -315,7 +315,7 @@ struct AddWebsiteScreen: View {
 			panel.directoryURL = url
 		}
 
-		// TODO: Make it a sheet instead when targeting the macOS bug is fixed. (macOS 13.1)
+		// TODO: Make it a sheet instead when targeting the macOS bug is fixed. (macOS 14.2)
 //		let result = await panel.beginSheet(hostingWindow)
 		let result = await panel.begin()
 

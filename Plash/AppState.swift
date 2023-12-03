@@ -28,6 +28,10 @@ final class AppState: ObservableObject {
 
 	var isBrowsingMode = false {
 		didSet {
+			guard isEnabled else {
+				return
+			}
+
 			desktopWindow.isInteractive = isBrowsingMode
 			desktopWindow.alphaValue = isBrowsingMode ? 1 : Defaults[.opacity]
 			resetTimer()
@@ -94,25 +98,12 @@ final class AppState: ObservableObject {
 		_ = desktopWindow
 		setUpEvents()
 		showWelcomeScreenIfNeeded()
-		SSApp.requestReviewAfterBeingCalledThisManyTimes([8, 50, 500])
+		SSApp.requestReviewAfterBeingCalledThisManyTimes([6, 50, 500])
 
 		#if DEBUG
 //		SSApp.showSettingsWindow()
 //		Constants.openWebsitesWindow()
 		#endif
-
-		SSApp.runOnce(identifier: "warnAboutSettingDisplaySetting") {
-			guard
-				!SSApp.isFirstLaunch,
-				UserDefaults.standard.string(forKey: "display") != #"{"id":1}"#
-			else {
-				return
-			}
-
-			SSApp.activateIfAccessory()
-			NSAlert.showModal(title: "Because of a bug, you need to select the display to show Plash on again in the settings.")
-			SSApp.showSettingsWindow()
-		}
 	}
 
 	func handleMenuBarIcon() {

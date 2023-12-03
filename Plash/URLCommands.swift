@@ -2,7 +2,7 @@ import Cocoa
 
 extension AppState {
 	func setUpURLCommands() {
-		SSPublishers.appOpenURL
+		SSEvents.appOpenURL
 			.sink { [self] in
 				handleURLCommands($0)
 			}
@@ -26,7 +26,7 @@ extension AppState {
 		case "add":
 			guard
 				let urlString = parameters["url"]?.trimmed,
-				let url = URL(string: urlString),
+				let url = URL(string: urlString, encodingInvalidCharacters: false),
 				url.isValid
 			else {
 				showMessage("Invalid URL for the “add” command.")

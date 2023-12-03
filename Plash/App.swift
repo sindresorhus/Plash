@@ -1,17 +1,13 @@
 import SwiftUI
 
 /**
-TODO macOS 14:
-- Focus filter support.
-- Set `!` as menu bar item text when there is an error.
-- handle loose `URL(string: $0)`
-
 TODO macOS 15:
-- Use SwiftUI for the desktop window and the web view.
-- Use `MenuBarExtra`.
+- Use `MenuBarExtra` and afterwards switch to `@Observable`.
 - Remove `Combine` and `Defaults.publisher` usage.
 - Use `EnvironmentValues#requestReview`.
 - Remove `ensureRunning()` from some intents that don't require Plash to stay open.
+- Focus filter support.
+- Use SwiftUI for the desktop window and the web view.
 */
 
 @main

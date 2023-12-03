@@ -48,7 +48,7 @@ extension CGFloat {
 	/**
 	Get a Double from a CGFloat. This makes it easier to work with optionals.
 	*/
-	var double: Double { Double(self) }
+	var toDouble: Double { Double(self) }
 }
 
 
@@ -445,12 +445,8 @@ enum SSApp {
 
 //	@MainActor
 	static func forceActivate() {
-		if #available(macOS 14, *) {
-			NSApp.yieldActivation(toApplicationWithBundleIdentifier: idString)
-			NSApp.activate()
-		} else {
-			NSApp.activate(ignoringOtherApps: true)
-		}
+		NSApp.yieldActivation(toApplicationWithBundleIdentifier: idString)
+		NSApp.activate()
 	}
 }
 
@@ -463,12 +459,7 @@ extension SSApp {
 		// Run in the next runloop so it doesn't conflict with SwiftUI if run at startup.
 		DispatchQueue.main.async {
 			activateIfAccessory()
-
-			if #available(macOS 14, *) {
-				NSApp.mainMenu?.items.first?.submenu?.item(withTitle: "Settings…")?.performAction()
-			} else {
-				NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
-			}
+			NSApp.mainMenu?.items.first?.submenu?.item(withTitle: "Settings…")?.performAction()
 		}
 	}
 }
@@ -875,7 +866,7 @@ extension URL {
 	`URL(string:)` doesn't strictly validate the input. This one at least ensures there's a `scheme` and that the `host` has a TLD.
 	*/
 	static func isValid(string: String) -> Bool {
-		guard let url = URL(string: string) else {
+		guard let url = URL(string: string, encodingInvalidCharacters: false) else {
 			return false
 		}
 
@@ -1514,6 +1505,7 @@ extension WKWebView {
 	@MainActor
 	func defaultUploadPanelHandler(parameters: WKOpenPanelParameters) async -> [URL]? { // swiftlint:disable:this discouraged_optional_collection
 		let openPanel = NSOpenPanel()
+		openPanel.identifier = .init("WKWebView_defaultUploadPanelHandler")
 		openPanel.level = .floating
 		openPanel.prompt = "Choose"
 		openPanel.allowsMultipleSelection = parameters.allowsMultipleSelection
@@ -2013,9 +2005,9 @@ extension NSScreen {
 	*/
 	static var publisher: AnyPublisher<Void, Never> {
 		Publishers.Merge(
-			SSPublishers.screenParametersDidChange,
+			SSEvents.screenParametersDidChange,
 			// We use a wake up notification as the screen setup might have changed during sleep. For example, a screen could have been unplugged.
-			SSPublishers.deviceDidWake
+			SSEvents.deviceDidWake
 		)
 			.eraseToAnyPublisher()
 	}
@@ -2055,7 +2047,7 @@ extension NSScreen {
 	- Note: There is a 1 point gap between the status bar and a maximized window. You may want to handle that.
 	*/
 	var statusBarThickness: Double {
-		let value = (frame.height - visibleFrame.height - (visibleFrame.origin.y - frame.origin.y) - 1).double
+		let value = (frame.height - visibleFrame.height - (visibleFrame.origin.y - frame.origin.y) - 1).toDouble
 		return max(0, value)
 	}
 
@@ -2870,6 +2862,7 @@ enum SecurityScopedBookmarkManager {
 		let delegate = NSOpenSavePanelDelegateHandler(url: directoryURL)
 
 		let openPanel = with(NSOpenPanel()) {
+			$0.identifier = .init("SecurityScopedBookmarkManager")
 			$0.delegate = delegate
 			$0.directoryURL = directoryURL
 			$0.allowsMultipleSelection = false
@@ -3076,7 +3069,7 @@ extension URL {
 
 		let urlString = absoluteString.replacing(encodedPlaceholder, with: replacement)
 
-		guard let newURL = URL(string: urlString) else {
+		guard let newURL = URL(string: urlString, encodingInvalidCharacters: false) else {
 			throw PlaceholderError.invalidURLAfterSubstitution(urlString)
 		}
 
@@ -3608,12 +3601,6 @@ extension Sequence where Element: Equatable {
 	func removingAll(_ element: Element) -> [Element] {
 		filter { $0 != element }
 	}
-}
-
-
-extension Color {
-	static let tertiary = Color(NSColor.tertiaryLabelColor)
-	static let quaternary = Color(NSColor.quaternaryLabelColor)
 }
 
 
@@ -4553,9 +4540,9 @@ extension OperatingSystem {
 	/**
 	- Note: Only use this when you cannot use an `if #available` check. For example, inline in function calls.
 	*/
-	static let isMacOS15OrLater: Bool = {
+	static let isMacOS16OrLater: Bool = {
 		#if os(macOS)
-		if #available(macOS 15, *) {
+		if #available(macOS 16, *) {
 			return true
 		}
 
@@ -4568,9 +4555,9 @@ extension OperatingSystem {
 	/**
 	- Note: Only use this when you cannot use an `if #available` check. For example, inline in function calls.
 	*/
-	static let isMacOS14OrLater: Bool = {
+	static let isMacOS15OrLater: Bool = {
 		#if os(macOS)
-		if #available(macOS 14, *) {
+		if #available(macOS 15, *) {
 			return true
 		}
 
@@ -4895,7 +4882,7 @@ extension View {
 	Corner radius with a custom corner style.
 	*/
 	func cornerRadius(_ radius: Double, style: RoundedCornerStyle) -> some View {
-		clipShape(.roundedRectangle(cornerRadius: radius, style: style))
+		clipShape(.rect(cornerRadius: radius, style: style))
 	}
 
 	/**
@@ -5179,7 +5166,7 @@ extension Defaults {
 }
 
 
-// TODO: Remove when targeting macOS 14.
+// TODO: Remove when targeting macOS 15.
 extension Publisher {
 	/**
 	Convert a publisher to a `Result`.
@@ -5312,7 +5299,7 @@ extension Notification.Name {
 }
 
 
-enum SSPublishers {
+enum SSEvents {
 	/**
 	Publishes when the machine wakes from sleep.
 	*/
@@ -5340,7 +5327,7 @@ enum SSPublishers {
 }
 
 
-extension SSPublishers {
+extension SSEvents {
 	private struct AppOpenURLPublisher: Publisher {
 		// We need this abstraction as `kAEGetURL` can only be subscribed to once.
 		private final class EventManager {
@@ -5601,68 +5588,11 @@ struct HideableInfoBox: View {
 				.padding(.vertical, 6)
 				.padding(.horizontal, 8)
 				.backgroundColor(.primary.opacity(0.05))
-				.clipShape(.roundedRectangle(cornerRadius: 8, style: .continuous))
+				.clipShape(.rect(cornerRadius: 8))
 		}
 	}
 }
 
-
-extension Shape where Self == Rectangle {
-	static var rectangle: Self { .init() }
-}
-
-extension Shape where Self == Circle {
-	static var circle: Self { .init() }
-}
-
-extension Shape where Self == Capsule {
-	static var capsule: Self { .init() }
-}
-
-extension Shape where Self == Ellipse {
-	static var ellipse: Self { .init() }
-}
-
-extension Shape where Self == ContainerRelativeShape {
-	static var containerRelative: Self { .init() }
-}
-
-extension Shape where Self == RoundedRectangle {
-	static func roundedRectangle(cornerRadius: Double, style: RoundedCornerStyle = .circular) -> Self {
-		.init(cornerRadius: cornerRadius, style: style)
-	}
-
-	static func roundedRectangle(cornerSize: CGSize, style: RoundedCornerStyle = .circular) -> Self {
-		.init(cornerSize: cornerSize, style: style)
-	}
-}
-
-
-extension Button<Label<Text, Image>> {
-	init(
-		_ title: String,
-		systemImage: String,
-		role: ButtonRole? = nil,
-		action: @escaping () -> Void
-	) {
-		self.init(
-			role: role,
-			action: action
-		) {
-			Label(title, systemImage: systemImage)
-		}
-	}
-}
-
-
-private struct IconButtonStyle: ViewModifier {
-	func body(content: Content) -> some View {
-		content
-			.buttonStyle(.borderless)
-			.menuStyle(.borderlessButton)
-			.labelStyle(.iconOnly)
-	}
-}
 
 extension View {
 	/**
@@ -5670,6 +5600,15 @@ extension View {
 	*/
 	func iconButtonStyle() -> some View {
 		modifier(IconButtonStyle())
+	}
+}
+
+private struct IconButtonStyle: ViewModifier {
+	func body(content: Content) -> some View {
+		content
+			.buttonStyle(.borderless)
+			.menuStyle(.borderlessButton)
+			.labelStyle(.iconOnly)
 	}
 }
 

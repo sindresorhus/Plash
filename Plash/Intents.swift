@@ -1,17 +1,16 @@
 import AppIntents
 import AppKit
 
-struct AddWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
-	static let intentClassName = "AddWebsiteIntent"
-
+struct AddWebsiteIntent: AppIntent {
 	static let title: LocalizedStringResource = "Add Website"
 
 	static let description = IntentDescription(
-"""
-Adds a website to Plash.
+		"""
+		Adds a website to Plash.
 
-Returns the added website.
-"""
+		Returns the added website.
+		""",
+		resultValueName: "Added Website"
 	)
 
 	@Parameter(title: "URL")
@@ -33,10 +32,7 @@ Returns the added website.
 	}
 }
 
-// Typo in the name, but we cannot fix it as this point.
-struct RemoveWebsitesItent: AppIntent, CustomIntentMigratedAppIntent {
-	static let intentClassName = "RemoveWebsitesIntent"
-
+struct RemoveWebsitesIntent: AppIntent {
 	static let title: LocalizedStringResource = "Remove Websites"
 
 	static let description = IntentDescription("Removes the given websites from Plash.")
@@ -66,7 +62,7 @@ struct RemoveWebsitesItent: AppIntent, CustomIntentMigratedAppIntent {
 struct SetEnabledStateIntent: AppIntent {
 	static let title: LocalizedStringResource = "Set Enabled State"
 
-	static let description = IntentDescription("Set the state of Plash.")
+	static let description = IntentDescription("Sets the enabled state of Plash.")
 
 	@Parameter(
 		title: "Action",
@@ -87,6 +83,8 @@ struct SetEnabledStateIntent: AppIntent {
 
 	@MainActor
 	func perform() async throws -> some IntentResult {
+		ensureRunning()
+
 		if shouldToggle {
 			AppState.shared.isManuallyDisabled.toggle()
 		} else {
@@ -100,7 +98,10 @@ struct SetEnabledStateIntent: AppIntent {
 struct GetEnabledStateIntent: AppIntent {
 	static let title: LocalizedStringResource = "Get Enabled State"
 
-	static let description = IntentDescription("Returns whether Plash is currently enabled.")
+	static let description = IntentDescription(
+		"Returns whether Plash is currently enabled.",
+		resultValueName: "Enabled State"
+	)
 
 	static var parameterSummary: some ParameterSummary {
 		Summary("Get the current enabled state of Plash")
@@ -112,91 +113,13 @@ struct GetEnabledStateIntent: AppIntent {
 	}
 }
 
-@available(macOS, deprecated: 13, message: "Replaced by the “Find Website” action.")
-struct GetWebsitesIntent: AppIntent, CustomIntentMigratedAppIntent {
-	static let intentClassName = "GetWebsitesIntent"
-
-	static let title: LocalizedStringResource = "Get Websites"
-
-	static let description = IntentDescription("Returns all the websites in Plash or just some based on a filter.")
-
-	@Parameter(
-		title: "Filter",
-		default: false,
-		displayName: Bool.IntentDisplayName(true: "websites where", false: "all websites")
-	)
-	var shouldFilter: Bool
-
-	@Parameter(title: "Condition", default: .titleEquals)
-	var condition: FilterConditionAppEnum?
-
-	@Parameter(title: "Text")
-	var matchText: String?
-
-	@Parameter(title: "Maximum Results")
-	var limit: Int?
-
-	static var parameterSummary: some ParameterSummary {
-		When(\.$shouldFilter, .equalTo, true) {
-			Summary("Get \(\.$shouldFilter) \(\.$condition) \(\.$matchText)") {
-				\.$limit
-			}
-		} otherwise: {
-			Summary("Get \(\.$shouldFilter)") {
-				\.$limit
-			}
-		}
-	}
-
-	func perform() async throws -> some IntentResult & ReturnsValue<[WebsiteAppEntity]> {
-		ensureRunning()
-
-		var websites = WebsiteAppEntity.all
-
-		if
-			shouldFilter,
-			let condition,
-			let matchText = matchText?.trimmed.lowercased()
-		{
-			websites = websites.filter {
-				let title = $0.title.lowercased()
-				let urlString = $0.url.absoluteString.lowercased()
-
-				guard let url = URL(string: urlString) else {
-					return false
-				}
-
-				switch condition {
-				case .titleEquals:
-					return title == matchText
-				case .titleContains:
-					return title.contains(matchText)
-				case .titleBeginsWith:
-					return title.hasPrefix(matchText)
-				case .titleEndsWith:
-					return title.hasSuffix(matchText)
-				case .urlEquals:
-					return url.absoluteString == matchText
-				case .urlHostEquals:
-					return url.host == matchText
-				}
-			}
-		}
-
-		if let limit {
-			websites = Array(websites.prefix(limit))
-		}
-
-		return .result(value: websites)
-	}
-}
-
-struct GetCurrentWebsiteItent: AppIntent, CustomIntentMigratedAppIntent {
-	static let intentClassName = "GetCurrentWebsiteIntent"
-
+struct GetCurrentWebsiteIntent: AppIntent {
 	static let title: LocalizedStringResource = "Get Current Website"
 
-	static let description = IntentDescription("Returns the current website in Plash.")
+	static let description = IntentDescription(
+		"Returns the current website in Plash.",
+		resultValueName: "Current Website"
+	)
 
 	func perform() async throws -> some IntentResult & ReturnsValue<WebsiteAppEntity?> {
 		ensureRunning()
@@ -204,9 +127,7 @@ struct GetCurrentWebsiteItent: AppIntent, CustomIntentMigratedAppIntent {
 	}
 }
 
-struct SetCurrentWebsiteItent: AppIntent, CustomIntentMigratedAppIntent {
-	static let intentClassName = "SetCurrentWebsiteIntent"
-
+struct SetCurrentWebsiteIntent: AppIntent {
 	static let title: LocalizedStringResource = "Set Current Website"
 
 	static let description = IntentDescription("Sets the current website in Plash to the given website.")
@@ -225,27 +146,25 @@ struct SetCurrentWebsiteItent: AppIntent, CustomIntentMigratedAppIntent {
 	}
 }
 
-struct ReloadWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
-	static let intentClassName = "ReloadWebsiteIntent"
-
+struct ReloadWebsiteIntent: AppIntent {
 	static let title: LocalizedStringResource = "Reload Website"
 
 	static let description = IntentDescription("Reloads the current website in Plash.")
 
+	@MainActor
 	func perform() async throws -> some IntentResult {
 		ensureRunning()
-		await AppState.shared.reloadWebsite()
+		AppState.shared.reloadWebsite()
 		return .result()
 	}
 }
 
-struct NextWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
-	static let intentClassName = "NextWebsiteIntent"
-
+struct NextWebsiteIntent: AppIntent {
 	static let title: LocalizedStringResource = "Switch to Next Website"
 
 	static let description = IntentDescription("Switches Plash to the next website in the list.")
 
+	@MainActor
 	func perform() async throws -> some IntentResult {
 		ensureRunning()
 		WebsitesController.shared.makeNextCurrent()
@@ -253,13 +172,12 @@ struct NextWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
 	}
 }
 
-struct PreviousWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
-	static let intentClassName = "PreviousWebsiteIntent"
-
+struct PreviousWebsiteIntent: AppIntent {
 	static let title: LocalizedStringResource = "Switch to Previous Website"
 
 	static let description = IntentDescription("Switches Plash to the previous website in the list.")
 
+	@MainActor
 	func perform() async throws -> some IntentResult {
 		ensureRunning()
 		WebsitesController.shared.makePreviousCurrent()
@@ -267,13 +185,12 @@ struct PreviousWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
 	}
 }
 
-struct RandomWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
-	static let intentClassName = "RandomWebsiteIntent"
-
+struct RandomWebsiteIntent: AppIntent {
 	static let title: LocalizedStringResource = "Switch to Random Website"
 
 	static let description = IntentDescription("Switches Plash to a random website in the list.")
 
+	@MainActor
 	func perform() async throws -> some IntentResult {
 		ensureRunning()
 		WebsitesController.shared.makeRandomCurrent()
@@ -281,134 +198,40 @@ struct RandomWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
 	}
 }
 
-struct ToggleBrowsingModeIntent: AppIntent, CustomIntentMigratedAppIntent {
-	static let intentClassName = "ToggleBrowsingModeIntent"
-
+struct ToggleBrowsingModeIntent: AppIntent {
 	static let title: LocalizedStringResource = "Toggle Browsing Mode"
 
 	static let description = IntentDescription("Toggles “Browsing Mode” for Plash.")
 
+	@MainActor
 	func perform() async throws -> some IntentResult {
 		ensureRunning()
-		await AppState.shared.toggleBrowsingMode()
+		AppState.shared.toggleBrowsingMode()
 		return .result()
 	}
 }
 
-enum FilterConditionAppEnum: String, AppEnum {
-	case titleEquals
-	case titleContains
-	case titleBeginsWith
-	case titleEndsWith
-	case urlEquals
-	case urlHostEquals
-
-	static let typeDisplayRepresentation: TypeDisplayRepresentation = "Filter Condition"
-
-	static let caseDisplayRepresentations: [Self: DisplayRepresentation] = [
-		.titleEquals: "title equals",
-		.titleContains: "title contains",
-		.titleBeginsWith: "title begins with",
-		.titleEndsWith: "title ends with",
-		.urlEquals: "URL equals",
-		.urlHostEquals: "URL host equals"
-	]
-}
-
-// TODO: When targeting macOS 14, use `EnumerableEntityQuery` to simplify it?
-// Note: It's a class so we can use `NSPredicate`.
-//struct WebsiteAppEntity: AppEntity {
-final class WebsiteAppEntity: NSObject, AppEntity {
-	struct WebsiteAppEntityQuery: EntityStringQuery, EntityPropertyQuery {
-		static var sortingOptions = SortingOptions {}
-
-		static var properties = QueryProperties {
-			Property(\.$title) {
-				EqualToComparator { NSPredicate(format: "title ==[cd] %@", $0) }
-				NotEqualToComparator { NSPredicate(format: "title !=[cd] %@", $0) }
-				ContainsComparator { NSPredicate(format: "title CONTAINS[cd] %@", $0) }
-				HasPrefixComparator { NSPredicate(format: "title BEGINSWITH[cd] %@", $0) }
-				HasSuffixComparator { NSPredicate(format: "title ENDSWITH[cd] %@", $0) }
-			}
-			Property(\.$url) {
-				EqualToComparator { NSPredicate(format: "url ==[cd] %@", $0.absoluteString) }
-				NotEqualToComparator { NSPredicate(format: "url !=[cd] %@", $0.absoluteString) }
-				// TODO: Find a way to make these work on `URL`.
-//				ContainsComparator { NSPredicate(format: "title CONTAINS[cd] %@", $0.absoluteString) }
-//				HasPrefixComparator { NSPredicate(format: "title BEGINSWITH[cd] %@", $0.absoluteString) }
-//				HasSuffixComparator { NSPredicate(format: "title ENDSWITH[cd] %@", $0.absoluteString) }
-			}
-			Property(\.$urlHost) {
-				EqualToComparator { NSPredicate(format: "urlHost ==[cd] %@", $0) }
-				NotEqualToComparator { NSPredicate(format: "urlHost !=[cd] %@", $0) }
-				ContainsComparator { NSPredicate(format: "urlHost CONTAINS[cd] %@", $0) }
-				HasPrefixComparator { NSPredicate(format: "urlHost BEGINSWITH[cd] %@", $0) }
-				HasSuffixComparator { NSPredicate(format: "urlHost ENDSWITH[cd] %@", $0) }
-			}
-		}
-
-		private func allEntities() -> [WebsiteAppEntity] {
-			WebsiteAppEntity.all
-		}
-
-		func entities(for identifiers: [WebsiteAppEntity.ID]) async throws -> [WebsiteAppEntity] {
-			allEntities().filter { identifiers.contains($0.id) }
-		}
-
-		func entities(matching query: String) async throws -> [WebsiteAppEntity] {
-			allEntities().filter {
-				$0.title.localizedCaseInsensitiveContains(query)
-					|| $0.url.absoluteString.localizedCaseInsensitiveContains(query)
-			}
-		}
-
-		func entities(
-			matching comparators: [NSPredicate],
-			mode: ComparatorMode,
-			sortedBy: [Sort<WebsiteAppEntity>],
-			limit: Int?
-		) async throws -> [WebsiteAppEntity] {
-			let predicate = NSCompoundPredicate(type: mode == .and ? .and : .or, subpredicates: comparators)
-			var result = allEntities().filter { predicate.evaluate(with: $0) }
-
-			if let limit {
-				result = Array(result.prefix(limit))
-			}
-
-			return result
-		}
-
-		func suggestedEntities() async throws -> [WebsiteAppEntity] {
-			allEntities()
-		}
-	}
-
+struct WebsiteAppEntity: AppEntity {
 	static let typeDisplayRepresentation: TypeDisplayRepresentation = "Website"
 
-	static let defaultQuery = WebsiteAppEntityQuery()
+	static let defaultQuery = Query()
 
-	// TODO: Use `Self` here when it's a struct again.
-	static var all: [WebsiteAppEntity] { WebsitesController.shared.all.map(Self.init) }
+	let id: UUID
 
 	@Property(title: "Title")
-	@objc var title: String
+	var title: String
 
 	@Property(title: "URL")
-	@objc var url: URL
+	var url: URL
 
 	@Property(title: "URL Host")
-	@objc var urlHost: String
+	var urlHost: String
 
 	@Property(title: "Is Current")
 	var isCurrent: Bool
 
-	let id: UUID
-
 	init(_ website: Website) {
 		self.id = website.id
-
-		super.init()
-
 		self.title = website.title
 		self.url = website.url
 		self.urlHost = website.url.host ?? ""
@@ -432,16 +255,39 @@ extension WebsiteAppEntity {
 	}
 }
 
+extension WebsiteAppEntity {
+	struct Query: EnumerableEntityQuery, EntityStringQuery {
+		static let findIntentDescription = IntentDescription(
+			"Returns the websites in Plash.",
+			resultValueName: "Websites"
+		)
+
+		func allEntities() -> [WebsiteAppEntity] {
+			WebsitesController.shared.all.map(WebsiteAppEntity.init)
+		}
+
+		func suggestedEntities() async throws -> [WebsiteAppEntity] {
+			allEntities()
+		}
+
+		func entities(for identifiers: [WebsiteAppEntity.ID]) async throws -> [WebsiteAppEntity] {
+			allEntities().filter { identifiers.contains($0.id) }
+		}
+
+		func entities(matching query: String) async throws -> [WebsiteAppEntity] {
+			allEntities().filter {
+				$0.title.localizedCaseInsensitiveContains(query)
+					|| $0.url.absoluteString.localizedCaseInsensitiveContains(query)
+			}
+		}
+	}
+}
+
 func ensureRunning() {
 	// It's `prohibited` if the app was not already launched.
 	// We activate it so that it will not quit right away if it was not already launched. (macOS 13.4)
 	// We don't use `static let openAppWhenRun = true` as it activates (and steals focus) even if the app is already launched.
-	// Note: Activate no longer works in macOS 14.
 	if NSApp.activationPolicy() == .prohibited {
-		if #available(macOS 14, *) {
-			SSApp.url.open()
-		} else {
-			SSApp.forceActivate()
-		}
+		SSApp.url.open()
 	}
 }

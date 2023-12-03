@@ -19,7 +19,7 @@ struct WebsitesScreen: View {
 //				.onKeyboardShortcut(.defaultAction) {
 //					editedWebsite = selection
 //				}
-			.onChange(of: websites) { [oldWebsites = websites] websites in
+			.onChange(of: websites) { oldWebsites, websites in
 				// Check that a website was added.
 				guard websites.count > oldWebsites.count else {
 					return
@@ -108,7 +108,7 @@ private struct RowView: View {
 				}
 					.disabled(website.isCurrent)
 			}
-			.contentShape(.rectangle)
+			.contentShape(.rect)
 			.onDoubleClick {
 				selection = website.id
 			}
@@ -158,7 +158,7 @@ private struct IconView: View {
 			}
 		}
 			.frame(width: 32, height: 32)
-			.clipShape(.roundedRectangle(cornerRadius: 4, style: .continuous))
+			.clipShape(.rect(cornerRadius: 4))
 			.task(id: website.url) {
 				guard let image = await fetchIcons() else {
 					return

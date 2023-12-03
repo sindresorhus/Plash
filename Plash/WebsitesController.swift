@@ -165,7 +165,7 @@ final class WebsitesController {
 			return
 		}
 
-		Task { @MainActor in // TODO: Not sure if this is needed.
+		Task {
 			let metadataProvider = LPMetadataProvider()
 			metadataProvider.shouldFetchSubresources = false
 

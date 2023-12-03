@@ -42,8 +42,8 @@ private struct ShortcutsSettings: View {
 
 	var body: some View {
 		Form {
-			KeyboardShortcuts.Recorder("Toggle browsing mode", name: .toggleBrowsingMode)
 			KeyboardShortcuts.Recorder("Toggle enabled state", name: .toggleEnabled)
+			KeyboardShortcuts.Recorder("Toggle browsing mode", name: .toggleBrowsingMode)
 			KeyboardShortcuts.Recorder("Reload website", name: .reload)
 			KeyboardShortcuts.Recorder("Next website", name: .nextWebsite)
 			KeyboardShortcuts.Recorder("Previous website", name: .previousWebsite)
@@ -151,14 +151,14 @@ private struct ReloadIntervalSetting: View {
 				Text("minutes")
 					.textSelection(.disabled)
 			}
-				.contentShape(.rectangle)
+				.contentShape(.rect)
 			Toggle("Reload every", isOn: $reloadInterval.isNotNil(trueSetValue: Self.defaultReloadInterval))
 				.labelsHidden()
 				.controlSize(.mini)
 				.toggleStyle(.switch)
 		}
 			.accessibilityLabel("Reload interval in minutes")
-			.contentShape(.rectangle)
+			.contentShape(.rect)
 	}
 
 	private var reloadIntervalInMinutes: Binding<Double> {
@@ -215,7 +215,6 @@ private struct DisplaySetting: View {
 }
 
 private struct ClearWebsiteDataSetting: View {
-	@EnvironmentObject private var appState: AppState
 	@State private var hasCleared = false
 
 	var body: some View {
@@ -223,7 +222,7 @@ private struct ClearWebsiteDataSetting: View {
 			Task {
 				hasCleared = true
 				WebsitesController.shared.thumbnailCache.removeAllImages()
-				await appState.webViewController.webView.clearWebsiteData()
+				await AppState.shared.webViewController.webView.clearWebsiteData()
 			}
 		}
 			.help("Clears all cookies, local storage, caches, etc.")

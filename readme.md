@@ -68,7 +68,7 @@ Requires macOS 13 or later.
 
 A special version for users that cannot access the App Store. It won't receive automatic updates. I will update it here once a year.
 
-[Download](https://dsc.cloud/sindresorhus/Plash-2.13.1-1675003980) *(2.13.1 · macOS 13+)*
+[Download](https://www.dropbox.com/scl/fi/lr55dpcqmwxz1hkn5big8/Plash-2.15.0-1705418289.zip?rlkey=smxibxghlw9c153i2kbzhoela&raw=1) *(2.15.0 · macOS 14+)*
 
 ## Tips
 

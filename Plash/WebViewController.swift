@@ -221,11 +221,13 @@ extension WebViewController: WKUIDelegate {
 
 		var styleMask: NSWindow.StyleMask = [
 			.titled,
-			.closable
+			.closable,
+			.resizable
 		]
 
-		if windowFeatures.allowsResizing?.boolValue == true {
-			styleMask.insert(.resizable)
+		// We default the window to be resizable to make it user-friendly.
+		if windowFeatures.allowsResizing?.boolValue == false {
+			styleMask.remove(.resizable)
 		}
 
 		let window = NSWindow(

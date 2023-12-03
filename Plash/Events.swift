@@ -36,13 +36,13 @@ extension AppState {
 			}
 			.store(in: &cancellables)
 
-		SSPublishers.deviceDidWake
+		SSEvents.deviceDidWake
 			.sink { [self] in
 				loadUserURL()
 			}
 			.store(in: &cancellables)
 
-		SSPublishers.isScreenLocked
+		SSEvents.isScreenLocked
 			.sink { [self] in
 				isScreenLocked = $0
 				setEnabledStatus()
@@ -122,8 +122,8 @@ extension AppState {
 			Defaults[.isBrowsingMode].toggle()
 		}
 
-		KeyboardShortcuts.onKeyUp(for: .toggleEnabled) {
-			self.isManuallyDisabled.toggle()
+		KeyboardShortcuts.onKeyUp(for: .toggleEnabled) { [self] in
+			isManuallyDisabled.toggle()
 		}
 
 		KeyboardShortcuts.onKeyUp(for: .reload) { [self] in
