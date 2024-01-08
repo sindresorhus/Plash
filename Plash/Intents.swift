@@ -63,12 +63,10 @@ struct RemoveWebsitesItent: AppIntent, CustomIntentMigratedAppIntent {
 	}
 }
 
-struct ToggleCurrentleWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
-	static let intentClassName = "ToggleWebsiteIntent"
+struct SetEnabledStateIntent: AppIntent {
+	static let title: LocalizedStringResource = "Set Enabled State"
 
-	static let title: LocalizedStringResource = "Toggle Plash"
-
-	static let description = IntentDescription("Toggle Plash.")
+	static let description = IntentDescription("Set the state of Plash.")
 
 	@Parameter(
 		title: "Action",
@@ -80,20 +78,15 @@ struct ToggleCurrentleWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
 	var isEnabled: Bool
 
 	static var parameterSummary: some ParameterSummary {
-		When(\.$shouldToggle, .equalTo, true, {
+		When(\.$shouldToggle, .equalTo, true) {
 			Summary("\(\.$shouldToggle) Plash")
-		}) {
+		} otherwise: {
 			Summary("\(\.$shouldToggle) Plash \(\.$isEnabled)")
 		}
 	}
 
-	func perform() async throws -> some IntentResult {
-		await setState()
-		return .result()
-	}
-
 	@MainActor
-	func setState() {
+	func perform() async throws -> some IntentResult {
 		Task {
 			if shouldToggle {
 				AppState.shared.isManuallyDisabled.toggle()
@@ -101,6 +94,23 @@ struct ToggleCurrentleWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
 				AppState.shared.isManuallyDisabled = !isEnabled
 			}
 		}
+		return .result()
+	}
+}
+
+struct GetEnabledStateIntent: AppIntent {
+	static let title: LocalizedStringResource = "Get Enabled State"
+
+	static let description = IntentDescription("Returns if Plash is currently enabled or not.")
+
+	static var parameterSummary: some ParameterSummary {
+		Summary("Get current state of Plash")
+	}
+
+	@MainActor
+	func perform() async throws -> some IntentResult & ReturnsValue<Bool> {
+		let isEnabled = AppState.shared.isEnabled
+		return .result(value: isEnabled)
 	}
 }
 

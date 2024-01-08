@@ -159,17 +159,17 @@ extension AppState {
 		menu.removeAllItems()
 
 		menu.addCallbackItem(
-			"Toggle \(!AppState.shared.isManuallyDisabled ? "Off" : "On")"
+			isManuallyDisabled ? "Enable" : "Disable"
 		) {
-			AppState.shared.isManuallyDisabled.toggle()
+			self.isManuallyDisabled.toggle()
 		}
-			.setShortcut(for: .reload)
+
 		menu.addSeparator()
 
 		if isEnabled {
 			addWebsiteItems()
 		} else {
-			menu.addDisabled("Deactivated While on Battery")
+			menu.addDisabled(isManuallyDisabled ? "Currently deactivated" : "Deactivated While on Battery")
 		}
 
 		menu.addSeparator()
