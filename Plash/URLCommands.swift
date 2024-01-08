@@ -18,7 +18,7 @@ extension AppState {
 		let parameters = urlComponents.queryDictionary
 
 		func showMessage(_ message: String) {
-			NSApp.activate(ignoringOtherApps: true)
+			SSApp.forceActivate()
 			NSAlert.showModal(title: message)
 		}
 

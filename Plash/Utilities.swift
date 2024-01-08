@@ -16,6 +16,9 @@ typealias Defaults = _Defaults
 typealias Default = _Default
 typealias AnyCancellable = Combine.AnyCancellable
 
+// TODO: Check if any of these can be removed when targeting macOS 15.
+extension NSImage: @unchecked Sendable {}
+
 /**
 Convenience function for initializing an object and modifying its properties.
 
@@ -368,7 +371,10 @@ extension NSMenu {
 	@discardableResult
 	func addAboutItem() -> NSMenuItem {
 		addCallbackItem("About") {
-			NSApp.activate(ignoringOtherApps: true)
+			Task { @MainActor in // TODO: Remove this when NSMenu is annotated as main actor.
+				SSApp.activateIfAccessory()
+			}
+
 			NSApp.orderFrontStandardAboutPanel(nil)
 		}
 	}
@@ -404,10 +410,10 @@ enum SSApp {
 
 		if UserDefaults.standard.bool(forKey: key) {
 			return false
-		} else {
-			UserDefaults.standard.set(true, forKey: key)
-			return true
 		}
+
+		UserDefaults.standard.set(true, forKey: key)
+		return true
 	}()
 
 	static func openSendFeedbackPage() {
@@ -434,7 +440,17 @@ enum SSApp {
 			return
 		}
 
-		NSApp.activate(ignoringOtherApps: true)
+		forceActivate()
+	}
+
+//	@MainActor
+	static func forceActivate() {
+		if #available(macOS 14, *) {
+			NSApp.yieldActivation(toApplicationWithBundleIdentifier: idString)
+			NSApp.activate()
+		} else {
+			NSApp.activate(ignoringOtherApps: true)
+		}
 	}
 }
 
@@ -444,8 +460,16 @@ extension SSApp {
 	*/
 	@MainActor
 	static func showSettingsWindow() {
-		activateIfAccessory()
-		NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+		// Run in the next runloop so it doesn't conflict with SwiftUI if run at startup.
+		DispatchQueue.main.async {
+			activateIfAccessory()
+
+			if #available(macOS 14, *) {
+				NSApp.mainMenu?.items.first?.submenu?.item(withTitle: "Settings…")?.performAction()
+			} else {
+				NSApp.sendAction(Selector(("showSettingsWindow:")), to: nil, from: nil)
+			}
+		}
 	}
 }
 
@@ -462,6 +486,17 @@ extension SSApp {
 			$0.enableAppHangTracking = false // https://github.com/getsentry/sentry-cocoa/issues/2643
 		}
 		#endif
+	}
+}
+
+
+extension NSMenuItem {
+	func performAction() {
+		guard let menu else {
+			return
+		}
+
+		menu.performActionForItem(at: menu.index(of: self))
 	}
 }
 
@@ -1028,11 +1063,13 @@ extension String {
 	func truncating(to number: Int, truncationIndicator: Self = "…") -> Self {
 		if number <= 0 {
 			return ""
-		} else if count > number {
-			return Self(prefix(number - truncationIndicator.count)).trimmedTrailing + truncationIndicator
-		} else {
-			return self
 		}
+
+		if count > number {
+			return Self(prefix(number - truncationIndicator.count)).trimmedTrailing + truncationIndicator
+		}
+
+		return self
 	}
 }
 
@@ -2844,7 +2881,7 @@ enum SecurityScopedBookmarkManager {
 			$0.prompt = "Allow"
 		}
 
-		NSApp.activate(ignoringOtherApps: true)
+		SSApp.activateIfAccessory()
 
 		guard openPanel.runModal() == .OK else {
 			return nil
@@ -2959,7 +2996,8 @@ extension URL {
 	func normalized(
 		removeFragment: Bool = false,
 		removeQuery: Bool = false,
-		removeDefaultPort: Bool = true
+		removeDefaultPort: Bool = true,
+		removeWWW: Bool = true
 	) -> Self {
 		let url = absoluteURL.standardized
 
@@ -2980,7 +3018,9 @@ extension URL {
 		components.host = components.host?.lowercased()
 		components.scheme = components.scheme?.lowercased()
 
-		components.host = components.host?.removingPrefix("www.")
+		if removeWWW {
+			components.host = components.host?.removingPrefix("www.")
+		}
 
 		// Remove empty fragment.
 		// - `https://sindresorhus.com/#`
@@ -3015,9 +3055,9 @@ extension URL {
 		var errorDescription: String? {
 			switch self {
 			case .failedToEncodePlaceholder(let placeholder):
-				return "Failed to encode placeholder “\(placeholder)”"
+				"Failed to encode placeholder “\(placeholder)”"
 			case .invalidURLAfterSubstitution(let urlString):
-				return "New URL was not valid after substituting placeholders. URL string is “\(urlString)”"
+				"New URL was not valid after substituting placeholders. URL string is “\(urlString)”"
 			}
 		}
 	}
@@ -3279,15 +3319,15 @@ enum AssociationPolicy {
 	var rawValue: objc_AssociationPolicy {
 		switch self {
 		case .assign:
-			return .OBJC_ASSOCIATION_ASSIGN
+			.OBJC_ASSOCIATION_ASSIGN
 		case .retainNonatomic:
-			return .OBJC_ASSOCIATION_RETAIN_NONATOMIC
+			.OBJC_ASSOCIATION_RETAIN_NONATOMIC
 		case .copyNonatomic:
-			return .OBJC_ASSOCIATION_COPY_NONATOMIC
+			.OBJC_ASSOCIATION_COPY_NONATOMIC
 		case .retain:
-			return .OBJC_ASSOCIATION_RETAIN
+			.OBJC_ASSOCIATION_RETAIN
 		case .copy:
-			return .OBJC_ASSOCIATION_COPY
+			.OBJC_ASSOCIATION_COPY
 		}
 	}
 }
@@ -3998,7 +4038,7 @@ final class Cache<Key: Hashable, Value> {
 		override var hash: Int { key.hashValue }
 
 		override func isEqual(_ object: Any?) -> Bool {
-			guard let value = object as? WrappedKey else {
+			guard let value = object as? Self else {
 				return false
 			}
 
@@ -4517,11 +4557,11 @@ extension OperatingSystem {
 		#if os(macOS)
 		if #available(macOS 15, *) {
 			return true
-		} else {
-			return false
 		}
-		#else
+
 		return false
+		#else
+		false
 		#endif
 	}()
 
@@ -4532,11 +4572,11 @@ extension OperatingSystem {
 		#if os(macOS)
 		if #available(macOS 14, *) {
 			return true
-		} else {
-			return false
 		}
-		#else
+
 		return false
+		#else
+		false
 		#endif
 	}()
 }
@@ -4968,7 +5008,7 @@ extension DecodableDefault {
 	typealias Source = DecodableDefaultSource
 	typealias List = Decodable & ExpressibleByArrayLiteral
 	typealias Map = Decodable & ExpressibleByDictionaryLiteral
-	typealias Number = Decodable & AdditiveArithmetic
+	typealias Number = AdditiveArithmetic & Decodable
 
 	enum Sources {
 		enum True: Source {
@@ -5037,10 +5077,7 @@ extension View {
 		object: AnyObject? = nil,
 		perform action: @escaping (Notification) -> Void
 	) -> some View {
-		// TODO: Use AsyncSequence when targeting macOS 14.
-		onReceive(NotificationCenter.default.publisher(for: name, object: object)) {
-			action($0)
-		}
+		onReceive(NotificationCenter.default.publisher(for: name, object: object), perform: action)
 	}
 }
 
@@ -5243,11 +5280,11 @@ enum SettingsTabType {
 	fileprivate var label: some View {
 		switch self {
 		case .general:
-			return Label("General", systemImage: "gearshape")
+			Label("General", systemImage: "gearshape")
 		case .advanced:
-			return Label("Advanced", systemImage: "gearshape.2")
+			Label("Advanced", systemImage: "gearshape.2")
 		case .shortcuts:
-			return Label("Shortcuts", systemImage: "command")
+			Label("Shortcuts", systemImage: "command")
 		}
 	}
 }
@@ -5798,7 +5835,7 @@ private struct OnDoubleClick<Content>: View where Content: View {
 }
 
 private struct OnDoubleClickRepresentable<Content: View>: NSViewRepresentable {
-	final class HostingView<Content: View>: NSHostingView<Content> {
+	final class HostingView<Content2: View>: NSHostingView<Content2> {
 		var action: (() -> Void)?
 
 		override func mouseDown(with event: NSEvent) {

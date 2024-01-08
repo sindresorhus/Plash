@@ -6,7 +6,7 @@ extension AppState {
 			return
 		}
 
-		NSApp.activate(ignoringOtherApps: true)
+		SSApp.forceActivate()
 
 		NSAlert.showModal(
 			title: "Welcome to Plash!",

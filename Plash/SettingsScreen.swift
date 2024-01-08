@@ -122,12 +122,11 @@ private struct ReloadIntervalSetting: View {
 
 	@Default(.reloadInterval) private var reloadInterval
 	@FocusState private var isTextFieldFocused: Bool
-	@State private var isEnabled = Defaults[.reloadInterval] != nil
 
 	// TODO: Improve VoiceOver accessibility for this control.
 	var body: some View {
 		LabeledContent("Reload every") {
-			HStack { //swiftlint:disable:this accessibility_trait_for_button
+			HStack {
 				TextField(
 					"",
 					value: reloadIntervalInMinutes,
@@ -136,7 +135,7 @@ private struct ReloadIntervalSetting: View {
 					.labelsHidden()
 					.focused($isTextFieldFocused)
 					.frame(width: 40)
-					.disabled(!isEnabled)
+					.disabled(reloadInterval == nil)
 				Stepper(
 					"",
 					value: reloadIntervalInMinutes.didSet { _ in
@@ -147,23 +146,18 @@ private struct ReloadIntervalSetting: View {
 					step: 1
 				)
 					.labelsHidden()
-					.disabled(!isEnabled)
+					.disabled(reloadInterval == nil)
 				Text("minutes")
+					.textSelection(.disabled)
 			}
 				.contentShape(.rectangle)
-				.onTapGesture {
-					isEnabled = true
-				}
-			Toggle("Reload every", isOn: $isEnabled)
+			Toggle("Reload every", isOn: $reloadInterval.isNotNil(trueSetValue: Self.defaultReloadInterval))
 				.labelsHidden()
 				.controlSize(.mini)
 				.toggleStyle(.switch)
 		}
 			.accessibilityLabel("Reload interval in minutes")
 			.contentShape(.rectangle)
-			.onChange(of: isEnabled) {
-				reloadInterval = $0 ? Self.defaultReloadInterval : nil
-			}
 	}
 
 	private var reloadIntervalInMinutes: Binding<Double> {
@@ -236,8 +230,6 @@ private struct ClearWebsiteDataSetting: View {
 	}
 }
 
-struct SettingsScreen_Previews: PreviewProvider {
-	static var previews: some View {
-		SettingsScreen()
-	}
+#Preview {
+	SettingsScreen()
 }

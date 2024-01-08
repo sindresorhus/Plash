@@ -52,27 +52,19 @@ extension AppState {
 
 		menu.addSeparator()
 
-		menu.addLinkItem(
-			"Examples",
-			destination: "https://github.com/sindresorhus/Plash/issues/1"
-		)
+		menu.addLinkItem("Examples", destination: "https://github.com/sindresorhus/Plash/discussions/136")
 
-		menu.addLinkItem(
-			"Scripting",
-			destination: "https://github.com/sindresorhus/Plash#scripting"
-		)
+		menu.addLinkItem("Tips", destination: "https://github.com/sindresorhus/Plash#tips")
 
-		menu.addLinkItem(
-			"Website",
-			destination: "https://sindresorhus.com/plash"
-		)
+		menu.addLinkItem("FAQ", destination: "https://github.com/sindresorhus/Plash#faq")
+
+		menu.addLinkItem("Scripting", destination: "https://github.com/sindresorhus/Plash#scripting")
+
+		menu.addLinkItem("Website", destination: "https://sindresorhus.com/plash")
 
 		menu.addSeparator()
 
-		menu.addLinkItem(
-			"Rate on the App Store",
-			destination: "macappstore://apps.apple.com/app/id1494023538?action=write-review"
-		)
+		menu.addLinkItem("Rate App", destination: "macappstore://apps.apple.com/app/id1494023538?action=write-review")
 
 		menu.addMoreAppsItem()
 

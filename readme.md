@@ -31,7 +31,7 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 - **Build a custom website**\
 	You could build something quick and host it on [GitHub Pages](https://pages.github.com), [jsfiddle](https://jsfiddle.net), or [CodePen](https://codepen.io).
 
-[*Share your use-case*](https://github.com/sindresorhus/Plash/issues/1)
+[*Share your use-case*](https://github.com/sindresorhus/Plash/discussions/136)
 
 ## Features
 
@@ -60,13 +60,13 @@ Requires macOS 13 or later.
 
 **Older versions**
 
-- [Last macOS 12 compatible version](https://github.com/sindresorhus/Plash/releases/download/v2.12.1/Plash.2.12.1.-.macOS.12.zip) *(2.12.1)*
-- [Last macOS 11 compatible version](https://github.com/sindresorhus/Plash/releases/download/v2.10.1/Plash.2.10.1.-.macOS.11.zip) *(2.10.1)*
-- [Last macOS 10.15 compatible version](https://github.com/sindresorhus/Plash/releases/download/v2.1.0/Plash.2.1.1.-.macOS.10.15.zip) *(2.1.0)*
+- [2.12.1](https://github.com/sindresorhus/Plash/releases/download/v2.12.1/Plash.2.12.1.-.macOS.12.zip) for macOS 12+
+- [2.10.1](https://github.com/sindresorhus/Plash/releases/download/v2.10.1/Plash.2.10.1.-.macOS.11.zip) for macOS 11+
+- [2.1.0](https://github.com/sindresorhus/Plash/releases/download/v2.1.0/Plash.2.1.1.-.macOS.10.15.zip) for macOS 10.15+
 
 **Non-App Store version**
 
-A special version for users that cannot access the App Store. It won't receive updates.
+A special version for users that cannot access the App Store. It won't receive automatic updates. I will update it here once a year.
 
 [Download](https://dsc.cloud/sindresorhus/Plash-2.13.1-1675003980) *(2.13.1 · macOS 13+)*
 
@@ -246,7 +246,7 @@ macOS hides menu bar apps when there is no space left in the menu bar. This is a
 
 #### Can it automatically switch websites every 10 minutes?
 
-Plash can be automated with the built-in Shortcuts app, for example, using the “Switch to Next Website” action. Shortcuts on macOS 12 does not yet support automations, but for now, you can use the [Shortery app](https://apps.apple.com/app/id1594183810).
+Plash can be automated with the built-in Shortcuts app, for example, using the “Switch to Next Website” action. Shortcuts on macOS does not yet support automations, but for now, you can use the [Shortery app](https://apps.apple.com/app/id1594183810).
 
 #### Does it support multiple displays?
 

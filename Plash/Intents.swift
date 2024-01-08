@@ -1,4 +1,5 @@
 import AppIntents
+import AppKit
 
 struct AddWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
 	static let intentClassName = "AddWebsiteIntent"
@@ -26,11 +27,13 @@ Returns the added website.
 	}
 
 	func perform() async throws -> some IntentResult & ReturnsValue<WebsiteAppEntity> {
+		ensureRunning()
 		let website = WebsitesController.shared.add(url, title: title?.nilIfEmptyOrWhitespace).wrappedValue
 		return .result(value: .init(website))
 	}
 }
 
+// Typo in the name, but we cannot fix it as this point.
 struct RemoveWebsitesItent: AppIntent, CustomIntentMigratedAppIntent {
 	static let intentClassName = "RemoveWebsitesIntent"
 
@@ -46,6 +49,8 @@ struct RemoveWebsitesItent: AppIntent, CustomIntentMigratedAppIntent {
 	}
 
 	func perform() async throws -> some IntentResult {
+		ensureRunning()
+
 		for website in websites {
 			guard let website = website.toNative else {
 				continue
@@ -136,6 +141,8 @@ struct GetWebsitesIntent: AppIntent, CustomIntentMigratedAppIntent {
 	}
 
 	func perform() async throws -> some IntentResult & ReturnsValue<[WebsiteAppEntity]> {
+		ensureRunning()
+
 		var websites = WebsiteAppEntity.all
 
 		if
@@ -184,7 +191,8 @@ struct GetCurrentWebsiteItent: AppIntent, CustomIntentMigratedAppIntent {
 	static let description = IntentDescription("Returns the current website in Plash.")
 
 	func perform() async throws -> some IntentResult & ReturnsValue<WebsiteAppEntity?> {
-		.result(value: WebsitesController.shared.current.flatMap { .init($0) })
+		ensureRunning()
+		return .result(value: WebsitesController.shared.current.flatMap { .init($0) })
 	}
 }
 
@@ -203,6 +211,7 @@ struct SetCurrentWebsiteItent: AppIntent, CustomIntentMigratedAppIntent {
 	}
 
 	func perform() async throws -> some IntentResult {
+		ensureRunning()
 		WebsitesController.shared.current = website.toNative
 		return .result()
 	}
@@ -216,6 +225,7 @@ struct ReloadWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
 	static let description = IntentDescription("Reloads the current website in Plash.")
 
 	func perform() async throws -> some IntentResult {
+		ensureRunning()
 		await AppState.shared.reloadWebsite()
 		return .result()
 	}
@@ -229,6 +239,7 @@ struct NextWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
 	static let description = IntentDescription("Switches Plash to the next website in the list.")
 
 	func perform() async throws -> some IntentResult {
+		ensureRunning()
 		WebsitesController.shared.makeNextCurrent()
 		return .result()
 	}
@@ -242,6 +253,7 @@ struct PreviousWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
 	static let description = IntentDescription("Switches Plash to the previous website in the list.")
 
 	func perform() async throws -> some IntentResult {
+		ensureRunning()
 		WebsitesController.shared.makePreviousCurrent()
 		return .result()
 	}
@@ -255,6 +267,7 @@ struct RandomWebsiteIntent: AppIntent, CustomIntentMigratedAppIntent {
 	static let description = IntentDescription("Switches Plash to a random website in the list.")
 
 	func perform() async throws -> some IntentResult {
+		ensureRunning()
 		WebsitesController.shared.makeRandomCurrent()
 		return .result()
 	}
@@ -268,6 +281,7 @@ struct ToggleBrowsingModeIntent: AppIntent, CustomIntentMigratedAppIntent {
 	static let description = IntentDescription("Toggles “Browsing Mode” for Plash.")
 
 	func perform() async throws -> some IntentResult {
+		ensureRunning()
 		await AppState.shared.toggleBrowsingMode()
 		return .result()
 	}
@@ -281,7 +295,7 @@ enum FilterConditionAppEnum: String, AppEnum {
 	case urlEquals
 	case urlHostEquals
 
-	static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Filter Condition")
+	static let typeDisplayRepresentation: TypeDisplayRepresentation = "Filter Condition"
 
 	static let caseDisplayRepresentations: [Self: DisplayRepresentation] = [
 		.titleEquals: "title equals",
@@ -293,6 +307,7 @@ enum FilterConditionAppEnum: String, AppEnum {
 	]
 }
 
+// TODO: When targeting macOS 14, use `EnumerableEntityQuery` to simplify it?
 // Note: It's a class so we can use `NSPredicate`.
 //struct WebsiteAppEntity: AppEntity {
 final class WebsiteAppEntity: NSObject, AppEntity {
@@ -360,7 +375,7 @@ final class WebsiteAppEntity: NSObject, AppEntity {
 		}
 	}
 
-	static let typeDisplayRepresentation = TypeDisplayRepresentation(name: "Website")
+	static let typeDisplayRepresentation: TypeDisplayRepresentation = "Website"
 
 	static let defaultQuery = WebsiteAppEntityQuery()
 
@@ -406,5 +421,19 @@ final class WebsiteAppEntity: NSObject, AppEntity {
 extension WebsiteAppEntity {
 	var toNative: Website? {
 		WebsitesController.shared.all[id: id]
+	}
+}
+
+func ensureRunning() {
+	// It's `prohibited` if the app was not already launched.
+	// We activate it so that it will not quit right away if it was not already launched. (macOS 13.4)
+	// We don't use `static let openAppWhenRun = true` as it activates (and steals focus) even if the app is already launched.
+	// Note: Activate no longer works in macOS 14.
+	if NSApp.activationPolicy() == .prohibited {
+		if #available(macOS 14, *) {
+			SSApp.url.open()
+		} else {
+			SSApp.forceActivate()
+		}
 	}
 }

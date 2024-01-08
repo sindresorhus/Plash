@@ -1,14 +1,17 @@
 import SwiftUI
 
 /**
-Run JS on website intent: https://github.com/MarkEdit-app/MarkEdit/commit/b2a0d137fe71984b4321271cb96ecddc24017420#diff-f0ae980c6a38708855537662148a8c05f4c2e48b9f561b8c81ae7ba26497005eR35
-
 TODO macOS 14:
-- Use SwiftUI for the desktop window and the web view.
-- Use `MenuBarExtra`
-- Remove `Combine` and `Defaults.publisher` usage.
 - Focus filter support.
+- Set `!` as menu bar item text when there is an error.
+- handle loose `URL(string: $0)`
+
+TODO macOS 15:
+- Use SwiftUI for the desktop window and the web view.
+- Use `MenuBarExtra`.
+- Remove `Combine` and `Defaults.publisher` usage.
 - Use `EnvironmentValues#requestReview`.
+- Remove `ensureRunning()` from some intents that don't require Plash to stay open.
 */
 
 @main
@@ -43,7 +46,6 @@ struct AppMain: App {
 	}
 }
 
-@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
 	// Without this, Plash quits when the screen is locked. (macOS 13.2)
 	func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { false }
