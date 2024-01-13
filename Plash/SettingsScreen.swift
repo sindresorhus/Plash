@@ -43,6 +43,7 @@ private struct ShortcutsSettings: View {
 	var body: some View {
 		Form {
 			KeyboardShortcuts.Recorder("Toggle browsing mode", name: .toggleBrowsingMode)
+			KeyboardShortcuts.Recorder("Toggle enabled state", name: .toggleEnabled)
 			KeyboardShortcuts.Recorder("Reload website", name: .reload)
 			KeyboardShortcuts.Recorder("Next website", name: .nextWebsite)
 			KeyboardShortcuts.Recorder("Previous website", name: .previousWebsite)

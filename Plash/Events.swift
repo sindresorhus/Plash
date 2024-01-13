@@ -122,6 +122,10 @@ extension AppState {
 			Defaults[.isBrowsingMode].toggle()
 		}
 
+		KeyboardShortcuts.onKeyUp(for: .toggleEnabled) {
+			self.isManuallyDisabled.toggle()
+		}
+
 		KeyboardShortcuts.onKeyUp(for: .reload) { [self] in
 			reloadWebsite()
 		}
