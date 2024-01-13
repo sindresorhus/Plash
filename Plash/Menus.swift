@@ -168,8 +168,8 @@ extension AppState {
 
 		if isEnabled {
 			addWebsiteItems()
-		} else {
-			menu.addDisabled(isManuallyDisabled ? "Currently deactivated" : "Deactivated While on Battery")
+		} else if !isManuallyDisabled {
+			menu.addDisabled("Deactivated While on Battery")
 		}
 
 		menu.addSeparator()
