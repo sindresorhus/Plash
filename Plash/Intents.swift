@@ -87,13 +87,12 @@ struct SetEnabledStateIntent: AppIntent {
 
 	@MainActor
 	func perform() async throws -> some IntentResult {
-		Task {
-			if shouldToggle {
-				AppState.shared.isManuallyDisabled.toggle()
-			} else {
-				AppState.shared.isManuallyDisabled = !isEnabled
-			}
+		if shouldToggle {
+			AppState.shared.isManuallyDisabled.toggle()
+		} else {
+			AppState.shared.isManuallyDisabled = !isEnabled
 		}
+
 		return .result()
 	}
 }
@@ -101,16 +100,15 @@ struct SetEnabledStateIntent: AppIntent {
 struct GetEnabledStateIntent: AppIntent {
 	static let title: LocalizedStringResource = "Get Enabled State"
 
-	static let description = IntentDescription("Returns if Plash is currently enabled or not.")
+	static let description = IntentDescription("Returns whether Plash is currently enabled.")
 
 	static var parameterSummary: some ParameterSummary {
-		Summary("Get current state of Plash")
+		Summary("Get the current enabled state of Plash")
 	}
 
 	@MainActor
 	func perform() async throws -> some IntentResult & ReturnsValue<Bool> {
-		let isEnabled = AppState.shared.isEnabled
-		return .result(value: isEnabled)
+		.result(value: AppState.shared.isEnabled)
 	}
 }
 
