@@ -63,6 +63,55 @@ struct RemoveWebsitesItent: AppIntent, CustomIntentMigratedAppIntent {
 	}
 }
 
+struct SetEnabledStateIntent: AppIntent {
+	static let title: LocalizedStringResource = "Set Enabled State"
+
+	static let description = IntentDescription("Set the state of Plash.")
+
+	@Parameter(
+		title: "Action",
+		displayName: Bool.IntentDisplayName(true: "Toggle", false: "Turn")
+	)
+	var shouldToggle: Bool
+
+	@Parameter(title: "Is Enabled")
+	var isEnabled: Bool
+
+	static var parameterSummary: some ParameterSummary {
+		When(\.$shouldToggle, .equalTo, true) {
+			Summary("\(\.$shouldToggle) Plash")
+		} otherwise: {
+			Summary("\(\.$shouldToggle) Plash \(\.$isEnabled)")
+		}
+	}
+
+	@MainActor
+	func perform() async throws -> some IntentResult {
+		if shouldToggle {
+			AppState.shared.isManuallyDisabled.toggle()
+		} else {
+			AppState.shared.isManuallyDisabled = !isEnabled
+		}
+
+		return .result()
+	}
+}
+
+struct GetEnabledStateIntent: AppIntent {
+	static let title: LocalizedStringResource = "Get Enabled State"
+
+	static let description = IntentDescription("Returns whether Plash is currently enabled.")
+
+	static var parameterSummary: some ParameterSummary {
+		Summary("Get the current enabled state of Plash")
+	}
+
+	@MainActor
+	func perform() async throws -> some IntentResult & ReturnsValue<Bool> {
+		.result(value: AppState.shared.isEnabled)
+	}
+}
+
 @available(macOS, deprecated: 13, message: "Replaced by the “Find Website” action.")
 struct GetWebsitesIntent: AppIntent, CustomIntentMigratedAppIntent {
 	static let intentClassName = "GetWebsitesIntent"

@@ -158,9 +158,19 @@ extension AppState {
 	func updateMenu() {
 		menu.removeAllItems()
 
+		if (isEnabled || isManuallyDisabled) || (!Defaults[.deactivateOnBattery] && powerSourceWatcher?.powerSource.isUsingBattery == false) {
+			menu.addCallbackItem(
+				isManuallyDisabled ? "Enable" : "Disable"
+			) {
+				self.isManuallyDisabled.toggle()
+			}
+		}
+
+		menu.addSeparator()
+
 		if isEnabled {
 			addWebsiteItems()
-		} else {
+		} else if !isManuallyDisabled {
 			menu.addDisabled("Deactivated While on Battery")
 		}
 
