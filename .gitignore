@@ -1,5 +1,1 @@
-xcuserdata
-project.xcworkspace
-Carthage/Checkouts
-Carthage/Build
-Release
+xcuserdata/

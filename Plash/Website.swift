@@ -20,10 +20,12 @@ struct Website: Hashable, Codable, Identifiable, Sendable, Defaults.Serializable
 
 	var thumbnailCacheKey: String { url.isFileURL ? url.tildePath : (url.host ?? "") }
 
+	@MainActor
 	func makeCurrent() {
 		WebsitesController.shared.current = self
 	}
 
+	@MainActor
 	func remove() {
 		WebsitesController.shared.remove(self)
 	}

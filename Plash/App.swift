@@ -1,10 +1,9 @@
 import SwiftUI
 
 /**
-TODO macOS 15:
+TODO macOS 16:
 - Use `MenuBarExtra` and afterwards switch to `@Observable`.
 - Remove `Combine` and `Defaults.publisher` usage.
-- Use `EnvironmentValues#requestReview`.
 - Remove `ensureRunning()` from some intents that don't require Plash to stay open.
 - Focus filter support.
 - Use SwiftUI for the desktop window and the web view.
@@ -24,9 +23,10 @@ struct AppMain: App {
 			WebsitesScreen()
 				.environmentObject(appState)
 		}
-			.windowToolbarStyle(.unifiedCompact)
-			.windowResizability(.contentSize)
-			.defaultPosition(.center)
+		.windowToolbarStyle(.unifiedCompact)
+		.windowResizability(.contentSize)
+		.defaultPosition(.center)
+		.defaultLaunchBehavior(.suppressed)
 		Settings {
 			SettingsScreen()
 				.environmentObject(appState)
@@ -39,6 +39,9 @@ struct AppMain: App {
 		])
 
 		SSApp.initSentry("https://4ad446a4961b44ff8dc808a08379914e@o844094.ingest.sentry.io/6140750")
+		SSApp.setUpExternalEventListeners()
+		ProcessInfo.processInfo.disableAutomaticTermination("")
+		ProcessInfo.processInfo.disableSuddenTermination()
 	}
 }
 
@@ -49,10 +52,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 	func applicationWillFinishLaunching(_ notification: Notification) {
 		// It's important that this is here so it's registered in time.
 		AppState.shared.setUpURLCommands()
-	}
-
-	func applicationDidFinishLaunching(_ notification: Notification) {
-		Constants.websitesWindow?.close()
 	}
 
 	// This is only run when the app is started when it's already running.

@@ -54,12 +54,13 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 
 ## Download
 
-[![](https://tools.applemediaservices.com/api/badges/download-on-the-mac-app-store/black/en-us?size=250x83&releaseDate=1615852800)](https://apps.apple.com/app/id1494023538)
+[![](https://sindresorhus.com/assets/download-on-app-store-badge.svg)](https://apps.apple.com/app/id1494023538)
 
-Requires macOS 14 or later.
+Requires macOS 15 or later.
 
 **Older versions**
 
+- [2.15.0](https://github.com/user-attachments/files/18840646/Plash.2.15.0.-.macOS.14.zip) for macOS 14+
 - [2.14.1](https://github.com/sindresorhus/Plash/releases/download/v2.14.1/Plash.2.14.1.-.macOS.13.zip) for macOS 13+
 - [2.12.1](https://github.com/sindresorhus/Plash/releases/download/v2.12.1/Plash.2.12.1.-.macOS.12.zip) for macOS 12+
 - [2.10.1](https://github.com/sindresorhus/Plash/releases/download/v2.10.1/Plash.2.10.1.-.macOS.11.zip) for macOS 11+
@@ -69,7 +70,7 @@ Requires macOS 14 or later.
 
 A special version for users that cannot access the App Store. It won't receive automatic updates. I will update it here once a year.
 
-[Download](https://www.dropbox.com/scl/fi/lr55dpcqmwxz1hkn5big8/Plash-2.15.0-1705418289.zip?rlkey=smxibxghlw9c153i2kbzhoela&raw=1) *(2.15.0 · macOS 14+)*
+[Download](https://github.com/user-attachments/files/18840560/Plash.2.16.0.zip) *(2.16.0 · macOS 15+)*
 
 ## Tips
 
@@ -273,11 +274,13 @@ Make a shortcut in the Shortcuts app that uses the “Set Current Website” act
 
 #### Can I contribute localizations?
 
-I don't have any immediate plans to localize the app.
+I don't plan to localize the app.
 
 #### What does “Plash” mean?
 
 [Click here.](http://letmegooglethat.com/?q=define+plash)
+
+#### [More FAQs…](https://sindresorhus.com/apps/faq)
 
 ## Built with
 

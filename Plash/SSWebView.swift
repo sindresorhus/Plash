@@ -1,6 +1,5 @@
 import WebKit
 
-@MainActor
 final class SSWebView: WKWebView {
 	override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
 

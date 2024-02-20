@@ -1,6 +1,7 @@
 import SwiftUI
 
 struct WebsitesScreen: View {
+	@Environment(\.requestReview) private var requestReview
 	@Default(.websites) private var websites
 //	@State private var selection: Website.ID? // We need two states as selection must be independent from actually opening the editing because of keyboard navigation and accessibility.
 	@State private var editedWebsite: Website.ID?
@@ -15,10 +16,10 @@ struct WebsitesScreen: View {
 					selection: $editedWebsite
 				)
 			}
-				.id(websites) // Workaround for the row not updating when changing the current active website. It's placed here and not on the row to prevent another issue where adding a new website makes it scroll outside the view. (macOS 14.0)
-//				.onKeyboardShortcut(.defaultAction) {
-//					editedWebsite = selection
-//				}
+			.id(websites) // Workaround for the row not updating when changing the current active website. It's placed here and not on the row to prevent another issue where adding a new website makes it scroll outside the view. (macOS 15.3)
+//			.onKeyboardShortcut(.defaultAction) {
+//				editedWebsite = selection
+//			}
 			.onChange(of: websites) { oldWebsites, websites in
 				// Check that a website was added.
 				guard websites.count > oldWebsites.count else {
@@ -26,7 +27,7 @@ struct WebsitesScreen: View {
 				}
 
 				withAnimation {
-//							scrollViewProxy.scrollTo(bottomScrollID, anchor: .top)
+//					scrollViewProxy.scrollTo(bottomScrollID, anchor: .top)
 				}
 			}
 			.overlay {
@@ -35,40 +36,44 @@ struct WebsitesScreen: View {
 						.emptyStateTextStyle()
 				}
 			}
-			.accessibilityAction(named: Text("Add website")) {
+			.accessibilityAction(named: "Add website") {
 				isAddWebsiteDialogPresented = true
 			}
 		}
-			.formStyle(.grouped)
-			.frame(width: 480, height: 500)
-//			.onChange(of: editedWebsite) {
-//				selection = $0
-//			}
-			.sheet(item: $editedWebsite) {
-				AddWebsiteScreen(
-					isEditing: true,
-					website: $websites[id: $0]
-				)
-			}
-			.sheet(isPresented: $isAddWebsiteDialogPresented) {
-				AddWebsiteScreen(
-					isEditing: false,
-					website: nil
-				)
-			}
-			.onNotification(.showAddWebsiteDialog) { _ in
+		.formStyle(.grouped)
+		.frame(width: 480, height: 500)
+//		.onChange(of: editedWebsite) {
+//			selection = $0
+//		}
+		.sheet(item: $editedWebsite) {
+			AddWebsiteScreen(
+				isEditing: true,
+				website: $websites[id: $0]
+			)
+		}
+		.sheet(isPresented: $isAddWebsiteDialogPresented) {
+			AddWebsiteScreen(
+				isEditing: false,
+				website: nil
+			)
+		}
+		.onNotification(.showAddWebsiteDialog) { _ in
+			isAddWebsiteDialogPresented = true
+		}
+		.onNotification(.showEditWebsiteDialog) { _ in
+			editedWebsite = WebsitesController.shared.current?.id
+		}
+		.toolbar {
+			Button("Add Website", systemImage: "plus") {
 				isAddWebsiteDialogPresented = true
 			}
-			.onNotification(.showEditWebsiteDialog) { _ in
-				editedWebsite = WebsitesController.shared.current?.id
-			}
-			.toolbar {
-				Button("Add Website", systemImage: "plus") {
-					isAddWebsiteDialogPresented = true
-				}
-			}
-			.windowLevel(.floating)
-			.windowIsMinimizable(false)
+			.keyboardShortcut("+")
+		}
+		.onAppear {
+			SSApp.requestReviewAfterBeingCalledThisManyTimes([3, 50, 500], requestReview)
+		}
+		.windowMinimizeBehavior(.disabled)
+		.windowLevel(.floating)
 	}
 }
 
@@ -91,7 +96,7 @@ private struct RowView: View {
 			} icon: {
 				IconView(website: website)
 			}
-				.lineLimit(1)
+			.lineLimit(1)
 			Spacer()
 			if website.isCurrent {
 				Image(systemName: "checkmark.circle.fill")
@@ -99,46 +104,46 @@ private struct RowView: View {
 					.font(.title2)
 			}
 		}
-			.frame(height: 64) // Note: Setting a fixed height prevents a lot of SwiftUI rendering bugs.
-			.padding(.horizontal, 8)
-			.help(website.tooltip)
-			.swipeActions(edge: .leading, allowsFullSwipe: true) {
-				Button("Set as Current") {
-					website.makeCurrent()
-				}
-					.disabled(website.isCurrent)
+		.frame(height: 64) // Note: Setting a fixed height prevents a lot of SwiftUI rendering bugs.
+		.padding(.horizontal, 8)
+		.help(website.tooltip)
+		.swipeActions(edge: .leading, allowsFullSwipe: true) {
+			Button("Set as Current") {
+				website.makeCurrent()
 			}
-			.contentShape(.rect)
-			.onDoubleClick {
+			.disabled(website.isCurrent)
+		}
+		.contentShape(.rect)
+		.onDoubleClick {
+			selection = website.id
+		}
+		.contextMenu { // Must come after `.onDoubleClick`.
+			Button("Set as Current") {
+				website.makeCurrent()
+			}
+			.disabled(website.isCurrent)
+			Divider()
+			Button("Edit…") {
 				selection = website.id
 			}
-			.contextMenu { // Must come after `.onDoubleClick`.
-				Button("Set as Current") {
-					website.makeCurrent()
-				}
-					.disabled(website.isCurrent)
-				Divider()
-				Button("Edit…") {
-					selection = website.id
-				}
-				Divider()
-				Button("Delete", role: .destructive) {
-					website.remove()
-				}
+			Divider()
+			Button("Delete", role: .destructive) {
+				website.remove()
 			}
-			.accessibilityElement(children: .combine)
-			.accessibilityAddTraits(.isButton)
-			.if(website.isCurrent) {
-				$0.accessibilityAddTraits(.isSelected)
-			}
-			.accessibilityAction(named: "Edit") { // Doesn't show up in accessibility actions. (macOS 14.0)
+		}
+		.accessibilityElement(children: .combine)
+		.accessibilityAddTraits(.isButton)
+		.if(website.isCurrent) {
+			$0.accessibilityAddTraits(.isSelected)
+		}
+		.accessibilityAction(named: "Edit") { // Doesn't show up in accessibility actions. (macOS 14.0)
+			selection = website.id
+		}
+		.accessibilityRepresentation {
+			Button(website.menuTitle) {
 				selection = website.id
 			}
-			.accessibilityRepresentation {
-				Button(website.menuTitle) {
-					selection = website.id
-				}
-			}
+		}
 	}
 }
 
@@ -152,23 +157,22 @@ private struct IconView: View {
 			if let icon {
 				icon
 					.resizable()
-					.aspectRatio(contentMode: .fit)
+					.scaledToFit()
 			} else {
 				Color.primary.opacity(0.1)
 			}
 		}
-			.frame(width: 32, height: 32)
-			.clipShape(.rect(cornerRadius: 4))
-			.task(id: website.url) {
-				guard let image = await fetchIcons() else {
-					return
-				}
-
-				icon = Image(nsImage: image)
+		.frame(width: 32, height: 32)
+		.clipShape(.rect(cornerRadius: 4))
+		.task(id: website.url) {
+			guard let image = await fetchIcons() else {
+				return
 			}
+
+			icon = Image(nsImage: image)
+		}
 	}
 
-	@MainActor
 	private func fetchIcons() async -> NSImage? {
 		let cache = WebsitesController.shared.thumbnailCache
 

@@ -1,6 +1,6 @@
 import IOKit.ps
 import IOKit.pwr_mgt
-import WebKit
+@preconcurrency import WebKit
 import SwiftUI
 import Combine
 import Network
@@ -8,16 +8,20 @@ import SystemConfiguration
 import CryptoKit
 import StoreKit
 import UniformTypeIdentifiers
-import LinkPresentation
+@preconcurrency import LinkPresentation
 import Sentry
 import Defaults
+import os
 
 typealias Defaults = _Defaults
 typealias Default = _Default
 typealias AnyCancellable = Combine.AnyCancellable
 
 // TODO: Check if any of these can be removed when targeting macOS 15.
-extension NSImage: @unchecked Sendable {}
+extension NSImage: @retroactive @unchecked Sendable {}
+extension NSItemProvider: @retroactive @unchecked Sendable {}
+extension LPMetadataProvider: @retroactive @unchecked Sendable {}
+extension LPLinkMetadata: @retroactive @unchecked Sendable {}
 
 /**
 Convenience function for initializing an object and modifying its properties.
@@ -31,7 +35,7 @@ let label = with(NSTextField()) {
 ```
 */
 @discardableResult
-func with<T>(_ item: T, update: (inout T) throws -> Void) rethrows -> T {
+func with<T, E>(_ item: T, update: (inout T) throws(E) -> Void) throws(E) -> T {
 	var this = item
 	try update(&this)
 	return this
@@ -102,22 +106,22 @@ final class SSMenu: NSMenu, NSMenuDelegate {
 }
 
 
-public struct FatalReason: CustomStringConvertible {
-	public static let unreachable = Self("Should never be reached during execution.")
-	public static let notYetImplemented = Self("Not yet implemented.")
-	public static let subtypeMustOverride = Self("Must be overridden in subtype.")
-	public static let mustNotBeCalled = Self("Should never be called.")
+struct FatalReason: CustomStringConvertible {
+	static let unreachable = Self("Should never be reached during execution.")
+	static let notYetImplemented = Self("Not yet implemented.")
+	static let subtypeMustOverride = Self("Must be overridden in subtype.")
+	static let mustNotBeCalled = Self("Should never be called.")
 
-	public let reason: String
+	let reason: String
 
-	public init(_ reason: String) {
+	init(_ reason: String) {
 		self.reason = reason
 	}
 
-	public var description: String { reason }
+	var description: String { reason }
 }
 
-public func fatalError(
+func fatalError(
 	because reason: FatalReason,
 	function: StaticString = #function,
 	file: StaticString = #fileID,
@@ -391,6 +395,15 @@ extension NSMenu {
 }
 
 
+extension AnyCancellable {
+	private static var foreverStore = Set<AnyCancellable>()
+
+	func storeForever() {
+		store(in: &Self.foreverStore)
+	}
+}
+
+
 enum SSApp {
 	static let idString = Bundle.main.bundleIdentifier!
 	static let name = Bundle.main.object(forInfoDictionaryKey: kCFBundleNameKey as String) as! String
@@ -416,17 +429,17 @@ enum SSApp {
 		return true
 	}()
 
-	static func openSendFeedbackPage() {
-		let metadata =
-			"""
-			\(name) \(versionWithBuild) - \(idString)
-			macOS \(Device.osVersion)
-			\(Device.hardwareModel)
-			"""
+	static let debugInfo =
+		"""
+		\(name) \(versionWithBuild) - \(idString)
+		macOS \(Device.osVersion)
+		\(Device.hardwareModel)
+		"""
 
+	static func openSendFeedbackPage() {
 		let query: [String: String] = [
 			"product": name,
-			"metadata": metadata
+			"metadata": debugInfo
 		]
 
 		URL("https://sindresorhus.com/feedback")
@@ -458,8 +471,8 @@ extension SSApp {
 	static func showSettingsWindow() {
 		// Run in the next runloop so it doesn't conflict with SwiftUI if run at startup.
 		DispatchQueue.main.async {
-			activateIfAccessory()
-			NSApp.mainMenu?.items.first?.submenu?.item(withTitle: "Settings…")?.performAction()
+			SSApp.activateIfAccessory()
+			EnvironmentValues().openSettings()
 		}
 	}
 }
@@ -477,6 +490,36 @@ extension SSApp {
 			$0.enableAppHangTracking = false // https://github.com/getsentry/sentry-cocoa/issues/2643
 		}
 		#endif
+	}
+}
+
+
+extension SSApp {
+	static func setUpExternalEventListeners() {
+		DistributedNotificationCenter.default.publisher(for: .init("\(SSApp.idString):showSettings"))
+			.sink { _ in
+				DispatchQueue.main.async {
+					SSApp.showSettingsWindow()
+				}
+			}
+			.storeForever()
+
+		DistributedNotificationCenter.default.publisher(for: .init("\(SSApp.idString):openSendFeedback"))
+			.sink { _ in
+				DispatchQueue.main.async {
+					SSApp.openSendFeedbackPage()
+				}
+			}
+			.storeForever()
+
+		DistributedNotificationCenter.default.publisher(for: .init("\(SSApp.idString):copyDebugInfo"))
+			.sink { _ in
+				DispatchQueue.main.async {
+					NSPasteboard.general.prepareForNewContents()
+					NSPasteboard.general.setString(SSApp.debugInfo, forType: .string)
+				}
+			}
+			.storeForever()
 	}
 }
 
@@ -504,16 +547,16 @@ extension URL {
 extension String {
 	/*
 	```
-	"https://sindresorhus.com".openUrl()
+	"https://sindresorhus.com".openURL()
 	```
 	*/
-	func openUrl() {
+	func openURL() {
 		URL(string: self)?.open()
 	}
 }
 
 
-extension URL: ExpressibleByStringLiteral {
+extension URL: @retroactive ExpressibleByStringLiteral {
 	/**
 	Example:
 
@@ -611,8 +654,7 @@ extension Sequence {
 
 extension Dictionary {
 	func compactValues<T>() -> [Key: T] where Value == T? {
-		// TODO: Make this `compactMapValues(\.self)` when https://github.com/apple/swift/issues/55343 is fixed.
-		compactMapValues { $0 }
+		compactMapValues(\.self)
 	}
 }
 
@@ -1207,7 +1249,6 @@ extension NSAlert {
 	/**
 	Show an async alert sheet on a window.
 	*/
-	@MainActor
 	@discardableResult
 	static func show(
 		in window: NSWindow? = nil,
@@ -1251,7 +1292,7 @@ extension NSAlert {
 			buttonTitles: buttonTitles,
 			defaultButtonIndex: defaultButtonIndex
 		)
-			.runModal(for: window)
+		.runModal(for: window)
 	}
 
 	/**
@@ -1330,7 +1371,6 @@ extension NSAlert {
 
 	[FB9857161](https://github.com/feedback-assistant/reports/issues/288)
 	*/
-	@MainActor
 	@discardableResult
 	func run() async -> NSApplication.ModalResponse {
 		await withCheckedContinuation { continuation in
@@ -1378,8 +1418,8 @@ extension NSEvent {
 
 
 extension WKWebView {
-	static let safariUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.2 Safari/605.1.15"
-	static let chromeUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/109.0.0.0 Safari/537.36"
+	static let safariUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.3 Safari/605.1.15"
+	static let chromeUserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
 
 	/**
 	Evaluate JavaScript synchronously.
@@ -1461,7 +1501,6 @@ extension WKWebView {
 	/**
 	Default handler for JavaScript `alert()` to be used in `WKDelegate`.
 	*/
-	@MainActor
 	func defaultAlertHandler(message: String) async {
 		let alert = NSAlert()
 		alert.messageText = message
@@ -1471,7 +1510,6 @@ extension WKWebView {
 	/**
 	Default handler for JavaScript `confirm()` to be used in `WKDelegate`.
 	*/
-	@MainActor
 	func defaultConfirmHandler(message: String) async -> Bool {
 		let alert = NSAlert()
 		alert.alertStyle = .informational
@@ -1484,7 +1522,6 @@ extension WKWebView {
 	/**
 	Default handler for JavaScript `prompt()` to be used in `WKDelegate`.
 	*/
-	@MainActor
 	func defaultPromptHandler(prompt: String, defaultText: String?) async -> String? {
 		let alert = NSAlert()
 		alert.alertStyle = .informational
@@ -1502,7 +1539,6 @@ extension WKWebView {
 	/**
 	Default handler for JavaScript initiated upload panel to be used in `WKDelegate`.
 	*/
-	@MainActor
 	func defaultUploadPanelHandler(parameters: WKOpenPanelParameters) async -> [URL]? { // swiftlint:disable:this discouraged_optional_collection
 		let openPanel = NSOpenPanel()
 		openPanel.identifier = .init("WKWebView_defaultUploadPanelHandler")
@@ -1520,7 +1556,6 @@ extension WKWebView {
 	/**
 	Default handler for websites requiring basic authentication. To be used in `WKDelegate`.
 	*/
-	@MainActor
 	func defaultAuthChallengeHandler(
 		challenge: URLAuthenticationChallenge,
 		allowSelfSignedCertificate: Bool = false
@@ -1603,7 +1638,7 @@ extension URL {
 }
 
 extension WKWebView {
-	static func createCSSInjectScript(_ css: String) -> String {
+	static nonisolated func createCSSInjectScript(_ css: String) -> String {
 		let textContent = css.addingPercentEncoding(withAllowedCharacters: .letters) ?? css
 
 		return
@@ -1954,7 +1989,7 @@ extension UUID {
 }
 
 
-extension NSScreen: Identifiable {
+extension NSScreen: @retroactive Identifiable {
 	public var id: CGDirectDisplayID {
 		deviceDescription[NSDeviceDescriptionKey("NSScreenNumber")] as! CGDirectDisplayID
 	}
@@ -2003,13 +2038,12 @@ extension NSScreen {
 
 	This includes screens being added/removed, resolution change, and the screen frame changing (dock and menu bar being toggled).
 	*/
-	static var publisher: AnyPublisher<Void, Never> {
+	static var publisher: some Publisher<Void, Never> {
 		Publishers.Merge(
 			SSEvents.screenParametersDidChange,
 			// We use a wake up notification as the screen setup might have changed during sleep. For example, a screen could have been unplugged.
 			SSEvents.deviceDidWake
 		)
-			.eraseToAnyPublisher()
 	}
 
 	/**
@@ -2558,29 +2592,6 @@ extension Collection {
 }
 
 
-extension NSColor {
-	static let systemColors: Set<NSColor> = [
-		.systemBlue,
-		.systemBrown,
-		.systemGray,
-		.systemGreen,
-		.systemIndigo,
-		.systemOrange,
-		.systemPink,
-		.systemPurple,
-		.systemRed,
-		.systemTeal,
-		.systemYellow
-	]
-
-	private static let uniqueRandomSystemColors = systemColors.infiniteUniformRandomSequence().makeIterator()
-
-	static func uniqueRandomSystemColor() -> NSColor {
-		uniqueRandomSystemColors.next()!
-	}
-}
-
-
 extension Timer {
 	/**
 	Creates a repeating timer that runs for the given `duration`.
@@ -2603,33 +2614,6 @@ extension Timer {
 
 			onRepeat?(timer)
 		}
-	}
-}
-
-
-extension NSStatusBarButton {
-	/**
-	Quickly cycles through random colors to make a rainbow animation so the user will notice it.
-
-	- Note: It will do nothing if the user has enabled the “Reduce motion” accessibility settings.
-	*/
-	func playRainbowAnimation(for duration: Duration = .seconds(5)) {
-		guard !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
-			return
-		}
-
-		let originalTintColor = contentTintColor
-
-		Timer.scheduledRepeatingTimer(
-			withTimeInterval: .seconds(0.1),
-			totalDuration: duration,
-			onRepeat: { [weak self] _ in
-				self?.contentTintColor = .uniqueRandomSystemColor()
-			},
-			onFinish: { [weak self] in
-				self?.contentTintColor = originalTintColor
-			}
-		)
 	}
 }
 
@@ -2730,7 +2714,7 @@ extension URL {
 
 	- Important: Don't do anything async in the `accessor` as the resource access is only available synchronously in the `accessor` scope.
 	*/
-	func accessSecurityScopedResource<Value>(_ accessor: (URL) throws -> Value) rethrows -> Value {
+	func accessSecurityScopedResource<Value, E>(_ accessor: (URL) throws(E) -> Value) throws(E) -> Value {
 		let didStartAccessing = startAccessingSecurityScopedResource()
 
 		defer {
@@ -3003,7 +2987,10 @@ extension URL {
 		}
 
 		// Remove port 80 if it's there as it's the default.
-		if removeDefaultPort, components.port == 80 {
+		if
+			removeDefaultPort,
+			components.port == 80
+		{
 			components.port = nil
 		}
 
@@ -3078,40 +3065,6 @@ extension URL {
 }
 
 
-enum Reachability {
-	/**
-	Checks whether we're currently online.
-	*/
-	static func isOnline(host: String = "apple.com") -> Bool {
-		guard let ref = SCNetworkReachabilityCreateWithName(nil, host) else {
-			return false
-		}
-
-		var flags = SCNetworkReachabilityFlags.connectionAutomatic
-		if !SCNetworkReachabilityGetFlags(ref, &flags) {
-			return false
-		}
-
-		return flags.contains(.reachable) && !flags.contains(.connectionRequired)
-	}
-
-	/**
-	Checks multiple sources of whether we're currently online.
-	*/
-	static func isOnlineExtensive() -> Bool {
-		let hosts = [
-			"apple.com",
-			"google.com",
-			"cloudflare.com",
-			"baidu.com",
-			"yandex.ru"
-		]
-
-		return hosts.contains { isOnline(host: $0) }
-	}
-}
-
-
 extension NSError {
 	/**
 	Use this for generic app errors.
@@ -3150,9 +3103,6 @@ final class AutofocusedTextField: NSTextField {
 		window?.makeFirstResponder(self)
 	}
 }
-
-
-
 
 
 extension NSResponder {
@@ -3677,12 +3627,11 @@ extension View {
 		isPresented: Binding<Bool>,
 		@ViewBuilder actions: () -> some View
 	) -> some View {
-		// swiftlint:disable:next trailing_closure
 		alert2(
 			title,
 			isPresented: isPresented,
 			actions: actions,
-			message: {
+			message: { // swiftlint:disable:this trailing_closure
 				if let message {
 					Text(message)
 				}
@@ -3700,12 +3649,11 @@ extension View {
 		isPresented: Binding<Bool>,
 		@ViewBuilder actions: () -> some View
 	) -> some View {
-		// swiftlint:disable:next trailing_closure
 		alert2(
 			title,
 			isPresented: isPresented,
 			actions: actions,
-			message: {
+			message: { // swiftlint:disable:this trailing_closure
 				if let message {
 					Text(message)
 				}
@@ -3721,12 +3669,11 @@ extension View {
 		message: String? = nil,
 		isPresented: Binding<Bool>
 	) -> some View {
-		// swiftlint:disable:next trailing_closure
 		alert2(
 			title,
 			message: message,
 			isPresented: isPresented,
-			actions: {}
+			actions: {} // swiftlint:disable:this trailing_closure
 		)
 	}
 
@@ -3739,12 +3686,11 @@ extension View {
 		message: String? = nil,
 		isPresented: Binding<Bool>
 	) -> some View {
-		// swiftlint:disable:next trailing_closure
 		alert2(
 			title,
 			message: message,
 			isPresented: isPresented,
-			actions: {}
+			actions: {} // swiftlint:disable:this trailing_closure
 		)
 	}
 }
@@ -3784,13 +3730,12 @@ extension View {
 		titleVisibility: Visibility = .automatic,
 		@ViewBuilder actions: () -> some View
 	) -> some View {
-		// swiftlint:disable:next trailing_closure
 		confirmationDialog2(
 			title,
 			isPresented: isPresented,
 			titleVisibility: titleVisibility,
 			actions: actions,
-			message: {
+			message: { // swiftlint:disable:this trailing_closure
 				if let message {
 					Text(message)
 				}
@@ -3817,7 +3762,6 @@ extension View {
 		)
 	}
 }
-
 
 
 extension View {
@@ -4090,7 +4034,7 @@ The cache is thread-safe.
 You can optionally persist the cache to disk. Reading from the cache is synchronous. Saving to the cache happens asynchronously in a background thread.
 */
 final class SimpleImageCache<Key: SimpleImageCacheKeyable> {
-	private let lock = NSLock()
+	private let lock = OSAllocatedUnfairLock()
 	private let diskQueue = DispatchQueue(label: "SimpleImageCache")
 	private let cache = Cache<Key, NSImage>()
 	private var cacheDirectory: URL?
@@ -4540,9 +4484,9 @@ extension OperatingSystem {
 	/**
 	- Note: Only use this when you cannot use an `if #available` check. For example, inline in function calls.
 	*/
-	static let isMacOS16OrLater: Bool = {
+	static let isMacOS17OrLater: Bool = {
 		#if os(macOS)
-		if #available(macOS 16, *) {
+		if #available(macOS 17, *) {
 			return true
 		}
 
@@ -4555,9 +4499,9 @@ extension OperatingSystem {
 	/**
 	- Note: Only use this when you cannot use an `if #available` check. For example, inline in function calls.
 	*/
-	static let isMacOS15OrLater: Bool = {
+	static let isMacOS16OrLater: Bool = {
 		#if os(macOS)
-		if #available(macOS 15, *) {
+		if #available(macOS 16, *) {
 			return true
 		}
 
@@ -4601,16 +4545,16 @@ struct InfoPopoverButton<Content: View>: View {
 		CocoaButton("", bezelStyle: .helpButton) {
 			isPopoverPresented = true
 		}
-			.popover(isPresented: $isPopoverPresented) {
-				content
-					.controlSize(.regular) // Setting control size on the button should not affect the content.
-					.padding()
-					.multilineText()
-					.ifLet(maxWidth) {
-						// TODO: `maxWidth` doesn't work. Causes the popover to me infinite height. (macOS 11.2.3)
-						$0.frame(width: $1)
-					}
-			}
+		.popover(isPresented: $isPopoverPresented) {
+			content
+				.controlSize(.regular) // Setting control size on the button should not affect the content.
+				.padding()
+				.multilineText()
+				.ifLet(maxWidth) {
+					// TODO: `maxWidth` doesn't work. Causes the popover to me infinite height. (macOS 11.2.3)
+					$0.frame(width: $1)
+				}
+		}
 	}
 }
 
@@ -4670,13 +4614,13 @@ final class WebsiteIconFetcher: NSObject {
 			self.url = url
 
 			// TODO: Handle there being multiple space-separated sizes.
-			if
+			self.size = if
 				let sizeString = dictionary["sizes"]?.split(separator: " ").first,
 				let size = CGSize.from(dimensions: String(sizeString))
 			{
-				self.size = size
+				size
 			} else {
-				self.size = nil
+				nil
 			}
 		}
 	}
@@ -4947,7 +4891,11 @@ extension SSApp {
 	/**
 	Requests a review only after this method has been called the given amount of times.
 	*/
-	static func requestReviewAfterBeingCalledThisManyTimes(_ counts: [Int]) {
+	@MainActor
+	static func requestReviewAfterBeingCalledThisManyTimes(
+		_ counts: [Int],
+		_ requestReview: RequestReviewAction
+	) {
 		guard
 			!isFirstLaunch,
 			counts.contains(Defaults[key].increment())
@@ -4955,7 +4903,7 @@ extension SSApp {
 			return
 		}
 
-		SKStoreReviewController.requestReview()
+		requestReview()
 	}
 }
 
@@ -5007,7 +4955,7 @@ extension DecodableDefault {
 		}
 
 		enum EmptyString: Source {
-			static var defaultValue = ""
+			static let defaultValue = ""
 		}
 
 		enum EmptyList<T: List>: Source {
@@ -5023,7 +4971,7 @@ extension DecodableDefault {
 		}
 
 		enum One: Source {
-			static var defaultValue = 1
+			static let defaultValue = 1
 		}
 	}
 }
@@ -5042,6 +4990,7 @@ extension DecodableDefault {
 
 extension DecodableDefault.Wrapper: Equatable where Value: Equatable {}
 extension DecodableDefault.Wrapper: Hashable where Value: Hashable {}
+extension DecodableDefault.Wrapper: Sendable where Value: Sendable {}
 
 extension DecodableDefault.Wrapper: Identifiable where Value: Identifiable {
 	var id: Value.ID { wrappedValue.id }
@@ -5250,12 +5199,6 @@ extension View {
 			$0?.level = level
 		}
 	}
-
-	func windowIsMinimizable(_ isMinimizable: Bool = true) -> some View {
-		accessHostingWindow {
-			$0?.styleMask.toggleExistence(.miniaturizable, shouldExist: isMinimizable)
-		}
-	}
 }
 
 
@@ -5303,27 +5246,30 @@ enum SSEvents {
 	/**
 	Publishes when the machine wakes from sleep.
 	*/
-	static let deviceDidWake = NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)
-		.map { _ in }
-		.eraseToAnyPublisher()
+	static var deviceDidWake: some Publisher<Void, Never> {
+		NSWorkspace.shared.notificationCenter.publisher(for: NSWorkspace.didWakeNotification)
+			.map { _ in }
+	}
 
 	/**
 	Publishes when the configuration of the displays attached to the computer is changed.
 
 	The configuration change can be made either programmatically or when the user changes settings in the Displays control panel.
 	*/
-	static let screenParametersDidChange = NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
-		.map { _ in }
-		.eraseToAnyPublisher()
+	static var screenParametersDidChange: some Publisher<Void, Never> {
+		NotificationCenter.default.publisher(for: NSApplication.didChangeScreenParametersNotification)
+			.map { _ in }
+	}
 
 	/**
 	Publishes when the screen becomes locked/unlocked.
 	*/
-	static let isScreenLocked = Publishers.Merge(
-		DistributedNotificationCenter.default().publisher(for: .screenIsLocked).map { _ in true },
-		DistributedNotificationCenter.default().publisher(for: .screenIsUnlocked).map { _ in false }
-	)
-		.eraseToAnyPublisher()
+	static var isScreenLocked: some Publisher<Bool, Never> {
+		Publishers.Merge(
+			DistributedNotificationCenter.default().publisher(for: .screenIsLocked).map { _ in true },
+			DistributedNotificationCenter.default().publisher(for: .screenIsUnlocked).map { _ in false }
+		)
+	}
 }
 
 
@@ -5417,7 +5363,7 @@ extension SSEvents {
 
 	- Important: You must set up the listener before the app finishes launching. Ideally, in the app controller's initializer.
 	*/
-	static let appOpenURL: AnyPublisher<URLComponents, Never> = AppOpenURLPublisher().eraseToAnyPublisher()
+	static let appOpenURL: some Publisher<URLComponents, Never> = AppOpenURLPublisher()
 }
 
 
@@ -5506,7 +5452,7 @@ struct EnumPicker<Enum, Label, Content>: View where Enum: CaseIterable & Equatab
 	@ViewBuilder let label: () -> Label
 
 	var body: some View {
-		Picker(selection: selection.caseIndex) { // swiftlint:disable:this multiline_arguments
+		Picker(selection: selection.caseIndex) {
 			ForEach(Array(Enum.allCases).indexed(), id: \.0) { index, element in
 				content(element)
 					.tag(index)
@@ -5585,10 +5531,10 @@ struct HideableInfoBox: View {
 					.multilineTextAlignment(.leading)
 					.foregroundStyle(.secondary)
 			}
-				.padding(.vertical, 6)
-				.padding(.horizontal, 8)
-				.backgroundColor(.primary.opacity(0.05))
-				.clipShape(.rect(cornerRadius: 8))
+			.padding(.vertical, 6)
+			.padding(.horizontal, 8)
+			.backgroundColor(.primary.opacity(0.05))
+			.clipShape(.rect(cornerRadius: 8))
 		}
 	}
 }
@@ -5694,7 +5640,7 @@ extension Duration {
 }
 
 
-extension UUID: Identifiable {
+extension UUID: @retroactive Identifiable {
 	public var id: Self { self }
 }
 

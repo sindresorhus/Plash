@@ -1,8 +1,7 @@
 import Cocoa
-import Combine
+@preconcurrency import Combine
 import WebKit
 
-@MainActor
 final class WebViewController: NSViewController {
 	private var popupWindow: NSWindow?
 	private let didLoadSubject = PassthroughSubject<Void, Error>()

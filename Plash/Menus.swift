@@ -125,17 +125,17 @@ extension AppState {
 			menu.addCallbackItem("Next") {
 				WebsitesController.shared.makeNextCurrent()
 			}
-				.setShortcut(for: .nextWebsite)
+			.setShortcut(for: .nextWebsite)
 
 			menu.addCallbackItem("Previous") {
 				WebsitesController.shared.makePreviousCurrent()
 			}
-				.setShortcut(for: .previousWebsite)
+			.setShortcut(for: .previousWebsite)
 
 			menu.addCallbackItem("Random") {
 				WebsitesController.shared.makeRandomCurrent()
 			}
-				.setShortcut(for: .randomWebsite)
+			.setShortcut(for: .randomWebsite)
 
 			menu.addItem("Switch")
 				.withSubmenu(createSwitchMenu())

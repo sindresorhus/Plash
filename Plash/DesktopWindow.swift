@@ -1,6 +1,5 @@
 import Cocoa
 
-@MainActor
 final class DesktopWindow: NSWindow {
 	override var canBecomeMain: Bool { isInteractive }
 	override var canBecomeKey: Bool { isInteractive }

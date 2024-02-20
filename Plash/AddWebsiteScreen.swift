@@ -53,64 +53,67 @@ struct AddWebsiteScreen: View {
 				editingView
 			}
 		}
-			.formStyle(.grouped)
-			.frame(width: 500)
-			.fixedSize()
-			.bindHostingWindow($hostingWindow)
-			// Note: Current only works when a text field is focused. (macOS 11.3)
-			.onExitCommand {
-				guard isEditing, hasChanges else {
-					dismiss()
-					return
-				}
+		.formStyle(.grouped)
+		.frame(width: 500)
+		.fixedSize()
+		.bindHostingWindow($hostingWindow)
+		// Note: Current only works when a text field is focused. (macOS 11.3)
+		.onExitCommand {
+			guard
+				isEditing,
+				hasChanges
+			else {
+				dismiss()
+				return
+			}
 
-				isApplyConfirmationPresented = true
+			isApplyConfirmationPresented = true
+		}
+		.onSubmit {
+			submit()
+		}
+		.confirmationDialog2(
+			"Keep changes?",
+			isPresented: $isApplyConfirmationPresented
+		) {
+			Button("Keep") {
+				dismiss()
 			}
-			.onSubmit {
-				submit()
+			Button("Don't Keep", role: .destructive) {
+				revert()
+				dismiss()
 			}
-			.confirmationDialog2(
-				"Keep changes?",
-				isPresented: $isApplyConfirmationPresented
-			) {
-				Button("Keep") {
-					dismiss()
-				}
-				Button("Don't Keep", role: .destructive) {
-					revert()
-					dismiss()
-				}
-				Button("Cancel", role: .cancel) {}
-			}
-			.toolbar {
-				if isEditing {
-					ToolbarItem {
-						Button("Revert") {
-							revert()
-						}
-							.disabled(!hasChanges)
+			Button("Cancel", role: .cancel) {}
+		}
+		.toolbar {
+			if isEditing {
+				ToolbarItem {
+					Button("Revert") {
+						revert()
 					}
-				} else {
-					ToolbarItem(placement: .cancellationAction) {
-						Button("Cancel") {
-							dismiss()
-						}
-					}
+					.disabled(!hasChanges)
 				}
-				ToolbarItem(placement: .confirmationAction) {
-					Button(isEditing ? "Done" : "Add") {
-						submit()
+			} else {
+				ToolbarItem(placement: .cancellationAction) {
+					Button("Cancel") {
+						dismiss()
 					}
-						.disabled(!isURLValid)
 				}
 			}
-			.task {
-				guard isEditing else {
-					return
+			ToolbarItem(placement: .confirmationAction) {
+				Button(isEditing ? "Done" : "Add") {
+					submit()
 				}
+				.disabled(!isURLValid)
+			}
+		}
+		.task {
+			guard isEditing else {
+				return
+			}
 
-				website.wrappedValue.makeCurrent()
-			}
+			website.wrappedValue.makeCurrent()
+		}
 	}
 
 	private var firstLaunchView: some View {
@@ -121,7 +124,7 @@ struct AddWebsiteScreen: View {
 					Button("show the time.") {
 						urlString = "https://time.pablopunk.com/?seconds&fg=white&bg=transparent"
 					}
-						.buttonStyle(.link)
+					.buttonStyle(.link)
 				}
 				Spacer()
 				Link("More ideas", destination: "https://github.com/sindresorhus/Plash/discussions/136")
@@ -194,7 +197,7 @@ struct AddWebsiteScreen: View {
 					urlString = url.absoluteString
 				}
 			}
-				.controlSize(.small)
+			.controlSize(.small)
 		}
 	}
 
@@ -204,7 +207,7 @@ struct AddWebsiteScreen: View {
 			EnumPicker("Invert colors", selection: website.invertColors2) {
 				Text($0.title)
 			}
-				.help("Creates a fake dark mode for websites without a native dark mode by inverting all the colors on the website.")
+			.help("Creates a fake dark mode for websites without a native dark mode by inverting all the colors on the website.")
 			Toggle("Use print styles", isOn: website.usePrintStyles)
 				.help("Forces the website to use its print styles (“@media print”) if any. Some websites have a simpler presentation for printing, for example, Google Calendar.")
 			let cssHelpText = "This lets you modify the website with CSS. You could, for example, change some colors or hide some unnecessary elements."
@@ -223,11 +226,11 @@ struct AddWebsiteScreen: View {
 					isAutomaticTextReplacementEnabled: false,
 					isAutomaticSpellingCorrectionEnabled: false
 				)
-					.frame(height: 70)
+				.frame(height: 70)
 			}
-				.accessibilityElement(children: .combine)
-				.accessibilityLabel("CSS")
-				.accessibilityHint(Text(cssHelpText))
+			.accessibilityElement(children: .combine)
+			.accessibilityLabel("CSS")
+			.accessibilityHint(Text(cssHelpText))
 			let javaScriptHelpText = "This lets you modify the website with JavaScript. Prefer using CSS instead whenever possible. You can use “await” at the top-level."
 			VStack(alignment: .leading) {
 				HStack {
@@ -244,14 +247,14 @@ struct AddWebsiteScreen: View {
 					isAutomaticTextReplacementEnabled: false,
 					isAutomaticSpellingCorrectionEnabled: false
 				)
-					.frame(height: 70)
+				.frame(height: 70)
 			}
-				.accessibilityElement(children: .combine)
-				.accessibilityLabel("JavaScript")
-				.accessibilityHint(Text(javaScriptHelpText))
-			Section("Advanced") {
-				Toggle("Allow self-signed certificate", isOn: website.allowSelfSignedCertificate)
-			}
+			.accessibilityElement(children: .combine)
+			.accessibilityLabel("JavaScript")
+			.accessibilityHint(Text(javaScriptHelpText))
+		}
+		Section("Advanced") {
+			Toggle("Allow self-signed certificate", isOn: website.allowSelfSignedCertificate)
 		}
 	}
 
@@ -283,13 +286,12 @@ struct AddWebsiteScreen: View {
 			// TODO: Find a better way to inform the user about this.
 			Task {
 				await NSAlert.show(
-					title: "Click a website in the list to edit it, toggle dark mode, add custom CSS/JavaScript, and more."
+					title: "Double-click a website in the list to edit it, toggle dark mode, add custom CSS/JavaScript, and more."
 				)
 			}
 		}
 	}
 
-	@MainActor
 	private func chooseLocalWebsite() async -> URL? {
 //		guard let hostingWindow else {
 //			return nil
@@ -315,7 +317,7 @@ struct AddWebsiteScreen: View {
 			panel.directoryURL = url
 		}
 
-		// TODO: Make it a sheet instead when targeting the macOS bug is fixed. (macOS 14.2)
+		// TODO: Make it a sheet instead when targeting the macOS bug is fixed. (macOS 15.3)
 //		let result = await panel.beginSheet(hostingWindow)
 		let result = await panel.begin()
 
@@ -341,7 +343,6 @@ struct AddWebsiteScreen: View {
 		return url
 	}
 
-	@MainActor
 	private func fetchTitle() async {
 		// Ensure we don't erase a user's existing title.
 		if

@@ -25,6 +25,7 @@ struct AddWebsiteIntent: AppIntent {
 		}
 	}
 
+	@MainActor
 	func perform() async throws -> some IntentResult & ReturnsValue<WebsiteAppEntity> {
 		ensureRunning()
 		let website = WebsitesController.shared.add(url, title: title?.nilIfEmptyOrWhitespace).wrappedValue
@@ -44,6 +45,7 @@ struct RemoveWebsitesIntent: AppIntent {
 		Summary("Remove websites \(\.$websites)")
 	}
 
+	@MainActor
 	func perform() async throws -> some IntentResult {
 		ensureRunning()
 
@@ -66,7 +68,7 @@ struct SetEnabledStateIntent: AppIntent {
 
 	@Parameter(
 		title: "Action",
-		displayName: Bool.IntentDisplayName(true: "Toggle", false: "Turn")
+		displayName: .init(true: "Toggle", false: "Turn")
 	)
 	var shouldToggle: Bool
 
@@ -121,6 +123,7 @@ struct GetCurrentWebsiteIntent: AppIntent {
 		resultValueName: "Current Website"
 	)
 
+	@MainActor
 	func perform() async throws -> some IntentResult & ReturnsValue<WebsiteAppEntity?> {
 		ensureRunning()
 		return .result(value: WebsitesController.shared.current.flatMap { .init($0) })
@@ -139,6 +142,7 @@ struct SetCurrentWebsiteIntent: AppIntent {
 		Summary("Set current website to \(\.$website)")
 	}
 
+	@MainActor
 	func perform() async throws -> some IntentResult {
 		ensureRunning()
 		WebsitesController.shared.current = website.toNative
@@ -250,6 +254,7 @@ struct WebsiteAppEntity: AppEntity {
 }
 
 extension WebsiteAppEntity {
+	@MainActor
 	var toNative: Website? {
 		WebsitesController.shared.all[id: id]
 	}
@@ -262,20 +267,20 @@ extension WebsiteAppEntity {
 			resultValueName: "Websites"
 		)
 
-		func allEntities() -> [WebsiteAppEntity] {
-			WebsitesController.shared.all.map(WebsiteAppEntity.init)
+		func allEntities() async -> [WebsiteAppEntity] {
+			await WebsitesController.shared.all.map(WebsiteAppEntity.init)
 		}
 
 		func suggestedEntities() async throws -> [WebsiteAppEntity] {
-			allEntities()
+			await allEntities()
 		}
 
 		func entities(for identifiers: [WebsiteAppEntity.ID]) async throws -> [WebsiteAppEntity] {
-			allEntities().filter { identifiers.contains($0.id) }
+			await allEntities().filter { identifiers.contains($0.id) }
 		}
 
 		func entities(matching query: String) async throws -> [WebsiteAppEntity] {
-			allEntities().filter {
+			await allEntities().filter {
 				$0.title.localizedCaseInsensitiveContains(query)
 					|| $0.url.absoluteString.localizedCaseInsensitiveContains(query)
 			}

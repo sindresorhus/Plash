@@ -12,10 +12,10 @@ struct SettingsScreen: View {
 			AdvancedSettings()
 				.settingsTabItem(.advanced)
 		}
-			.formStyle(.grouped)
-			.frame(width: 400)
-			.fixedSize()
-			.windowLevel(.floating + 1) // To ensure it's always above the Plash browser window.
+		.formStyle(.grouped)
+		.frame(width: 400)
+		.fixedSize()
+		.windowLevel(.floating + 1) // To ensure it's always above the Plash browser window.
 	}
 }
 
@@ -38,8 +38,6 @@ private struct GeneralSettings: View {
 }
 
 private struct ShortcutsSettings: View {
-	private let maxWidth = 160.0
-
 	var body: some View {
 		Form {
 			KeyboardShortcuts.Recorder("Toggle enabled state", name: .toggleEnabled)
@@ -77,7 +75,7 @@ private struct ShowOnAllSpacesSetting: View {
 			"Show on all spaces",
 			key: .showOnAllSpaces
 		)
-			.help("While disabled, Plash will display the website on the space that is active at launch.")
+		.help("While disabled, Plash will display the website on the space that is active at launch.")
 	}
 }
 
@@ -88,7 +86,7 @@ private struct BringBrowsingModeToFrontSetting: View {
 			"Bring browsing mode to the front",
 			key: .bringBrowsingModeToFront
 		)
-			.help("Keep the website above all other windows while browsing mode is active.")
+		.help("Keep the website above all other windows while browsing mode is active.")
 	}
 }
 
@@ -98,7 +96,7 @@ private struct OpenExternalLinksInBrowserSetting: View {
 			"Open external links in default browser",
 			key: .openExternalLinksInBrowser
 		)
-			.help("If a website requires login, you should disable this setting while logging in as the website might require you to navigate to a different page, and you don't want that to open in a browser instead of Plash.")
+		.help("If a website requires login, you should disable this setting while logging in as the website might require you to navigate to a different page, and you don't want that to open in a browser instead of Plash.")
 	}
 }
 
@@ -113,7 +111,7 @@ private struct OpacitySetting: View {
 		) {
 			Text("Opacity")
 		}
-			.help("Browsing mode always uses full opacity.")
+		.help("Browsing mode always uses full opacity.")
 	}
 }
 
@@ -133,10 +131,10 @@ private struct ReloadIntervalSetting: View {
 					value: reloadIntervalInMinutes,
 					format: .number.grouping(.never).precision(.fractionLength(1))
 				)
-					.labelsHidden()
-					.focused($isTextFieldFocused)
-					.frame(width: 40)
-					.disabled(reloadInterval == nil)
+				.labelsHidden()
+				.focused($isTextFieldFocused)
+				.frame(width: 40)
+				.disabled(reloadInterval == nil)
 				Stepper(
 					"",
 					value: reloadIntervalInMinutes.didSet { _ in
@@ -146,19 +144,19 @@ private struct ReloadIntervalSetting: View {
 					in: Self.minimumReloadInterval...(.greatestFiniteMagnitude),
 					step: 1
 				)
-					.labelsHidden()
-					.disabled(reloadInterval == nil)
+				.labelsHidden()
+				.disabled(reloadInterval == nil)
 				Text("minutes")
 					.textSelection(.disabled)
 			}
-				.contentShape(.rect)
+			.contentShape(.rect)
 			Toggle("Reload every", isOn: $reloadInterval.isNotNil(trueSetValue: Self.defaultReloadInterval))
 				.labelsHidden()
 				.controlSize(.mini)
 				.toggleStyle(.switch)
 		}
-			.accessibilityLabel("Reload interval in minutes")
-			.contentShape(.rect)
+		.accessibilityLabel("Reload interval in minutes")
+		.contentShape(.rect)
 	}
 
 	private var reloadIntervalInMinutes: Binding<Double> {
@@ -192,25 +190,27 @@ private struct DisplaySetting: View {
 
 	var body: some View {
 		Picker(
-			"Show on",
 			selection: $chosenDisplay.getMap(\.?.withFallbackToMain)
 		) {
 			ForEach(displayWrapper.wrappedValue.all) { display in
 				Text(display.localizedName)
-					.tag(display as Display?)
+					.tag(display)
 					// A view cannot have multiple tags, otherwise, this would have been the best solution.
 //					.if(display == .main) {
 //						$0.tag(nil as Display?)
 //					}
 			}
+		} label: {
+			Text("Show on")
+			Link("Multi-display support ›", destination: "https://github.com/sindresorhus/Plash/issues/2")
 		}
-			.task(id: chosenDisplay) {
-				guard chosenDisplay == nil else {
-					return
-				}
-
-				chosenDisplay = .main
+		.task(id: chosenDisplay) {
+			guard chosenDisplay == nil else {
+				return
 			}
+
+			chosenDisplay = .main
+		}
 	}
 }
 
@@ -218,15 +218,16 @@ private struct ClearWebsiteDataSetting: View {
 	@State private var hasCleared = false
 
 	var body: some View {
-		Button("Clear all website data", role: .destructive) {
+		// Not marked as destructive as it should mostly be used when it's together with other buttons.
+		Button("Clear all website data") {
 			Task {
 				hasCleared = true
 				WebsitesController.shared.thumbnailCache.removeAllImages()
 				await AppState.shared.webViewController.webView.clearWebsiteData()
 			}
 		}
-			.help("Clears all cookies, local storage, caches, etc.")
-			.disabled(hasCleared)
+		.help("Clears all cookies, local storage, caches, etc.")
+		.disabled(hasCleared)
 	}
 }
 

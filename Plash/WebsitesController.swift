@@ -1,6 +1,7 @@
 import SwiftUI
 import LinkPresentation
 
+@MainActor
 final class WebsitesController {
 	static let shared = WebsitesController()
 

@@ -2,13 +2,15 @@ import SwiftUI
 import KeyboardShortcuts
 
 enum Constants {
+	@MainActor
 	static var websitesWindow: NSWindow? {
 		NSApp.windows.first { $0.identifier?.rawValue == "websites" }
 	}
 
+	@MainActor
 	static func openWebsitesWindow() {
 		SSApp.forceActivate()
-		websitesWindow?.makeKeyAndOrderFront(nil)
+		EnvironmentValues().openWindow(id: "websites")
 	}
 }
 

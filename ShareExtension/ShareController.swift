@@ -1,7 +1,7 @@
 import Cocoa
 
 final class ShareController: ExtensionController {
-	override func run(_ context: NSExtensionContext) async throws -> [Any] {
+	override func run(_ context: NSExtensionContext) async throws -> [NSExtensionItem] {
 		guard
 			let url = try await (context.attachments.first { $0.hasItemConforming(to: .url) })?.loadTransferable(type: URL.self)
 		else {
@@ -22,3 +22,5 @@ final class ShareController: ExtensionController {
 		return []
 	}
 }
+
+extension NSItemProvider: @retroactive @unchecked Sendable {}
