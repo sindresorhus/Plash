@@ -28,9 +28,6 @@ Note: Support for multiple displays is currently limited to the ability to choos
 
 ■ Example use-cases
 
-- Show a random puppy image
-	Example URL: https://source.unsplash.com/random/2880x1756?puppy
-	See the “Tips” on how to get exact screen size.
 - Bing Photo of the Day
 	Read more: https://github.com/sindresorhus/plash-bing-photo-of-the-day
 - Random street view image

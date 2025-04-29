@@ -38,7 +38,7 @@ extension AppState {
 
 		SSEvents.deviceDidWake
 			.sink { [self] in
-				loadUserURL()
+				reloadWebsite()
 			}
 			.store(in: &cancellables)
 

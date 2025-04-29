@@ -86,9 +86,24 @@ extension AppState {
 				"Reload",
 				isEnabled: WebsitesController.shared.current != nil
 			) { [weak self] in
-				self?.loadUserURL()
+				self?.reloadWebsite()
 			}
 			.setShortcut(for: .reload)
+
+			// TODO: DRY this up with the one in SSWebView when everything is in SwiftUI.
+			if
+				let website = WebsitesController.shared.current,
+				let url = webViewController.webView.url?.normalized(),
+				website.url.normalized() != url
+			{
+				let menuItem = menu.addCallbackItem("Update Website to Current") {
+					WebsitesController.shared.all = WebsitesController.shared.all.modifying(elementWithID: website.id) {
+						$0.url = url
+					}
+				}
+
+				menuItem.toolTip = "Updates the URL for the stored website in Plash to the current URL"
+			}
 
 			menu.addCallbackItem(
 				"Browsing Mode",

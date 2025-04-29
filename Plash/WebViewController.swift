@@ -87,6 +87,14 @@ final class WebViewController: NSViewController {
 		view = webView
 	}
 
+	func reloadCurrentPage() {
+		webView.reload()
+	}
+
+	func reloadCurrentPageFromOrigin() {
+		webView.reloadFromOrigin()
+	}
+
 	private(set) lazy var webView = createWebView()
 
 	override func loadView() {

@@ -139,7 +139,7 @@ final class AppState: ObservableObject {
 
 		reloadTimer = Timer.scheduledTimer(withTimeInterval: reloadInterval, repeats: true) { [self] _ in
 			Task { @MainActor in
-				loadUserURL()
+				reloadWebsite()
 			}
 		}
 	}
@@ -155,7 +155,10 @@ final class AppState: ObservableObject {
 	}
 
 	func reloadWebsite() {
+		// We always load the website the user specified in case it's a redirect that may change on each call.
 		loadUserURL()
+
+//		webViewController.reloadCurrentPageFromOrigin()
 	}
 
 	func loadUserURL() {
