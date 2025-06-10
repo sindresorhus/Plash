@@ -15,10 +15,6 @@ Plash enables you to have a highly dynamic desktop wallpaper. You could display 
 
 ## Use-cases
 
-- [**Random Unsplash image**](https://source.unsplash.com)\
-	Example: https://source.unsplash.com/random/2880x1756?puppy \
-		This returns a new random puppy image each time.
-	See the [tip](#tips) on how to get exact screen size.
 - [**Bing Photo of the Day**](https://github.com/sindresorhus/plash-bing-photo-of-the-day)
 - **Calendar**\
 	For example, Google Calendar or Outlook 365.
