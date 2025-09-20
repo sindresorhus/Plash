@@ -77,7 +77,7 @@ extension AppState {
 
 		Defaults.publisher(.opacity)
 			.sink { [self] change in
-				desktopWindow.alphaValue = isBrowsingMode ? 1 : change.newValue
+				applyOpacity(change.newValue)
 			}
 			.store(in: &cancellables)
 
@@ -89,7 +89,7 @@ extension AppState {
 
 		Defaults.publisher(.display, options: [])
 			.sink { [self] change in
-				desktopWindow.targetDisplay = change.newValue
+				handleDisplaySelectionChange(change.newValue)
 			}
 			.store(in: &cancellables)
 
@@ -101,13 +101,13 @@ extension AppState {
 
 		Defaults.publisher(.showOnAllSpaces)
 			.sink { [self] change in
-				desktopWindow.collectionBehavior.toggleExistence(.canJoinAllSpaces, shouldExist: change.newValue)
+				applyShowOnAllSpaces(change.newValue)
 			}
 			.store(in: &cancellables)
 
 		Defaults.publisher(.bringBrowsingModeToFront, options: [])
 			.sink { [self] _ in
-				desktopWindow.isInteractive = desktopWindow.isInteractive
+				refreshInteractiveLevels()
 			}
 			.store(in: &cancellables)
 

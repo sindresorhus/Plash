@@ -162,11 +162,6 @@ private struct ReloadIntervalSetting: View {
 	private var reloadIntervalInMinutes: Binding<Double> {
 		$reloadInterval.withDefaultValue(Self.defaultReloadInterval).secondsToMinutes
 	}
-
-	// TODO: We don't use this binding as it causes the toggle to not always work because of some weirdities with the formatter. (macOS 12.4)
-//	private var hasInterval: Binding<Bool> {
-//		$reloadInterval.isNotNil(trueSetValue: Self.defaultReloadInterval)
-//	}
 }
 
 private struct HideMenuBarIconSetting: View {
@@ -190,26 +185,16 @@ private struct DisplaySetting: View {
 
 	var body: some View {
 		Picker(
-			selection: $chosenDisplay.getMap(\.?.withFallbackToMain)
+			selection: $chosenDisplay
 		) {
+			Text("-= ALL =-").tag(nil as Display?)
 			ForEach(displayWrapper.wrappedValue.all) { display in
 				Text(display.localizedName)
-					.tag(display)
-					// A view cannot have multiple tags, otherwise, this would have been the best solution.
-//					.if(display == .main) {
-//						$0.tag(nil as Display?)
-//					}
+					.tag(display as Display?)
 			}
 		} label: {
 			Text("Show on")
 			Link("Multi-display support ›", destination: "https://github.com/sindresorhus/Plash/issues/2")
-		}
-		.task(id: chosenDisplay) {
-			guard chosenDisplay == nil else {
-				return
-			}
-
-			chosenDisplay = .main
 		}
 	}
 }

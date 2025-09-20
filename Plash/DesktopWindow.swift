@@ -29,6 +29,17 @@ final class DesktopWindow: NSWindow {
 		}
 	}
 
+	/// Re-apply the appropriate window level and mouse event state for the current interactivity without toggling `isInteractive`.
+	func refreshInteractiveLevel() {
+		if isInteractive {
+			level = Defaults[.bringBrowsingModeToFront] ? .floating : (.desktopIcon + 1)
+			ignoresMouseEvents = false
+		} else {
+			level = .desktop
+			ignoresMouseEvents = true
+		}
+	}
+
 	convenience init(display: Display?) {
 		self.init(
 			contentRect: .zero,
